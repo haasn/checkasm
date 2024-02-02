@@ -5,6 +5,6 @@ project('checkasm_example',
 nihcpy = library('nihcpy',
   files(
     'src/nihcpy.c',
-    'src/nihcpy_x86.asm'
+    'src/x86/nihcpy_x86.asm'
   ),
   install : false)
