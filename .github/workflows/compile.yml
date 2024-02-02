@@ -1,9 +1,3 @@
-- name: Setup Meson
-  uses: actions/setup-python@v5.0.0
-  with:
-    cache: 'pip'
-  - run: pip install -r requirements.txt
-
 name: Compile
 
 on:
@@ -23,6 +17,8 @@ jobs:
         cache: 'pip'
     - name: Install meson
       run: pip install meson ninja
+    - name: Install nasm
+      run: sudo apt-get install nasm
     - uses: actions/checkout@v3
     - name: Configure
       run: meson setup build
