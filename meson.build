@@ -29,7 +29,9 @@ project('checkasm_example',
   ['c', 'nasm'],
   default_options: ['warning_level=3'])
 
-add_project_arguments('-D_GNU_SOURCE', language: 'c')
+if host_machine.system() in ['linux', 'gnu', 'emscripten']
+  add_project_arguments('-D_GNU_SOURCE', language: 'c')
+endif
 
 if get_option('b_sanitize') == 'memory'
     error('asm causes false positives with the memory sanitizer.')
