@@ -23,4 +23,4 @@ jobs:
     - name: Configure
       run: meson setup build
     - name: Build
-      run: meson compile -C build
+      run: meson compile -C build -v
