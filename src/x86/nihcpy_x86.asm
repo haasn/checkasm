@@ -1,6 +1,12 @@
-global    _nihcpy_x86
+%ifdef PREFIX
+    %define mangle(x) _ %+ x
+%else
+    %define mangle(x) x
+%endif
 
-_nihcpy_x86:
+global    mangle(nihcpy_x86)
+
+mangle(nihcpy_x86):
     mov   rax, rdx
     mov   rdi, rdx
     rep   movsb
