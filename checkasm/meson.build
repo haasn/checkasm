@@ -40,7 +40,6 @@ test_args = []
 
 if host_machine.system() in ['linux', 'gnu', 'emscripten']
     test_args += '-D_GNU_SOURCE'
-    add_project_arguments('-D_GNU_SOURCE', language: 'c')
 endif
 
 checkasm_defines = {
