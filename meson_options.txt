@@ -1,0 +1,4 @@
+option('macos_kperf',
+    type: 'boolean',
+    value: false,
+    description: 'Use the private macOS kperf API for benchmarking')
