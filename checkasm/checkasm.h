@@ -360,6 +360,26 @@ void checkasm_stack_clobber(uint64_t clobber, ...);
     checkasm_set_signal_handler_state(0)
 #endif /* HAVE_ASM */
 
+#define CALL4(...)\
+    do {\
+        talt = 0;\
+        tfunc(__VA_ARGS__); \
+        talt = 1;\
+        tfunc(__VA_ARGS__); \
+        talt = 0;\
+        tfunc(__VA_ARGS__); \
+        talt = 1;\
+        tfunc(__VA_ARGS__); \
+    } while (0)
+
+#define CALL16(...)\
+    do {\
+        CALL4(__VA_ARGS__); \
+        CALL4(__VA_ARGS__); \
+        CALL4(__VA_ARGS__); \
+        CALL4(__VA_ARGS__); \
+    } while (0)
+
 /* Benchmark the function */
 #ifdef readtime
 #define bench_new(...)\
@@ -369,16 +389,12 @@ void checkasm_stack_clobber(uint64_t clobber, ...);
             checkasm_set_signal_handler_state(1);\
             uint64_t tsum = 0;\
             int tcount = 0;\
-            for (int ti = 0; ti < BENCH_RUNS; ti++) {\
+            const unsigned truns = umax(BENCH_RUNS >> 3, 1);\
+            for (unsigned ti = 0; ti < truns; ti++) {\
                 uint64_t t = readtime();\
-                int talt = 0; (void)talt;\
-                tfunc(__VA_ARGS__);\
-                talt = 1;\
-                tfunc(__VA_ARGS__);\
-                talt = 0;\
-                tfunc(__VA_ARGS__);\
-                talt = 1;\
-                tfunc(__VA_ARGS__);\
+                int talt; (void)talt;\
+                CALL16(__VA_ARGS__);\
+                CALL16(__VA_ARGS__);\
                 t = readtime() - t;\
                 if (t*tcount <= tsum*4 && ti > 0) {\
                     tsum += t;\
