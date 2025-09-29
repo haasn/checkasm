@@ -100,8 +100,8 @@ function checked_call, export=1, ext=v
 .endr
 
   /* Check for vector extension */
-  call dav1d_get_cpu_flags_riscv
-  and a0, a0, 1 # DAV1D_RISCV_CPU_FLAG_RVV
+  call checkasm_get_cpu_flags_riscv
+  and a0, a0, 1 # CHECKASM_RISCV_CPU_FLAG_RVV
   beqz a0, 0f
 
   /* Clobber vector configuration */

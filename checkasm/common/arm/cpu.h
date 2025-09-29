@@ -25,17 +25,17 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef DAV1D_SRC_ARM_CPU_H
-#define DAV1D_SRC_ARM_CPU_H
+#ifndef CHECKASM_SRC_ARM_CPU_H
+#define CHECKASM_SRC_ARM_CPU_H
 
 enum CpuFlags {
-    DAV1D_ARM_CPU_FLAG_NEON = 1 << 0,
-    DAV1D_ARM_CPU_FLAG_DOTPROD = 1 << 1,
-    DAV1D_ARM_CPU_FLAG_I8MM = 1 << 2,
-    DAV1D_ARM_CPU_FLAG_SVE = 1 << 3,
-    DAV1D_ARM_CPU_FLAG_SVE2 = 1 << 4,
+    CHECKASM_ARM_CPU_FLAG_NEON = 1 << 0,
+    CHECKASM_ARM_CPU_FLAG_DOTPROD = 1 << 1,
+    CHECKASM_ARM_CPU_FLAG_I8MM = 1 << 2,
+    CHECKASM_ARM_CPU_FLAG_SVE = 1 << 3,
+    CHECKASM_ARM_CPU_FLAG_SVE2 = 1 << 4,
 };
 
-unsigned dav1d_get_cpu_flags_arm(void);
+unsigned checkasm_get_cpu_flags_arm(void);
 
-#endif /* DAV1D_SRC_ARM_CPU_H */
+#endif /* CHECKASM_SRC_ARM_CPU_H */

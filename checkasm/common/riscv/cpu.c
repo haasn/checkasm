@@ -37,13 +37,13 @@
 
 #endif
 
-int dav1d_has_compliant_rvv(void);
+int checkasm_has_compliant_rvv(void);
 
-COLD unsigned dav1d_get_cpu_flags_riscv(void) {
-    unsigned flags = dav1d_get_default_cpu_flags();
+COLD unsigned checkasm_get_cpu_flags_riscv(void) {
+    unsigned flags = checkasm_get_default_cpu_flags();
 #if HAVE_GETAUXVAL
-    unsigned long hw_cap = dav1d_getauxval(AT_HWCAP);
-    flags |= (hw_cap & HWCAP_RVV) && dav1d_has_compliant_rvv() ? DAV1D_RISCV_CPU_FLAG_V : 0;
+    unsigned long hw_cap = checkasm_getauxval(AT_HWCAP);
+    flags |= (hw_cap & HWCAP_RVV) && checkasm_has_compliant_rvv() ? CHECKASM_RISCV_CPU_FLAG_V : 0;
 #endif
 
     return flags;

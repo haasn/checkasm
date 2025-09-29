@@ -25,8 +25,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef DAV1D_COMMON_ATTRIBUTES_H
-#define DAV1D_COMMON_ATTRIBUTES_H
+#ifndef CHECKASM_COMMON_ATTRIBUTES_H
+#define CHECKASM_COMMON_ATTRIBUTES_H
 
 #include <stddef.h>
 #include <assert.h>
@@ -136,9 +136,9 @@
 #endif
 
 #if defined(__GNUC__) && !defined(__INTEL_COMPILER) && !defined(__clang__)
-#    define dav1d_uninit(x) x=x
+#    define checkasm_uninit(x) x=x
 #else
-#    define dav1d_uninit(x) x
+#    define checkasm_uninit(x) x
 #endif
 
 #if defined(_MSC_VER) && !defined(__clang__)
@@ -202,4 +202,4 @@ static inline int clzll(const unsigned long long mask) {
 #define PACKED(...) __VA_ARGS__ __attribute__((__packed__))
 #endif
 
-#endif /* DAV1D_COMMON_ATTRIBUTES_H */
+#endif /* CHECKASM_COMMON_ATTRIBUTES_H */

@@ -64,9 +64,9 @@ static void check_nihcpy(size_t size, void *(*fun)(void *dest, const void *src, 
 void checkasm_check_nihcpy(void) {
     void *(*fun)(void *dest, const void *src, size_t n) = &nihcpy;
 
-    const unsigned flags = dav1d_get_cpu_flags();
+    const unsigned flags = checkasm_get_cpu_flags();
 
-    if ((flags & DAV1D_X86_CPU_FLAG_SSE2))
+    if ((flags & CHECKASM_X86_CPU_FLAG_SSE2))
         fun = &nihcpy_x86;
 
     check_nihcpy(3, fun);

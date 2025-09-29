@@ -55,31 +55,31 @@
 #include <sys/auxv.h>
 #endif
 
-unsigned dav1d_cpu_flags = 0U;
-unsigned dav1d_cpu_flags_mask = ~0U;
+unsigned checkasm_cpu_flags = 0U;
+unsigned checkasm_cpu_flags_mask = ~0U;
 
-COLD void dav1d_init_cpu(void) {
+COLD void checkasm_init_cpu(void) {
 #if HAVE_ASM && !__has_feature(memory_sanitizer)
 // memory sanitizer is inherently incompatible with asm
 #if ARCH_AARCH64 || ARCH_ARM
-    dav1d_cpu_flags = dav1d_get_cpu_flags_arm();
+    checkasm_cpu_flags = checkasm_get_cpu_flags_arm();
 #elif ARCH_LOONGARCH
-    dav1d_cpu_flags = dav1d_get_cpu_flags_loongarch();
+    checkasm_cpu_flags = checkasm_get_cpu_flags_loongarch();
 #elif ARCH_PPC64LE
-    dav1d_cpu_flags = dav1d_get_cpu_flags_ppc();
+    checkasm_cpu_flags = checkasm_get_cpu_flags_ppc();
 #elif ARCH_RISCV
-    dav1d_cpu_flags = dav1d_get_cpu_flags_riscv();
+    checkasm_cpu_flags = checkasm_get_cpu_flags_riscv();
 #elif ARCH_X86
-    dav1d_cpu_flags = dav1d_get_cpu_flags_x86();
+    checkasm_cpu_flags = checkasm_get_cpu_flags_x86();
 #endif
 #endif
 }
 
-COLD void dav1d_set_cpu_flags_mask(const unsigned mask) {
-    dav1d_cpu_flags_mask = mask;
+COLD void checkasm_set_cpu_flags_mask(const unsigned mask) {
+    checkasm_cpu_flags_mask = mask;
 }
 
-COLD int dav1d_num_logical_processors(void) {
+COLD int checkasm_num_logical_processors(void) {
 #ifdef _WIN32
 #if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
     GROUP_AFFINITY affinity;
@@ -109,7 +109,7 @@ COLD int dav1d_num_logical_processors(void) {
     return 1;
 }
 
-COLD unsigned long dav1d_getauxval(unsigned long type) {
+COLD unsigned long checkasm_getauxval(unsigned long type) {
 #if HAVE_GETAUXVAL
     return getauxval(type);
 #elif HAVE_ELF_AUX_INFO

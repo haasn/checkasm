@@ -24,14 +24,14 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef DAV1D_SRC_LOONGARCH_CPU_H
-#define DAV1D_SRC_LOONGARCH_CPU_H
+#ifndef CHECKASM_SRC_LOONGARCH_CPU_H
+#define CHECKASM_SRC_LOONGARCH_CPU_H
 
 enum CpuFlags {
-    DAV1D_LOONGARCH_CPU_FLAG_LSX  = 1 << 0,
-    DAV1D_LOONGARCH_CPU_FLAG_LASX = 1 << 1,
+    CHECKASM_LOONGARCH_CPU_FLAG_LSX  = 1 << 0,
+    CHECKASM_LOONGARCH_CPU_FLAG_LASX = 1 << 1,
 };
 
-unsigned dav1d_get_cpu_flags_loongarch(void);
+unsigned checkasm_get_cpu_flags_loongarch(void);
 
-#endif /* DAV1D_SRC_LOONGARCH_CPU_H */
+#endif /* CHECKASM_SRC_LOONGARCH_CPU_H */
