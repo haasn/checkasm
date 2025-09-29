@@ -8,6 +8,6 @@ global    mangle(nihcpy_x86)
 
 mangle(nihcpy_x86):
     mov   rax, rdx
-    mov   rdi, rdx
+    mov   rcx, rdx
     rep   movsb
     ret
