@@ -160,12 +160,6 @@ static struct {
 #endif
 } state;
 
-/* float compare support code */
-typedef union {
-    float f;
-    uint32_t i;
-} intfloat;
-
 static uint32_t xs_state[4];
 
 static void xor128_srand(unsigned seed) {
@@ -208,7 +202,8 @@ static int (*kpc_get_thread_counters)(int, unsigned int, void *);
 #define CONFIG_COUNT 8
 #define KPC_MASK (KPC_CLASS_CONFIGURABLE_MASK | KPC_CLASS_FIXED_MASK)
 
-static int kperf_init(void) {
+static int kperf_init(void)
+{
     uint64_t config[COUNTERS_COUNT] = { 0 };
 
     void *kperf = dlopen("/System/Library/PrivateFrameworks/kperf.framework/kperf", RTLD_LAZY);
@@ -269,11 +264,19 @@ uint64_t checkasm_kperf_cycles(void) {
 }
 #endif
 
-static int is_negative(const intfloat u) {
+/* float compare support code */
+typedef union {
+    float f;
+    uint32_t i;
+} intfloat;
+
+static int is_negative(const intfloat u)
+{
     return u.i >> 31;
 }
 
-int float_near_ulp(const float a, const float b, const unsigned max_ulp) {
+int float_near_ulp(const float a, const float b, const unsigned max_ulp)
+{
     intfloat x, y;
 
     x.f = a;
@@ -300,7 +303,8 @@ int float_near_ulp_array(const float *const a, const float *const b,
     return 1;
 }
 
-int float_near_abs_eps(const float a, const float b, const float eps) {
+int float_near_abs_eps(const float a, const float b, const float eps)
+{
     return fabsf(a - b) < eps;
 }
 
@@ -333,7 +337,8 @@ int float_near_abs_eps_array_ulp(const float *const a, const float *const b,
 
 /* Print colored text to stderr if the terminal supports it */
 static int use_printf_color;
-static void color_fprintf(FILE *const f, const int color, const char *const fmt, ...) {
+static void color_fprintf(FILE *const f, const int color, const char *const fmt, ...)
+{
     va_list arg;
 
     if (use_printf_color)
@@ -348,7 +353,8 @@ static void color_fprintf(FILE *const f, const int color, const char *const fmt,
 }
 
 /* Deallocate a tree */
-static void destroy_func_tree(CheckasmFunc *const f) {
+static void destroy_func_tree(CheckasmFunc *const f)
+{
     if (f) {
         CheckasmFuncVersion *v = f->versions.next;
         while (v) {
@@ -364,7 +370,8 @@ static void destroy_func_tree(CheckasmFunc *const f) {
 }
 
 /* Allocate a zero-initialized block, clean up and exit on failure */
-static void *checkasm_malloc(const size_t size) {
+static void *checkasm_malloc(const size_t size)
+{
     void *const ptr = calloc(1, size);
     if (!ptr) {
         fprintf(stderr, "checkasm: malloc failed\n");
@@ -375,7 +382,8 @@ static void *checkasm_malloc(const size_t size) {
 }
 
 /* Get the suffix of the specified cpu flag */
-static const char *cpu_suffix(const unsigned cpu) {
+static const char *cpu_suffix(const unsigned cpu)
+{
     for (int i = (int)(sizeof(cpus) / sizeof(*cpus)) - 2; i >= 0; i--)
         if (cpu & cpus[i].flag)
             return cpus[i].suffix;
@@ -384,12 +392,14 @@ static const char *cpu_suffix(const unsigned cpu) {
 }
 
 #ifdef readtime
-static int cmp_nop(const void *a, const void *b) {
+static int cmp_nop(const void *a, const void *b)
+{
     return *(const uint16_t*)a - *(const uint16_t*)b;
 }
 
 /* Measure the overhead of the timing code (in decicycles) */
-static double measure_nop_time(void) {
+static double measure_nop_time(void)
+{
     uint16_t nops[10000];
     int nop_sum = 0;
 
@@ -405,7 +415,8 @@ static double measure_nop_time(void) {
     return nop_sum / 5000.0;
 }
 
-static double avg_cycles_per_call(const CheckasmFuncVersion *const v) {
+static double avg_cycles_per_call(const CheckasmFuncVersion *const v)
+{
     if (v->iterations) {
         const double cycles = (double)v->cycles / v->iterations - state.nop_time;
         if (cycles > 0.0)
@@ -415,7 +426,8 @@ static double avg_cycles_per_call(const CheckasmFuncVersion *const v) {
 }
 
 /* Print benchmark results */
-static void print_benchs(const CheckasmFunc *const f) {
+static void print_benchs(const CheckasmFunc *const f)
+{
     if (f) {
         print_benchs(f->child[0]);
 
@@ -436,7 +448,8 @@ static void print_benchs(const CheckasmFunc *const f) {
 }
 #endif
 
-static void print_functions(const CheckasmFunc *const f) {
+static void print_functions(const CheckasmFunc *const f)
+{
     if (f) {
         print_functions(f->child[0]);
         const CheckasmFuncVersion *v = &f->versions;
@@ -451,7 +464,8 @@ static void print_functions(const CheckasmFunc *const f) {
 #define is_digit(x) ((x) >= '0' && (x) <= '9')
 
 /* ASCIIbetical sort except preserving natural order for numbers */
-static int cmp_func_names(const char *a, const char *b) {
+static int cmp_func_names(const char *a, const char *b)
+{
     const char *const start = a;
     int ascii_diff, digit_diff;
 
@@ -469,7 +483,8 @@ static int cmp_func_names(const char *a, const char *b) {
 }
 
 /* Perform a tree rotation in the specified direction and return the new root */
-static CheckasmFunc *rotate_tree(CheckasmFunc *const f, const int dir) {
+static CheckasmFunc *rotate_tree(CheckasmFunc *const f, const int dir)
+{
     CheckasmFunc *const r = f->child[dir^1];
     f->child[dir^1] = r->child[dir];
     r->child[dir] = f;
@@ -481,7 +496,8 @@ static CheckasmFunc *rotate_tree(CheckasmFunc *const f, const int dir) {
 #define is_red(f) ((f) && !(f)->color)
 
 /* Balance a left-leaning red-black tree at the specified node */
-static void balance_tree(CheckasmFunc **const root) {
+static void balance_tree(CheckasmFunc **const root)
+{
     CheckasmFunc *const f = *root;
 
     if (is_red(f->child[0]) && is_red(f->child[1])) {
@@ -495,7 +511,8 @@ static void balance_tree(CheckasmFunc **const root) {
 }
 
 /* Get a node with the specified name, creating it if it doesn't exist */
-static CheckasmFunc *get_func(CheckasmFunc **const root, const char *const name) {
+static CheckasmFunc *get_func(CheckasmFunc **const root, const char *const name)
+{
     CheckasmFunc *f = *root;
 
     if (f) {
@@ -524,7 +541,8 @@ checkasm_context checkasm_context_buf;
  * gracefully instead of just aborting abruptly. */
 #ifdef _WIN32
 #if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
-static LONG NTAPI signal_handler(EXCEPTION_POINTERS *const e) {
+static LONG NTAPI signal_handler(EXCEPTION_POINTERS *const e)
+{
     if (state.sig == SIG_ATOMIC_MAX) {
         int s;
         switch (e->ExceptionRecord->ExceptionCode) {
@@ -562,7 +580,8 @@ static const struct sigaction signal_handler_act = {
     .sa_flags = SA_RESETHAND,
 };
 
-static void signal_handler(const int s) {
+static void signal_handler(const int s)
+{
     if (state.sig == SIG_ATOMIC_MAX) {
         state.sig = s;
         sigaction(s, &signal_handler_act, NULL);
@@ -572,7 +591,8 @@ static void signal_handler(const int s) {
 #endif
 
 /* Compares a string with a wildcard pattern. */
-static int wildstrcmp(const char *str, const char *pattern) {
+static int wildstrcmp(const char *str, const char *pattern)
+{
     const char *wild = strchr(pattern, '*');
     if (wild) {
         const size_t len = wild - pattern;
@@ -588,7 +608,8 @@ static int wildstrcmp(const char *str, const char *pattern) {
 
 /* Perform tests and benchmarks for the specified
  * cpu flag if supported by the host */
-static void check_cpu_flag(const char *const name, unsigned flag) {
+static void check_cpu_flag(const char *const name, unsigned flag)
+{
     const unsigned old_cpu_flag = state.cpu_flag;
 
     flag |= old_cpu_flag;
@@ -609,14 +630,16 @@ static void check_cpu_flag(const char *const name, unsigned flag) {
 }
 
 /* Print the name of the current CPU flag, but only do it once */
-static void print_cpu_name(void) {
+static void print_cpu_name(void)
+{
     if (state.cpu_flag_name) {
         color_fprintf(stderr, COLOR_YELLOW, "%s:\n", state.cpu_flag_name);
         state.cpu_flag_name = NULL;
     }
 }
 
-static unsigned get_seed(void) {
+static unsigned get_seed(void)
+{
 #ifdef _WIN32
     LARGE_INTEGER i;
     QueryPerformanceCounter(&i);
@@ -630,14 +653,16 @@ static unsigned get_seed(void) {
 #endif
 }
 
-static int checkasm_strtoul(unsigned long *const dst, const char *const str, const int base) {
+static int checkasm_strtoul(unsigned long *const dst, const char *const str, const int base)
+{
     char *end;
     errno = 0;
     *dst = strtoul(str, &end, base);
     return errno || end == str || *end;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
     state.seed = get_seed();
 
     while (argc > 1) {
@@ -876,7 +901,8 @@ int main(int argc, char *argv[]) {
 /* Decide whether or not the specified function needs to be tested and
  * allocate/initialize data structures if needed. Returns a pointer to a
  * reference function if the function should be tested, otherwise NULL */
-void *checkasm_check_func(void *const func, const char *const name, ...) {
+void *checkasm_check_func(void *const func, const char *const name, ...)
+{
     char name_buf[256];
     va_list arg;
 
@@ -932,13 +958,15 @@ void *checkasm_check_func(void *const func, const char *const name, ...) {
 }
 
 /* Decide whether or not the current function needs to be benchmarked */
-int checkasm_bench_func(void) {
+int checkasm_bench_func(void)
+{
     return !state.num_failed && state.run_mode == RUN_BENCHMARK;
 }
 
 /* Indicate that the current test has failed, return whether verbose printing
  * is requested. */
-int checkasm_fail_func(const char *const msg, ...) {
+int checkasm_fail_func(const char *const msg, ...)
+{
     if (state.current_func_ver && state.current_func_ver->cpu &&
         state.current_func_ver->ok)
     {
@@ -959,14 +987,16 @@ int checkasm_fail_func(const char *const msg, ...) {
 }
 
 /* Update benchmark results of the current function */
-void checkasm_update_bench(const int iterations, const uint64_t cycles) {
+void checkasm_update_bench(const int iterations, const uint64_t cycles)
+{
     state.current_func_ver->iterations += iterations;
     state.current_func_ver->cycles += cycles;
 }
 
 /* Print the outcome of all tests performed since
  * the last time this function was called */
-void checkasm_report(const char *const name, ...) {
+void checkasm_report(const char *const name, ...)
+{
     static int prev_checked, prev_failed;
     static size_t max_length;
 
@@ -1004,11 +1034,13 @@ void checkasm_report(const char *const name, ...) {
     }
 }
 
-void checkasm_set_signal_handler_state(const int enabled) {
+void checkasm_set_signal_handler_state(const int enabled)
+{
     state.sig = enabled ? SIG_ATOMIC_MAX : 0;
 }
 
-void checkasm_handle_signal(void) {
+void checkasm_handle_signal(void)
+{
     const int s = state.sig;
     checkasm_fail_func(s == SIGFPE ? "fatal arithmetic error" :
                        s == SIGILL ? "illegal instruction" :
