@@ -25,31 +25,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <stdint.h>
 #include <errno.h>
 
 #include "cpu.h"
-
-#ifdef _WIN32
-#include <windows.h>
-#endif
-#ifdef __APPLE__
-#include <sys/sysctl.h>
-#include <sys/types.h>
-#endif
-#if HAVE_UNISTD_H
-#include <unistd.h>
-#endif
-
-#if HAVE_PTHREAD_GETAFFINITY_NP
-#include <pthread.h>
-#if HAVE_PTHREAD_NP_H
-#include <pthread_np.h>
-#endif
-#if defined(__FreeBSD__)
-#define cpu_set_t cpuset_t
-#endif
-#endif
 
 #if HAVE_GETAUXVAL || HAVE_ELF_AUX_INFO
 #include <sys/auxv.h>
@@ -77,36 +55,6 @@ COLD void checkasm_init_cpu(void) {
 
 COLD void checkasm_set_cpu_flags_mask(const unsigned mask) {
     checkasm_cpu_flags_mask = mask;
-}
-
-COLD int checkasm_num_logical_processors(void) {
-#ifdef _WIN32
-#if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
-    GROUP_AFFINITY affinity;
-    if (GetThreadGroupAffinity(GetCurrentThread(), &affinity)) {
-        int num_processors = 1;
-        while (affinity.Mask &= affinity.Mask - 1)
-            num_processors++;
-        return num_processors;
-    }
-#else
-    SYSTEM_INFO system_info;
-    GetNativeSystemInfo(&system_info);
-    return system_info.dwNumberOfProcessors;
-#endif
-#elif HAVE_PTHREAD_GETAFFINITY_NP && defined(CPU_COUNT)
-    cpu_set_t affinity;
-    if (!pthread_getaffinity_np(pthread_self(), sizeof(affinity), &affinity))
-        return CPU_COUNT(&affinity);
-#elif defined(__APPLE__)
-    int num_processors;
-    size_t length = sizeof(num_processors);
-    if (!sysctlbyname("hw.logicalcpu", &num_processors, &length, NULL, 0))
-        return num_processors;
-#elif defined(_SC_NPROCESSORS_ONLN)
-    return (int)sysconf(_SC_NPROCESSORS_ONLN);
-#endif
-    return 1;
 }
 
 COLD unsigned long checkasm_getauxval(unsigned long type) {
