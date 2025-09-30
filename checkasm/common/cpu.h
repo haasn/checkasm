@@ -49,82 +49,9 @@ void checkasm_init_cpu(void);
 void checkasm_set_cpu_flags_mask(unsigned mask);
 unsigned long checkasm_getauxval(unsigned long);
 
-static ALWAYS_INLINE unsigned checkasm_get_default_cpu_flags(void) {
-    unsigned flags = 0;
-
-#if ARCH_AARCH64 || ARCH_ARM
-#if defined(__ARM_NEON) || defined(__APPLE__) || defined(_WIN32) || ARCH_AARCH64
-    flags |= CHECKASM_ARM_CPU_FLAG_NEON;
-#endif
-#ifdef __ARM_FEATURE_DOTPROD
-    flags |= CHECKASM_ARM_CPU_FLAG_DOTPROD;
-#endif
-#ifdef __ARM_FEATURE_MATMUL_INT8
-    flags |= CHECKASM_ARM_CPU_FLAG_I8MM;
-#endif
-#if ARCH_AARCH64
-#ifdef __ARM_FEATURE_SVE
-    flags |= CHECKASM_ARM_CPU_FLAG_SVE;
-#endif
-#ifdef __ARM_FEATURE_SVE2
-    flags |= CHECKASM_ARM_CPU_FLAG_SVE2;
-#endif
-#endif /* ARCH_AARCH64 */
-#elif ARCH_PPC64LE
-#if defined(__VSX__)
-    flags |= CHECKASM_PPC_CPU_FLAG_VSX;
-#endif
-#if defined(__POWER9_VECTOR__)
-    flags |= CHECKASM_PPC_CPU_FLAG_PWR9;
-#endif
-#elif ARCH_RISCV
-#if defined(__riscv_v)
-    flags |= CHECKASM_RISCV_CPU_FLAG_V;
-#endif
-#elif ARCH_X86
-#if defined(__AVX512F__) && defined(__AVX512CD__) && \
-    defined(__AVX512BW__) && defined(__AVX512DQ__) && \
-    defined(__AVX512VL__) && defined(__AVX512VNNI__) && \
-    defined(__AVX512IFMA__) && defined(__AVX512VBMI__) && \
-    defined(__AVX512VBMI2__) && defined(__AVX512VPOPCNTDQ__) && \
-    defined(__AVX512BITALG__) && defined(__GFNI__) && \
-    defined(__VAES__) && defined(__VPCLMULQDQ__)
-    flags |= CHECKASM_X86_CPU_FLAG_AVX512ICL |
-             CHECKASM_X86_CPU_FLAG_AVX2 |
-             CHECKASM_X86_CPU_FLAG_SSE41 |
-             CHECKASM_X86_CPU_FLAG_SSSE3 |
-             CHECKASM_X86_CPU_FLAG_SSE2;
-#elif defined(__AVX2__)
-    flags |= CHECKASM_X86_CPU_FLAG_AVX2 |
-             CHECKASM_X86_CPU_FLAG_SSE41 |
-             CHECKASM_X86_CPU_FLAG_SSSE3 |
-             CHECKASM_X86_CPU_FLAG_SSE2;
-#elif defined(__SSE4_1__) || defined(__AVX__)
-    flags |= CHECKASM_X86_CPU_FLAG_SSE41 |
-             CHECKASM_X86_CPU_FLAG_SSSE3 |
-             CHECKASM_X86_CPU_FLAG_SSE2;
-#elif defined(__SSSE3__)
-    flags |= CHECKASM_X86_CPU_FLAG_SSSE3 |
-             CHECKASM_X86_CPU_FLAG_SSE2;
-#elif ARCH_X86_64 || defined(__SSE2__) || \
-      (defined(_M_IX86_FP) && _M_IX86_FP >= 2)
-    flags |= CHECKASM_X86_CPU_FLAG_SSE2;
-#endif
-#endif
-
-    return flags;
-}
-
-static ALWAYS_INLINE unsigned checkasm_get_cpu_flags(void) {
-    unsigned flags = checkasm_cpu_flags & checkasm_cpu_flags_mask;
-
-#if TRIM_DSP_FUNCTIONS
-/* Since this function is inlined, unconditionally setting a flag here will
- * enable dead code elimination in the calling function. */
-    flags |= checkasm_get_default_cpu_flags();
-#endif
-
-    return flags;
+static ALWAYS_INLINE unsigned checkasm_get_cpu_flags(void)
+{
+    return checkasm_cpu_flags & checkasm_cpu_flags_mask;
 }
 
 #endif /* CHECKASM_COMMON_CPU_H */

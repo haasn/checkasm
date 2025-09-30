@@ -788,11 +788,6 @@ int main(int argc, char *argv[])
         argv++;
     }
 
-#if TRIM_DSP_FUNCTIONS
-    fprintf(stderr, "checkasm: reference functions unavailable, reconfigure using '-Dtrim_dsp=false'\n");
-    return 0;
-#endif
-
     checkasm_init_cpu();
 
 #ifdef _WIN32
