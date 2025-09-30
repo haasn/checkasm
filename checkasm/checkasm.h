@@ -91,6 +91,9 @@ int float_near_abs_eps_array(const float *a, const float *b, float eps,
                              int len);
 int float_near_abs_eps_array_ulp(const float *a, const float *b, float eps,
                                  unsigned max_ulp, int len);
+int double_near_abs_eps(double a, double b, double eps);
+int double_near_abs_eps_array(const double *a, const double *b, double eps,
+                              unsigned len);
 
 #define BENCH_RUNS (1 << 12) /* Trade-off between accuracy and speed */
 

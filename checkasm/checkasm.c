@@ -335,6 +335,21 @@ int float_near_abs_eps_array_ulp(const float *const a, const float *const b,
     return 1;
 }
 
+int double_near_abs_eps(const double a, const double b, const double eps)
+{
+    return fabs(a - b) < eps;
+}
+
+int double_near_abs_eps_array(const double *const a, const double *const b,
+                              const double eps, const unsigned len)
+{
+    for (unsigned i = 0; i < len; i++)
+        if (!double_near_abs_eps(a[i], b[i], eps))
+            return 0;
+
+    return 1;
+}
+
 /* Print colored text to stderr if the terminal supports it */
 static int use_printf_color;
 static void color_fprintf(FILE *const f, const int color, const char *const fmt, ...)
