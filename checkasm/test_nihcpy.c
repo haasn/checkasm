@@ -32,7 +32,7 @@
 #include "checkasm.h"
 #include "common/cpu.h"
 
-#include "../src/nihcpy.h"
+#include "../example/nihcpy.h"
 
 static void check_nihcpy(size_t size, void *(*fun)(void *dest, const void *src, size_t n)) {
     int8_t *src = malloc(size);

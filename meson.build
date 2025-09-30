@@ -41,11 +41,11 @@ endif
 # This is the library we aim to test with checkasm in this project,
 # in an actual usecase this would be your library instead.
 
-nihcpy_sources = files('src/nihcpy.c')
+nihcpy_sources = files('example/nihcpy.c')
 
 if host_machine.cpu_family() == 'x86_64'
   nihcpy_sources += [
-    files('src/x86/nihcpy_x86.asm')
+    files('example/x86/nihcpy_x86.asm')
   ]
 else
   warning('Not building for x86_64, so there are no assembly functions to test.')
