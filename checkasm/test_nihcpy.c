@@ -58,7 +58,7 @@ static void check_nihcpy(size_t size, void *(*fun)(void *dest, const void *src, 
         bench_new(a_dst, src, size);
     }
 
-    report("nihcpy");
+    report("nihcpy_%zu", size);
 }
 
 void checkasm_check_nihcpy(void) {
