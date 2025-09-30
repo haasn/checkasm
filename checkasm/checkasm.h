@@ -442,6 +442,13 @@ DECL_CHECKASM_CHECK_FUNC(uint8_t);
 DECL_CHECKASM_CHECK_FUNC(uint16_t);
 DECL_CHECKASM_CHECK_FUNC(uint32_t);
 
+int checkasm_check_float_ulp(const char *file, int line,
+                             const float *buf1, ptrdiff_t stride1,
+                             const float *buf2, ptrdiff_t stride2,
+                             int w, int h, const char *name,
+                             unsigned max_ulp, int align_w, int align_h,
+                             int padding);
+
 #define CONCAT(a,b) a ## b
 
 #define checkasm_check2(prefix, ...) CONCAT(checkasm_check_, prefix)(__FILE__, __LINE__, __VA_ARGS__)
