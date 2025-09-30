@@ -37,24 +37,41 @@ if get_option('b_sanitize') == 'memory'
     error('asm causes false positives with the memory sanitizer.')
 endif
 
-# Target definition for the nihcpy library
+# Include build definition for checkasm
+# For details see the checkasm/meson.build file
+subdir('checkasm')
+
 # This is the library we aim to test with checkasm in this project,
 # in an actual usecase this would be your library instead.
-
-nihcpy_sources = files('example/nihcpy.c')
+example_sources = files('example/nihcpy.c')
 
 if host_machine.cpu_family() == 'x86_64'
-  nihcpy_sources += [
+  example_sources += [
     files('example/x86/nihcpy_x86.asm')
   ]
 else
   warning('Not building for x86_64, so there are no assembly functions to test.')
 endif
 
-libnihcpy = library('nihcpy', nihcpy_sources,
+example = library('example', example_sources,
   install: false)
 
+# Checkasm test for the example library
+example_checkasm_sources = files('example/checkasm.c', 'example/test_nihcpy.c')
 
-# Include build definition for checkasm
-# For details see the checkasm/meson.build file
-subdir('checkasm')
+example_checkasm = executable('example_checkasm',
+  checkasm_sources + example_checkasm_sources,
+
+  c_args: checkasm_c_args,
+  nasm_args: checkasm_nasm_args,
+
+  objects: [
+    example.extract_all_objects(recursive: true),
+  ],
+
+  build_by_default: true,
+  dependencies: checkasm_dependencies,
+)
+
+test('checkasm', example_checkasm, suite: 'checkasm', timeout: 180)
+benchmark('checkasm', example_checkasm, suite: 'checkasm', timeout: 3600, args: '--bench')

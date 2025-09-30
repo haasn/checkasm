@@ -29,7 +29,75 @@
 #define CHECKASM_CHECKASM_H
 
 #include <stdint.h>
-#include <stdlib.h>
+
+typedef struct CheckasmCpuFlag {
+    const char *name;
+    const char *suffix;
+    uint64_t flag;
+} CheckasmCpuFlag;
+
+typedef struct CheckasmTest {
+    const char *name;
+    void (*func)(void);
+} CheckasmTest;
+
+typedef struct CheckasmConfig {
+    /* List of CPU flags understood by the implementation. */
+    const CheckasmCpuFlag *cpu_flags;
+    int nb_cpu_flags;
+
+    /* List of tests */
+    const CheckasmTest *tests;
+    int nb_tests;
+
+    /* External functions to get and set (override) CPU flags. A value of
+     * (uint64_t) -1 will disable any override and enable all CPU flags. */
+    uint64_t (*get_cpu_flags)(void);
+    void (*set_cpu_flags)(uint64_t flags);
+
+    /* Pattern of tests/functions to enable. NULL means all. */
+    const char *test_pattern;
+    const char *function_pattern;
+
+    /* If nonzero, enable verbose printing of failing test data. */
+    int verbose;
+
+    /* If nonzero, output a list of all functions tested. */
+    int list_functions;
+
+    /* If nonzero, enable benchmarking, with the specified number of
+     * iterations, defaulting to 1024 if left unset. */
+    int bench;
+    unsigned bench_runs;
+
+    /* If nonzero, use the specified seed for random number generation. */
+    unsigned seed;
+
+    /* If nonzero, the process will be pinned to the specified
+     * set of CPUs (bitmask). */
+    uint64_t cpu_affinity;
+} CheckasmConfig;
+
+/************************************
+ * Public API and global entrypoint *
+ ************************************/
+
+/**
+ * Print a list of all cpuflags/tests available for testing.
+ */
+void checkasm_list_cpu_flags(const CheckasmConfig *config);
+void checkasm_list_tests(const CheckasmConfig *config);
+
+/**
+ * Run all tests (and benchmarks) matching the specified patterns.
+ *
+ * Returns 0 on success, or a negative AVERROR code on failure.
+ */
+int checkasm_run(const CheckasmConfig *config);
+
+/********************************************
+ * Internal checkasm API. Used inside tests *
+ ********************************************/
 
 #ifdef _WIN32
 #include <windows.h>
@@ -461,7 +529,5 @@ int checkasm_check_float_ulp(const char *file, int line,
 #define checkasm_check_pixel_padded_align(...) checkasm_check2(PIXEL_TYPE, __VA_ARGS__, 8)
 #define checkasm_check_coef(...)  checkasm_check(COEF_TYPE,  __VA_ARGS__)
 #endif
-
-void checkasm_check_nihcpy(void);
 
 #endif /* CHECKASM_CHECKASM_H */

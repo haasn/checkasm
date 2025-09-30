@@ -28,10 +28,8 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "common/attributes.h"
-
-#include "common/cpu.h"
-#include "common/x86/cpu.h"
+#include "../attributes.h"
+#include "../cpu.h"
 
 typedef struct {
     uint32_t eax, ebx, edx, ecx;
@@ -51,7 +49,7 @@ COLD unsigned checkasm_get_cpu_flags_x86(void) {
         };
     } cpu;
     checkasm_cpu_cpuid(&cpu.r, 0, 0);
-    unsigned flags = checkasm_get_default_cpu_flags();
+    unsigned flags = 0;
 
     if (cpu.max_leaf >= 1) {
         CpuidRegisters r;

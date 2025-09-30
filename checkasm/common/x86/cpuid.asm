@@ -25,7 +25,7 @@
 
 %undef private_prefix
 %define private_prefix checkasm
-%include "x86/ext/x86inc.asm"
+%include "checkasm/x86/ext/x86inc.asm"
 
 SECTION .text
 

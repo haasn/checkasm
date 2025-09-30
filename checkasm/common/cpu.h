@@ -28,30 +28,18 @@
 #ifndef CHECKASM_COMMON_CPU_H
 #define CHECKASM_COMMON_CPU_H
 
-#include "common/attributes.h"
-
 #if ARCH_AARCH64 || ARCH_ARM
-#include "common/arm/cpu.h"
+#include "arm/cpu.h"
 #elif ARCH_LOONGARCH
-#include "common/loongarch/cpu.h"
+#include "loongarch/cpu.h"
 #elif ARCH_PPC64LE
-#include "common/ppc/cpu.h"
+#include "ppc/cpu.h"
 #elif ARCH_RISCV
-#include "common/riscv/cpu.h"
+#include "riscv/cpu.h"
 #elif ARCH_X86
-#include "common/x86/cpu.h"
+#include "x86/cpu.h"
 #endif
 
-EXTERN unsigned checkasm_cpu_flags;
-EXTERN unsigned checkasm_cpu_flags_mask;
-
-void checkasm_init_cpu(void);
-void checkasm_set_cpu_flags_mask(unsigned mask);
 unsigned long checkasm_getauxval(unsigned long);
-
-static ALWAYS_INLINE unsigned checkasm_get_cpu_flags(void)
-{
-    return checkasm_cpu_flags & checkasm_cpu_flags_mask;
-}
 
 #endif /* CHECKASM_COMMON_CPU_H */

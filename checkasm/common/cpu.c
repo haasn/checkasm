@@ -27,35 +27,12 @@
 
 #include <errno.h>
 
-#include "cpu.h"
-
 #if HAVE_GETAUXVAL || HAVE_ELF_AUX_INFO
 #include <sys/auxv.h>
 #endif
 
-unsigned checkasm_cpu_flags = 0U;
-unsigned checkasm_cpu_flags_mask = ~0U;
-
-COLD void checkasm_init_cpu(void) {
-#if HAVE_ASM && !__has_feature(memory_sanitizer)
-// memory sanitizer is inherently incompatible with asm
-#if ARCH_AARCH64 || ARCH_ARM
-    checkasm_cpu_flags = checkasm_get_cpu_flags_arm();
-#elif ARCH_LOONGARCH
-    checkasm_cpu_flags = checkasm_get_cpu_flags_loongarch();
-#elif ARCH_PPC64LE
-    checkasm_cpu_flags = checkasm_get_cpu_flags_ppc();
-#elif ARCH_RISCV
-    checkasm_cpu_flags = checkasm_get_cpu_flags_riscv();
-#elif ARCH_X86
-    checkasm_cpu_flags = checkasm_get_cpu_flags_x86();
-#endif
-#endif
-}
-
-COLD void checkasm_set_cpu_flags_mask(const unsigned mask) {
-    checkasm_cpu_flags_mask = mask;
-}
+#include "cpu.h"
+#include "attributes.h"
 
 COLD unsigned long checkasm_getauxval(unsigned long type) {
 #if HAVE_GETAUXVAL

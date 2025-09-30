@@ -27,15 +27,15 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "checkasm.h"
-#include "common/cpu.h"
+#include "nihcpy.h"
 
-#include "../example/nihcpy.h"
-
-static void check_nihcpy(size_t size, void *(*fun)(void *dest, const void *src, size_t n)) {
-    int8_t *src = malloc(size);
+static void check_nihcpy(nihcpy_func fun, size_t size)
+{
+    int8_t *src   = malloc(size);
     int8_t *c_dst = malloc(size);
     int8_t *a_dst = malloc(size);
 
@@ -61,17 +61,12 @@ static void check_nihcpy(size_t size, void *(*fun)(void *dest, const void *src, 
     report("nihcpy_%zu", size);
 }
 
-void checkasm_check_nihcpy(void) {
-    void *(*fun)(void *dest, const void *src, size_t n) = &nihcpy;
-
-    const unsigned flags = checkasm_get_cpu_flags();
-
-    if ((flags & CHECKASM_X86_CPU_FLAG_SSE2))
-        fun = &nihcpy_x86;
-
-    check_nihcpy(3, fun);
-    check_nihcpy(8, fun);
-    check_nihcpy(16, fun);
-    check_nihcpy(512, fun);
-    check_nihcpy(2049, fun);
+void checkasm_check_nihcpy(void)
+{
+    nihcpy_func fun = get_nihcpy_func();
+    check_nihcpy(fun, 3);
+    check_nihcpy(fun, 8);
+    check_nihcpy(fun, 16);
+    check_nihcpy(fun, 512);
+    check_nihcpy(fun, 2049);
 }

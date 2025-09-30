@@ -24,13 +24,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 #include "checkasm.h"
 
 #include <errno.h>
 #include <math.h>
+#include <inttypes.h>
+#include <math.h>
 #include <signal.h>
 #include <stdarg.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "common/cpu.h"
@@ -66,47 +70,7 @@
 #define COLOR_GREEN  32
 #define COLOR_YELLOW 33
 
-/* List of tests to invoke */
-static const struct {
-    const char *name;
-    void (*func)(void);
-} tests[] = {
-    /* { "msac", checkasm_check_msac }, */
-    { "nihcpy", checkasm_check_nihcpy },
-    { 0 }
-};
-
-/* List of cpu flags to check */
-static const struct {
-    const char *name;
-    const char *suffix;
-    unsigned flag;
-} cpus[] = {
-#if ARCH_X86
-    { "SSE2",               "sse2",      CHECKASM_X86_CPU_FLAG_SSE2 },
-    { "SSSE3",              "ssse3",     CHECKASM_X86_CPU_FLAG_SSSE3 },
-    { "SSE4.1",             "sse4",      CHECKASM_X86_CPU_FLAG_SSE41 },
-    { "AVX2",               "avx2",      CHECKASM_X86_CPU_FLAG_AVX2 },
-    { "AVX-512 (Ice Lake)", "avx512icl", CHECKASM_X86_CPU_FLAG_AVX512ICL },
-#elif ARCH_AARCH64 || ARCH_ARM
-    { "NEON",               "neon",      CHECKASM_ARM_CPU_FLAG_NEON },
-    { "DOTPROD",            "dotprod",   CHECKASM_ARM_CPU_FLAG_DOTPROD },
-    { "I8MM",               "i8mm",      CHECKASM_ARM_CPU_FLAG_I8MM },
-#if ARCH_AARCH64
-    { "SVE",                "sve",       CHECKASM_ARM_CPU_FLAG_SVE },
-    { "SVE2",               "sve2",      CHECKASM_ARM_CPU_FLAG_SVE2 },
-#endif /* ARCH_AARCH64 */
-#elif ARCH_LOONGARCH
-    { "LSX",                "lsx",       CHECKASM_LOONGARCH_CPU_FLAG_LSX },
-    { "LASX",               "lasx",      CHECKASM_LOONGARCH_CPU_FLAG_LASX },
-#elif ARCH_PPC64LE
-    { "VSX",                "vsx",       CHECKASM_PPC_CPU_FLAG_VSX },
-    { "PWR9",               "pwr9",      CHECKASM_PPC_CPU_FLAG_PWR9 },
-#elif ARCH_RISCV
-    { "RVV",                "rvv",       CHECKASM_RISCV_CPU_FLAG_V },
-#endif
-    { 0 }
-};
+#define ARRAY_LEN(a) (sizeof(a) / sizeof((a)[0]))
 
 #if ARCH_AARCH64 && HAVE_SVE
 int checkasm_sve_length(void);
@@ -129,14 +93,8 @@ typedef struct CheckasmFunc {
     char name[];
 } CheckasmFunc;
 
-typedef enum {
-    RUN_NORMAL = 0,
-    RUN_BENCHMARK,
-    RUN_CPUFLAG_LISTING,
-    RUN_FUNCTION_LISTING,
-} CheckasmRunMode;
-
 /* Internal state */
+static CheckasmConfig cfg;
 static struct {
     CheckasmFunc *funcs;
     CheckasmFunc *current_func;
@@ -147,11 +105,6 @@ static struct {
     double nop_time;
     unsigned cpu_flag;
     const char *cpu_flag_name;
-    const char *test_pattern;
-    const char *function_pattern;
-    unsigned seed;
-    CheckasmRunMode run_mode;
-    int verbose;
     volatile sig_atomic_t sig; // SIG_ATOMIC_MAX = signal handling enabled
     int suffix_length;
     int max_function_name_length;
@@ -372,6 +325,24 @@ static void color_fprintf(FILE *const f, const int color, const char *const fmt,
         fprintf(f, "\x1b[0m");
 }
 
+static void setup_printf(FILE *const f)
+{
+#ifdef _WIN32
+  #if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
+    HANDLE con = GetStdHandle(f == stderr ? STD_ERROR_HANDLE : STD_OUTPUT_HANDLE);
+    DWORD con_mode = 0;
+    use_printf_color = con && con != INVALID_HANDLE_VALUE &&
+                       GetConsoleMode(con, &con_mode) &&
+                       SetConsoleMode(con, con_mode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+  #endif
+#else
+    if (isatty(f == stderr ? 2 : 1)) {
+        const char *const term = getenv("TERM");
+        use_printf_color = term && strcmp(term, "dumb");
+    }
+#endif
+}
+
 /* Deallocate a tree */
 static void destroy_func_tree(CheckasmFunc *const f)
 {
@@ -404,9 +375,9 @@ static void *checkasm_malloc(const size_t size)
 /* Get the suffix of the specified cpu flag */
 static const char *cpu_suffix(const unsigned cpu)
 {
-    for (int i = (int)(sizeof(cpus) / sizeof(*cpus)) - 2; i >= 0; i--)
-        if (cpu & cpus[i].flag)
-            return cpus[i].suffix;
+    for (int i = cfg.nb_cpu_flags - 1; i >= 0; i--)
+        if (cpu & cfg.cpu_flags[i].flag)
+            return cfg.cpu_flags[i].suffix;
 
     return "c";
 }
@@ -633,18 +604,18 @@ static void check_cpu_flag(const char *const name, unsigned flag)
     const unsigned old_cpu_flag = state.cpu_flag;
 
     flag |= old_cpu_flag;
-    checkasm_set_cpu_flags_mask(flag);
-    state.cpu_flag = checkasm_get_cpu_flags();
+    cfg.set_cpu_flags(flag);
+    state.cpu_flag = cfg.get_cpu_flags();
 
     if (!flag || state.cpu_flag != old_cpu_flag) {
         state.cpu_flag_name = name;
-        state.suffix_length = (int)strlen(cpu_suffix(flag)) + 1;
-        for (int i = 0; tests[i].func; i++) {
-            if (state.test_pattern && wildstrcmp(tests[i].name, state.test_pattern))
+        state.suffix_length = (int) strlen(cpu_suffix(flag)) + 1;
+        for (int i = 0; i < cfg.nb_tests; i++) {
+            if (cfg.test_pattern && wildstrcmp(cfg.tests[i].name, cfg.test_pattern))
                 continue;
-            xor128_srand(state.seed);
-            state.current_test_name = tests[i].name;
-            tests[i].func();
+            xor128_srand(cfg.seed);
+            state.current_test_name = cfg.tests[i].name;
+            cfg.tests[i].func();
         }
     }
 }
@@ -673,152 +644,110 @@ static unsigned get_seed(void)
 #endif
 }
 
-static int checkasm_strtoul(unsigned long *const dst, const char *const str, const int base)
+static void set_signal_handlers(void)
 {
-    char *end;
-    errno = 0;
-    *dst = strtoul(str, &end, base);
-    return errno || end == str || *end;
-}
-
-int main(int argc, char *argv[])
-{
-    state.seed = get_seed();
-
-    while (argc > 1) {
-        if (!strncmp(argv[1], "--help", 6) || !strcmp(argv[1], "-h")) {
-            fprintf(stderr,
-                    "checkasm [options] <random seed>\n"
-                    "    <random seed>              Numeric value to seed the rng\n"
-                    "Options:\n"
-                    "    --affinity=<cpu>           Run the process on CPU <cpu>\n"
-                    "    --test=<pattern> -t        Test only <pattern>\n"
-                    "    --function=<pattern> -f    Test only the functions matching <pattern>\n"
-                    "    --bench -b                 Benchmark the tested functions\n"
-                    "    --list-cpuflags            List available cpu flags\n"
-                    "    --list-functions           List available functions\n"
-                    "    --list-tests               List available tests\n"
-                    "    --verbose -v               Print verbose output\n");
-            return 0;
-        } else if (!strcmp(argv[1], "--bench") || !strcmp(argv[1], "-b")) {
-#ifndef readtime
-            fprintf(stderr,
-                    "checkasm: --bench is not supported on your system\n");
-            return 1;
-#endif
-            state.run_mode = RUN_BENCHMARK;
-        } else if (!strncmp(argv[1], "--test=", 7)) {
-            state.test_pattern = argv[1] + 7;
-        } else if (!strcmp(argv[1], "-t")) {
-            state.test_pattern = argc > 1 ? argv[2] : "";
-            argc--;
-            argv++;
-        } else if (!strncmp(argv[1], "--function=", 11)) {
-            state.function_pattern = argv[1] + 11;
-        } else if (!strcmp(argv[1], "-f")) {
-            state.function_pattern = argc > 1 ? argv[2] : "";
-            argc--;
-            argv++;
-        } else if (!strcmp(argv[1], "--list-cpuflags")) {
-            state.run_mode = RUN_CPUFLAG_LISTING;
-            break;
-        } else if (!strcmp(argv[1], "--list-functions")) {
-            state.run_mode = RUN_FUNCTION_LISTING;
-        } else if (!strcmp(argv[1], "--list-tests")) {
-            for (int i = 0; tests[i].name; i++)
-                printf("%s\n", tests[i].name);
-            return 0;
-        } else if (!strcmp(argv[1], "--verbose") || !strcmp(argv[1], "-v")) {
-            state.verbose = 1;
-        } else if (!strncmp(argv[1], "--affinity=", 11)) {
-            const char *const s = argv[1] + 11;
-            unsigned long affinity;
-            if (checkasm_strtoul(&affinity, s, 16)) {
-                fprintf(stderr, "checkasm: invalid cpu affinity (%s)\n", s);
-                return 1;
-            }
-#ifdef _WIN32
-            int affinity_err;
-            HANDLE process = GetCurrentProcess();
-#if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
-            BOOL (WINAPI *spdcs)(HANDLE, const ULONG*, ULONG) =
-                (void*)GetProcAddress(GetModuleHandleW(L"kernel32.dll"), "SetProcessDefaultCpuSets");
-            if (spdcs)
-                affinity_err = !spdcs(process, (ULONG[]){ affinity + 256 }, 1);
-            else
-#endif
-            {
-                if (affinity < sizeof(DWORD_PTR) * 8)
-                    affinity_err = !SetProcessAffinityMask(process, (DWORD_PTR)1 << affinity);
-                else
-                    affinity_err = 1;
-            }
-            if (affinity_err) {
-                fprintf(stderr, "checkasm: invalid cpu affinity (%lu)\n", affinity);
-                return 1;
-            } else {
-                fprintf(stderr, "checkasm: running on cpu %lu\n", affinity);
-            }
-#elif HAVE_PTHREAD_SETAFFINITY_NP && defined(CPU_SET)
-            cpu_set_t set;
-            CPU_ZERO(&set);
-            CPU_SET(affinity, &set);
-            if (pthread_setaffinity_np(pthread_self(), sizeof(set), &set)) {
-                fprintf(stderr, "checkasm: invalid cpu affinity (%lu)\n", affinity);
-                return 1;
-            } else {
-                fprintf(stderr, "checkasm: running on cpu %lu\n", affinity);
-            }
-#else
-            (void)affinity;
-            fprintf(stderr,
-                    "checkasm: --affinity is not supported on your system\n");
-            return 1;
-#endif
-        } else {
-            unsigned long seed;
-            if (checkasm_strtoul(&seed, argv[1], 10)) {
-                fprintf(stderr, "checkasm: unknown option (%s)\n", argv[1]);
-                return 1;
-            }
-            state.seed = (unsigned)seed;
-        }
-
-        argc--;
-        argv++;
-    }
-
-    checkasm_init_cpu();
+    static int handlers_set;
+    if (handlers_set)
+        return;
 
 #ifdef _WIN32
-#if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
+  #if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
     AddVectoredExceptionHandler(0, signal_handler);
-
-    HANDLE con = GetStdHandle(state.run_mode >= RUN_CPUFLAG_LISTING ?
-                              STD_OUTPUT_HANDLE : STD_ERROR_HANDLE);
-    DWORD con_mode = 0;
-    use_printf_color = con && con != INVALID_HANDLE_VALUE &&
-                       GetConsoleMode(con, &con_mode) &&
-                       SetConsoleMode(con, con_mode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
-#endif
+  #endif
 #else
     sigaction(SIGBUS,  &signal_handler_act, NULL);
     sigaction(SIGFPE,  &signal_handler_act, NULL);
     sigaction(SIGILL,  &signal_handler_act, NULL);
     sigaction(SIGSEGV, &signal_handler_act, NULL);
-
-    if (isatty(state.run_mode >= RUN_CPUFLAG_LISTING ? 1 : 2)) {
-        const char *const term = getenv("TERM");
-        use_printf_color = term && strcmp(term, "dumb");
-    }
 #endif
+
+    handlers_set = 1;
+}
+
+static int set_cpu_affinity(const uint64_t affinity)
+{
+    int affinity_err;
+    if (!affinity)
+        return 0;
+
+#ifdef _WIN32
+    HANDLE process = GetCurrentProcess();
+  #if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
+    BOOL (WINAPI *spdcs)(HANDLE, const ULONG*, ULONG) =
+        (void*)GetProcAddress(GetModuleHandleW(L"kernel32.dll"), "SetProcessDefaultCpuSets");
+    if (spdcs)
+        affinity_err = !spdcs(process, (ULONG[]){ affinity + 256 }, 1);
+    else
+  #endif
+    {
+        if (affinity < sizeof(DWORD_PTR) * 8)
+            affinity_err = !SetProcessAffinityMask(process, (DWORD_PTR)1 << affinity);
+        else
+            affinity_err = 1;
+    }
+#elif HAVE_PTHREAD_SETAFFINITY_NP && defined(CPU_SET)
+    cpu_set_t set;
+    CPU_ZERO(&set);
+    CPU_SET(affinity, &set);
+    affinity_err = pthread_setaffinity_np(pthread_self(), sizeof(set), &set);
+#else
+    (void) affinity;
+    (void) affinity_err;
+    fprintf(stderr,
+            "checkasm: --affinity is not supported on your system\n");
+    return 1;
+#endif
+
+    if (affinity_err) {
+        fprintf(stderr, "checkasm: invalid cpu affinity (%"PRIx64")\n", affinity);
+        return 1;
+    } else {
+        fprintf(stderr, "checkasm: running on cpu %"PRIx64"\n", affinity);
+        return 0;
+    }
+}
+
+void checkasm_list_cpu_flags(const CheckasmConfig *cfg)
+{
+    const unsigned cpu_flags = cfg->get_cpu_flags();
+    const int last_flag = cfg->nb_cpu_flags - 1;
+    setup_printf(stdout);
+
+    for (int i = 0; i < cfg->nb_cpu_flags; i++) {
+        if (cfg->cpu_flags[i].flag & cpu_flags)
+            color_fprintf(stdout, COLOR_GREEN, "%s", cfg->cpu_flags[i].suffix);
+        else
+            color_fprintf(stdout, COLOR_RED, "~%s", cfg->cpu_flags[i].suffix);
+        printf(i == last_flag ? "\n" : ", ");
+    }
+}
+
+void checkasm_list_tests(const CheckasmConfig *config)
+{
+    for (int i = 0; i < config->nb_tests; i++)
+        printf("%s\n", config->tests[i].name);
+}
+
+int checkasm_run(const CheckasmConfig *config)
+{
+    assert(config->get_cpu_flags);
+    assert(config->set_cpu_flags);
+    memset(&state, 0, sizeof(state));
+    cfg = *config;
+
+    set_signal_handlers();
+    set_cpu_affinity(cfg.cpu_affinity);
+    setup_printf(cfg.list_functions ? stdout : stderr);
+
+    if (!cfg.seed)
+        cfg.seed = get_seed();
 
 #ifdef readtime
-    if (state.run_mode == RUN_BENCHMARK) {
-#if CONFIG_MACOS_KPERF
+    if (cfg.bench) {
+  #if CONFIG_MACOS_KPERF
         if (kperf_init())
             return 1;
-#endif
+  #endif
         if (!checkasm_save_context()) {
             checkasm_set_signal_handler_state(1);
             readtime();
@@ -828,67 +757,63 @@ int main(int argc, char *argv[])
             return 1;
         }
     }
-#endif
-
-    int ret = 0;
-
-    if (state.run_mode != RUN_FUNCTION_LISTING) {
-        const unsigned cpu_flags = checkasm_get_cpu_flags();
-        if (state.run_mode == RUN_CPUFLAG_LISTING) {
-            const int last_i = (int)(sizeof(cpus) / sizeof(*cpus)) - 2;
-            for (int i = 0; i <= last_i ; i++) {
-                if (cpus[i].flag & cpu_flags)
-                    color_fprintf(stdout, COLOR_GREEN, "%s", cpus[i].suffix);
-                else
-                    color_fprintf(stdout, COLOR_RED, "~%s", cpus[i].suffix);
-                printf(i == last_i ? "\n" : ", ");
-            }
-            return 0;
-        }
-#if ARCH_X86_64
-        void checkasm_warmup_avx2(void);
-        void checkasm_warmup_avx512(void);
-        if (cpu_flags & CHECKASM_X86_CPU_FLAG_AVX512ICL)
-            state.simd_warmup = checkasm_warmup_avx512;
-        else if (cpu_flags & CHECKASM_X86_CPU_FLAG_AVX2)
-            state.simd_warmup = checkasm_warmup_avx2;
-        checkasm_simd_warmup();
-#endif
-#if ARCH_ARM
-        void checkasm_checked_call_vfp(void *func, int dummy, ...);
-        void checkasm_checked_call_novfp(void *func, int dummy, ...);
-        if (cpu_flags & CHECKASM_ARM_CPU_FLAG_NEON)
-            checkasm_checked_call_ptr = checkasm_checked_call_vfp;
-        else
-            checkasm_checked_call_ptr = checkasm_checked_call_novfp;
-#endif
-#if ARCH_X86
-        unsigned checkasm_init_x86(char *name);
-        char name[48];
-        const unsigned cpuid = checkasm_init_x86(name);
-        for (size_t len = strlen(name); len && name[len-1] == ' '; len--)
-            name[len-1] = '\0'; /* trim trailing whitespace */
-        fprintf(stderr, "checkasm: %s (%08X) using random seed %u\n", name, cpuid, state.seed);
-#elif ARCH_RISCV
-        char buf[32] = "";
-        if (cpu_flags & CHECKASM_RISCV_CPU_FLAG_V)
-            snprintf(buf, sizeof(buf), "VLEN=%i bits, ", checkasm_get_vlen());
-        fprintf(stderr, "checkasm: %susing random seed %u\n", buf, state.seed);
-#elif ARCH_AARCH64 && HAVE_SVE
-        char buf[48] = "";
-        if (cpu_flags & CHECKASM_ARM_CPU_FLAG_SVE)
-            snprintf(buf, sizeof(buf), "SVE %d bits, ", checkasm_sve_length());
-        fprintf(stderr, "checkasm: %susing random seed %u\n", buf, state.seed);
 #else
-        fprintf(stderr, "checkasm: using random seed %u\n", state.seed);
-#endif
+    if (cfg.bench) {
+        fprintf(stderr, "checkasm: benchmarking not supported on this platform\n");
+        return 1;
     }
+#endif
+
+#if ARCH_X86_64
+    const unsigned cpu_flags = checkasm_get_cpu_flags_x86();
+    void checkasm_warmup_avx2(void);
+    void checkasm_warmup_avx512(void);
+    if (cpu_flags & CHECKASM_X86_CPU_FLAG_AVX512ICL)
+        state.simd_warmup = checkasm_warmup_avx512;
+    else if (cpu_flags & CHECKASM_X86_CPU_FLAG_AVX2)
+        state.simd_warmup = checkasm_warmup_avx2;
+    checkasm_simd_warmup();
+#endif
+
+#if ARCH_ARM
+    const unsigned cpu_flags = checkasm_get_cpu_flags_arm();
+    void checkasm_checked_call_vfp(void *func, int dummy, ...);
+    void checkasm_checked_call_novfp(void *func, int dummy, ...);
+    if (cpu_flags & CHECKASM_ARM_CPU_FLAG_NEON)
+        checkasm_checked_call_ptr = checkasm_checked_call_vfp;
+    else
+        checkasm_checked_call_ptr = checkasm_checked_call_novfp;
+#endif
+
+#if ARCH_X86
+    unsigned checkasm_init_x86(char *name);
+    char name[48];
+    const unsigned cpuid = checkasm_init_x86(name);
+    for (size_t len = strlen(name); len && name[len-1] == ' '; len--)
+        name[len-1] = '\0'; /* trim trailing whitespace */
+    fprintf(stderr, "checkasm: %s (%08X) using random seed %u\n", name, cpuid, cfg.seed);
+#elif ARCH_RISCV
+    const unsigned vlen = checkasm_get_vlen();
+    char buf[32] = "";
+    if (vlen)
+        snprintf(buf, sizeof(buf), "VLEN=%i bits, ", vlen);
+    fprintf(stderr, "checkasm: %susing random seed %u\n", buf, cfg.seed);
+#elif ARCH_AARCH64 && HAVE_SVE
+    char buf[48] = "";
+    const unsigned sve_len = checkasm_sve_length();
+    if (sve_len)
+        snprintf(buf, sizeof(buf), "SVE %d bits, ", sve_len);
+    fprintf(stderr, "checkasm: %susing random seed %u\n", buf, cfg.seed);
+#else
+    fprintf(stderr, "checkasm: using random seed %u\n", cfg.seed);
+#endif
 
     check_cpu_flag(NULL, 0);
-    for (int i = 0; cpus[i].flag; i++)
-        check_cpu_flag(cpus[i].name, cpus[i].flag);
+    for (int i = 0; i < cfg.nb_cpu_flags; i++)
+        check_cpu_flag(cfg.cpu_flags[i].name, cfg.cpu_flags[i].flag);
 
-    if (state.run_mode == RUN_FUNCTION_LISTING) {
+    int ret = 0;
+    if (cfg.list_functions) {
         print_functions(state.funcs);
     } else if (state.num_failed) {
         fprintf(stderr, "checkasm: %d of %d tests failed\n",
@@ -900,9 +825,9 @@ int main(int argc, char *argv[])
         else
             fprintf(stderr, "checkasm: no tests to perform\n");
 #ifdef readtime
-        if (state.run_mode == RUN_BENCHMARK && state.max_function_name_length) {
+        if (cfg.bench && state.max_function_name_length) {
             state.nop_time = measure_nop_time();
-            if (state.verbose)
+            if (cfg.verbose)
                 printf("nop:%*.1f\n", state.max_function_name_length + 6, state.nop_time);
             print_benchs(state.funcs);
         }
@@ -926,7 +851,7 @@ void *checkasm_check_func(void *const func, const char *const name, ...)
     va_end(arg);
 
     if (!func || name_length <= 0 || (size_t)name_length >= sizeof(name_buf) ||
-        (state.function_pattern && wildstrcmp(name_buf, state.function_pattern)))
+        (cfg.function_pattern && wildstrcmp(name_buf, cfg.function_pattern)))
     {
         return NULL;
     }
@@ -961,10 +886,10 @@ void *checkasm_check_func(void *const func, const char *const name, ...)
     v->ok = 1;
     v->cpu = state.cpu_flag;
     state.current_func_ver = v;
-    if (state.run_mode == RUN_FUNCTION_LISTING) /* Save function names without running tests */
+    if (cfg.list_functions) /* Save function names without running tests */
         return NULL;
 
-    xor128_srand(state.seed);
+    xor128_srand(cfg.seed);
 
     if (state.cpu_flag)
         state.num_checked++;
@@ -975,7 +900,7 @@ void *checkasm_check_func(void *const func, const char *const name, ...)
 /* Decide whether or not the current function needs to be benchmarked */
 int checkasm_bench_func(void)
 {
-    return !state.num_failed && state.run_mode == RUN_BENCHMARK;
+    return !state.num_failed && cfg.bench;
 }
 
 /* Indicate that the current test has failed, return whether verbose printing
@@ -998,7 +923,7 @@ int checkasm_fail_func(const char *const msg, ...)
         state.current_func_ver->ok = 0;
         state.num_failed++;
     }
-    return state.verbose;
+    return cfg.verbose;
 }
 
 /* Update benchmark results of the current function */

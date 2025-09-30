@@ -109,8 +109,6 @@ endif
 checkasm_sources = files(
   'checkasm.c',
   'common/cpu.c',
-
-  'test_nihcpy.c',
 )
 
 if host_machine.cpu_family() == 'aarch64' or host_machine.cpu() == 'arm64'
@@ -142,25 +140,9 @@ elif host_machine.cpu_family().startswith('loongarch')
   )
 endif
 
-checkasm = executable('checkasm',
-  checkasm_sources,
-
-  c_args: checkasm_c_args,
-  nasm_args: checkasm_nasm_args,
-
-  objects: [
-    libnihcpy.extract_all_objects(recursive: true),
-  ],
-
-  build_by_default: true,
-  dependencies : [
-    thread_dependency,
-    rt_dependency,
-    libdl_dependency,
-    libm_dependency,
-  ],
-)
-
-test('checkasm', checkasm, suite: 'checkasm', timeout: 180)
-benchmark('checkasm', checkasm, suite: 'checkasm', timeout: 3600, args: '--bench')
-
+checkasm_dependencies = [
+  thread_dependency,
+  rt_dependency,
+  libdl_dependency,
+  libm_dependency,
+]
