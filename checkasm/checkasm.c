@@ -264,6 +264,11 @@ uint64_t checkasm_kperf_cycles(void) {
 }
 #endif
 
+static int imax(const int a, const int b)
+{
+    return a > b ? a : b;
+}
+
 /* float compare support code */
 typedef union {
     float f;

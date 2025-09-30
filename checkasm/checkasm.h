@@ -63,7 +63,6 @@ typedef sigjmp_buf checkasm_context;
 #endif
 
 #include "common/attributes.h"
-#include "common/intops.h"
 
 #if ARCH_ARM
 #include "src/arm/arm-arch.h"
@@ -389,7 +388,9 @@ void checkasm_stack_clobber(uint64_t clobber, ...);
             checkasm_set_signal_handler_state(1);\
             uint64_t tsum = 0;\
             int tcount = 0;\
-            const unsigned truns = umax(BENCH_RUNS >> 3, 1);\
+            unsigned truns = BENCH_RUNS >> 3;\
+            if (!truns)\
+                truns = 1;\
             for (unsigned ti = 0; ti < truns; ti++) {\
                 uint64_t t = readtime();\
                 int talt; (void)talt;\
