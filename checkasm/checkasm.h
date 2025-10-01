@@ -139,11 +139,11 @@ typedef sigjmp_buf checkasm_context;
 int xor128_rand(void);
 #define rnd xor128_rand
 
-void *checkasm_check_func(void *func, const char *name, ...);
+void *checkasm_check_func(void *func, const char *name, ...) ATTR_FORMAT_PRINTF(2, 3);
 int checkasm_bench_func(void);
-int checkasm_fail_func(const char *msg, ...);
+int checkasm_fail_func(const char *msg, ...) ATTR_FORMAT_PRINTF(1, 2);
 void checkasm_update_bench(int iterations, uint64_t cycles);
-void checkasm_report(const char *name, ...);
+void checkasm_report(const char *name, ...) ATTR_FORMAT_PRINTF(1, 2);
 void checkasm_set_signal_handler_state(int enabled);
 void checkasm_handle_signal(void);
 extern checkasm_context checkasm_context_buf;
