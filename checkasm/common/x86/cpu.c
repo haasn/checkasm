@@ -92,3 +92,16 @@ COLD unsigned checkasm_get_cpu_flags_x86(void) {
 
     return flags;
 }
+
+COLD checkasm_simd_warmup_func checkasm_get_simd_warmup_x86(void)
+{
+    void checkasm_warmup_avx2(void);
+    void checkasm_warmup_avx512(void);
+    const unsigned cpu_flags = checkasm_get_cpu_flags_x86();
+    if (cpu_flags & CHECKASM_X86_CPU_FLAG_AVX512ICL)
+        return checkasm_warmup_avx512;
+    else if (cpu_flags & CHECKASM_X86_CPU_FLAG_AVX2)
+        return checkasm_warmup_avx2;
+    else
+        return NULL;
+}

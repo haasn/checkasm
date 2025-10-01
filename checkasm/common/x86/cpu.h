@@ -41,4 +41,7 @@ enum CpuFlags {
 
 unsigned checkasm_get_cpu_flags_x86(void);
 
+typedef void (*checkasm_simd_warmup_func)(void);
+checkasm_simd_warmup_func checkasm_get_simd_warmup_x86(void);
+
 #endif /* CHECKASM_COMMON_X86_CPU_H */

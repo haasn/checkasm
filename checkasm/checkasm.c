@@ -765,13 +765,7 @@ int checkasm_run(const CheckasmConfig *config)
 #endif
 
 #if ARCH_X86_64
-    const unsigned cpu_flags = checkasm_get_cpu_flags_x86();
-    void checkasm_warmup_avx2(void);
-    void checkasm_warmup_avx512(void);
-    if (cpu_flags & CHECKASM_X86_CPU_FLAG_AVX512ICL)
-        state.simd_warmup = checkasm_warmup_avx512;
-    else if (cpu_flags & CHECKASM_X86_CPU_FLAG_AVX2)
-        state.simd_warmup = checkasm_warmup_avx2;
+    state.simd_warmup = checkasm_get_simd_warmup_x86();
     checkasm_simd_warmup();
 #endif
 
