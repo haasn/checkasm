@@ -30,27 +30,27 @@
 SECTION_RODATA 16
 
 %if ARCH_X86_64
-; just random numbers to reduce the chance of incidental match
-%if WIN64
-x6:  dq 0x1a1b2550a612b48c,0x79445c159ce79064
-x7:  dq 0x2eed899d5a28ddcd,0x86b2536fcd8cf636
-x8:  dq 0xb0856806085e7943,0x3f2bf84fc0fcca4e
-x9:  dq 0xacbd382dcf5b8de2,0xd229e1f5b281303f
-x10: dq 0x71aeaff20b095fd9,0xab63e2e11fa38ed9
-x11: dq 0x89b0c0765892729a,0x77d410d5c42c882d
-x12: dq 0xc45ea11a955d8dd5,0x24b3c1d2a024048b
-x13: dq 0x2e8ec680de14b47c,0xdd7b8919edd42786
-x14: dq 0x135ce6888fa02cbf,0x11e53e2b2ac655ef
-x15: dq 0x011ff554472a7a10,0x6de8f4c914c334d5
-n7:  dq 0x21f86d66c8ca00ce
-n8:  dq 0x75b6ba21077c48ad
-%endif
-n9:  dq 0xed56bb2dcb3c7736
-n10: dq 0x8bda43d3fd1a7e06
-n11: dq 0xb64a9c9e5d318408
-n12: dq 0xdf9a54b303f1d3a3
-n13: dq 0x4a75479abd64e097
-n14: dq 0x249214109d5d1c88
+    ; just random numbers to reduce the chance of incidental match
+    %if WIN64
+        x6:  dq 0x1a1b2550a612b48c,0x79445c159ce79064
+        x7:  dq 0x2eed899d5a28ddcd,0x86b2536fcd8cf636
+        x8:  dq 0xb0856806085e7943,0x3f2bf84fc0fcca4e
+        x9:  dq 0xacbd382dcf5b8de2,0xd229e1f5b281303f
+        x10: dq 0x71aeaff20b095fd9,0xab63e2e11fa38ed9
+        x11: dq 0x89b0c0765892729a,0x77d410d5c42c882d
+        x12: dq 0xc45ea11a955d8dd5,0x24b3c1d2a024048b
+        x13: dq 0x2e8ec680de14b47c,0xdd7b8919edd42786
+        x14: dq 0x135ce6888fa02cbf,0x11e53e2b2ac655ef
+        x15: dq 0x011ff554472a7a10,0x6de8f4c914c334d5
+        n7:  dq 0x21f86d66c8ca00ce
+        n8:  dq 0x75b6ba21077c48ad
+    %endif
+    n9:  dq 0xed56bb2dcb3c7736
+    n10: dq 0x8bda43d3fd1a7e06
+    n11: dq 0xb64a9c9e5d318408
+    n12: dq 0xdf9a54b303f1d3a3
+    n13: dq 0x4a75479abd64e097
+    n14: dq 0x249214109d5d1c88
 %endif
 
 errmsg_stack: db "stack corruption", 0
@@ -151,6 +151,7 @@ cglobal init_x86, 0, 5
     RET
 
 %if ARCH_X86_64
+
 %if WIN64
     %define stack_param rsp+32 ; shadow space
     %define num_fn_args rsp+stack_offset+17*8
@@ -189,11 +190,11 @@ cglobal checked_call, 2, 15, 16, max_args*8+64+8
     CLOBBER_UPPER  r4, 16
     CLOBBER_UPPER  r5, 32
 %else ; WIN64
-%assign i 6
-%rep 16-6
-    mova       m %+ i, [x %+ i]
-    %assign i i+1
-%endrep
+    %assign i 6
+    %rep 16-6
+        mova       m %+ i, [x %+ i]
+        %assign i i+1
+    %endrep
 %endif
 
     xor          r11d, r11d
@@ -286,6 +287,7 @@ cglobal checked_call, 2, 15, 16, max_args*8+64+8
     cmovnz         r0, r4
     %assign i i+1
 %endrep
+
 %if WIN64 ; xmm registers
 .gpr_ok:
 %assign i 6
@@ -330,7 +332,7 @@ cglobal checked_call, 2, 15, 16, max_args*8+64+8
     mov     byte [r0], 0
     mov           r11, rdx
     mov            r1, r5
-%else
+%else ; UNIX64
     mov     byte [r0], 0
     mov           r11, rdx
     mov            r1, rsp
@@ -373,7 +375,7 @@ WARMUP
 INIT_ZMM avx512
 WARMUP
 
-%else
+%else ; ARCH_X86_32
 
 ; just random numbers to reduce the chance of incidental match
 %assign n3 0x6549315c
@@ -471,4 +473,4 @@ cglobal checked_call, 1, 7
     mov           edx, r6
     RET
 
-%endif ; ARCH_X86_64
+%endif ; ARCH_X86_32
