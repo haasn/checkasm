@@ -131,7 +131,6 @@ elif host_machine.cpu_family().startswith('x86')
   checkasm_sources += files(
     'x86/checkasm.asm',
     'common/x86/cpu.c',
-    'common/x86/cpuid.asm',
   )
 elif host_machine.cpu_family().startswith('loongarch')
   checkasm_sources += files(

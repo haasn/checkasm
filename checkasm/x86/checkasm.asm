@@ -150,6 +150,38 @@ cglobal init_x86, 0, 5
 %endif
     RET
 
+;-----------------------------------------------------------------------------
+; uint64_t checkasm_cpu_xgetbv(unsigned xcr)
+;-----------------------------------------------------------------------------
+cglobal cpu_xgetbv, 0, 0, 0, xcr
+    movifnidn ecx, xcrm
+    xgetbv
+%if ARCH_X86_64
+    shl       rdx, 32
+    or        rax, rdx
+%endif
+    RET
+
+;-----------------------------------------------------------------------------
+; void checkasm_cpu_cpuid(CpuidRegisters *regs, unsigned leaf, unsigned subleaf)
+;-----------------------------------------------------------------------------
+cglobal cpu_cpuid, 0, 5, 0, regs, leaf, subleaf
+    mov        r4, regsmp
+    mov       eax, leafm
+    mov       ecx, subleafm
+%if ARCH_X86_64
+    mov        r5, rbx
+%endif
+    cpuid
+    mov  [r4+4*0], eax
+    mov  [r4+4*1], ebx
+    mov  [r4+4*2], edx
+    mov  [r4+4*3], ecx
+%if ARCH_X86_64
+    mov       rbx, r5
+%endif
+    RET
+
 %if ARCH_X86_64
 
 %if WIN64
