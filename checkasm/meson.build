@@ -59,7 +59,6 @@ checkasm_defines = {
   'ARCH_LOONGARCH':       host_machine.cpu_family().startswith('loongarch'),
   'ARCH_LOONGARCH32':     host_machine.cpu_family() == 'loongarch32',
   'ARCH_LOONGARCH64':     host_machine.cpu_family() == 'loongarch64',
-  'HAVE_ASM':             true,
 }
 
 if cc.symbols_have_underscore_prefix()
