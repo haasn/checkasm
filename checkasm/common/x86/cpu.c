@@ -38,9 +38,16 @@ typedef struct {
 void checkasm_cpu_cpuid(CpuidRegisters *regs, unsigned leaf, unsigned subleaf);
 uint64_t checkasm_cpu_xgetbv(unsigned xcr);
 
+void checkasm_warmup_avx2(void);
+void checkasm_warmup_avx512(void);
+
 #define X(reg, mask) (((reg) & (mask)) == (mask))
 
-COLD unsigned checkasm_get_cpu_flags_x86(void) {
+COLD checkasm_simd_warmup_func checkasm_get_simd_warmup_x86(void)
+{
+    checkasm_simd_warmup_func simd_warmup = NULL;
+
+#if ARCH_X86_64
     union {
         CpuidRegisters r;
         struct {
@@ -49,22 +56,11 @@ COLD unsigned checkasm_get_cpu_flags_x86(void) {
         };
     } cpu;
     checkasm_cpu_cpuid(&cpu.r, 0, 0);
-    unsigned flags = 0;
 
     if (cpu.max_leaf >= 1) {
         CpuidRegisters r;
         checkasm_cpu_cpuid(&r, 1, 0);
-        const unsigned family = ((r.eax >> 8) & 0x0f) + ((r.eax >> 20) & 0xff);
 
-        if (X(r.edx, 0x06008000)) /* CMOV/SSE/SSE2 */ {
-            flags |= CHECKASM_X86_CPU_FLAG_SSE2;
-            if (X(r.ecx, 0x00000201)) /* SSE3/SSSE3 */ {
-                flags |= CHECKASM_X86_CPU_FLAG_SSSE3;
-                if (X(r.ecx, 0x00080000)) /* SSE4.1 */
-                    flags |= CHECKASM_X86_CPU_FLAG_SSE41;
-            }
-        }
-#if ARCH_X86_64
         /* We only support >128-bit SIMD on x86-64. */
         if (X(r.ecx, 0x18000000)) /* OSXSAVE/AVX */ {
             const uint64_t xcr0 = checkasm_cpu_xgetbv(0);
@@ -72,36 +68,17 @@ COLD unsigned checkasm_get_cpu_flags_x86(void) {
                 if (cpu.max_leaf >= 7) {
                     checkasm_cpu_cpuid(&r, 7, 0);
                     if (X(r.ebx, 0x00000128)) /* BMI1/BMI2/AVX2 */ {
-                        flags |= CHECKASM_X86_CPU_FLAG_AVX2;
+                        simd_warmup = checkasm_warmup_avx2;
                         if (X(xcr0, 0x000000e0)) /* ZMM/OPMASK */ {
                             if (X(r.ebx, 0xd0230000) && X(r.ecx, 0x00005f42))
-                                flags |= CHECKASM_X86_CPU_FLAG_AVX512ICL;
+                                simd_warmup = checkasm_warmup_avx512;
                         }
                     }
                 }
             }
         }
-#endif
-        if (!memcmp(cpu.vendor, "AuthenticAMD", sizeof(cpu.vendor))) {
-            if ((flags & CHECKASM_X86_CPU_FLAG_AVX2) && family <= 0x19) {
-                /* Excavator, Zen, Zen+, Zen 2, Zen 3, Zen 3+, Zen 4 */
-                flags |= CHECKASM_X86_CPU_FLAG_SLOW_GATHER;
-            }
-        }
     }
+#endif
 
-    return flags;
-}
-
-COLD checkasm_simd_warmup_func checkasm_get_simd_warmup_x86(void)
-{
-    void checkasm_warmup_avx2(void);
-    void checkasm_warmup_avx512(void);
-    const unsigned cpu_flags = checkasm_get_cpu_flags_x86();
-    if (cpu_flags & CHECKASM_X86_CPU_FLAG_AVX512ICL)
-        return checkasm_warmup_avx512;
-    else if (cpu_flags & CHECKASM_X86_CPU_FLAG_AVX2)
-        return checkasm_warmup_avx2;
-    else
-        return NULL;
+    return simd_warmup;
 }

@@ -28,19 +28,6 @@
 #ifndef CHECKASM_COMMON_X86_CPU_H
 #define CHECKASM_COMMON_X86_CPU_H
 
-enum CpuFlags {
-    CHECKASM_X86_CPU_FLAG_SSE2        = 1 << 0,
-    CHECKASM_X86_CPU_FLAG_SSSE3       = 1 << 1,
-    CHECKASM_X86_CPU_FLAG_SSE41       = 1 << 2,
-    CHECKASM_X86_CPU_FLAG_AVX2        = 1 << 3,
-    CHECKASM_X86_CPU_FLAG_AVX512ICL   = 1 << 4, /* F/CD/BW/DQ/VL/VNNI/IFMA/VBMI/VBMI2/
-                                                 * VPOPCNTDQ/BITALG/GFNI/VAES/VPCLMULQDQ */
-    CHECKASM_X86_CPU_FLAG_SLOW_GATHER = 1 << 5, /* Flag CPUs where gather instructions are slow enough
-                                                 * to cause performance regressions. */
-};
-
-unsigned checkasm_get_cpu_flags_x86(void);
-
 typedef void (*checkasm_simd_warmup_func)(void);
 checkasm_simd_warmup_func checkasm_get_simd_warmup_x86(void);
 
