@@ -35,12 +35,16 @@ static void print_usage(const char *const progname)
             progname);
 }
 
-static int parseull(unsigned long long *const dst, const char *const str, const int base)
+static int parseu(unsigned *const dst, const char *const str, const int base)
 {
+    unsigned long val;
     char *end;
     errno = 0;
-    *dst = strtoull(str, &end, base);
-    return errno || end == str || *end;
+    val = strtoul(str, &end, base);
+    if (errno || end == str || *end || val > (unsigned) -1)
+        return 0;
+    *dst = val;
+    return 1;
 }
 
 int main(int argc, char *argv[])
@@ -72,8 +76,8 @@ int main(int argc, char *argv[])
             cfg.bench = 1;
         } else if (!strncmp(argv[1], "--runs=", 7)) {
             const char *const s = argv[1] + 7;
-            unsigned long long runs_log2;
-            if (!parseull(&runs_log2, s, 10) || runs_log2 > 63) {
+            unsigned runs_log2;
+            if (!parseu(&runs_log2, s, 10) || runs_log2 > 31) {
                 fprintf(stderr, "checkasm: invalid number of runs (1 << %s)\n", s);
                 print_usage(argv[0]);
                 return 1;
@@ -95,21 +99,17 @@ int main(int argc, char *argv[])
             cfg.verbose = 1;
         } else if (!strncmp(argv[1], "--affinity=", 11)) {
             const char *const s = argv[1] + 11;
-            unsigned long long affinity;
-            if (!parseull(&affinity, s, 16)) {
+            if (!parseu(&cfg.cpu_affinity, s, 16)) {
                 fprintf(stderr, "checkasm: invalid cpu affinity (%s)\n", s);
                 print_usage(argv[0]);
                 return 1;
             }
-            cfg.cpu_affinity = affinity;
         } else {
-            unsigned long long seed;
-            if (!parseull(&seed, argv[1], 10)) {
+            if (!parseu(&cfg.seed, argv[1], 10)) {
                 fprintf(stderr, "checkasm: unknown option (%s)\n", argv[1]);
                 print_usage(argv[0]);
                 return 1;
             }
-            cfg.seed = (unsigned) seed;
         }
 
         argc--;

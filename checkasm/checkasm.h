@@ -79,9 +79,8 @@ typedef struct CheckasmConfig {
     /* If nonzero, use the specified seed for random number generation. */
     unsigned seed;
 
-    /* If nonzero, the process will be pinned to the specified
-     * set of CPUs (bitmask). */
-    uint64_t cpu_affinity;
+    /* If nonzero, the process will be pinned to the specified CPU (id) */
+    unsigned cpu_affinity;
 } CheckasmConfig;
 
 /************************************
