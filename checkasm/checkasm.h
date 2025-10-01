@@ -146,6 +146,7 @@ int xor128_rand(void);
 void *checkasm_check_func(void *func, const char *name, ...) ATTR_FORMAT_PRINTF(2, 3);
 int checkasm_bench_func(void);
 int checkasm_fail_func(const char *msg, ...) ATTR_FORMAT_PRINTF(1, 2);
+unsigned checkasm_bench_runs(void);
 void checkasm_update_bench(int iterations, uint64_t cycles);
 void checkasm_report(const char *name, ...) ATTR_FORMAT_PRINTF(1, 2);
 void checkasm_set_signal_handler_state(int enabled);
@@ -165,8 +166,6 @@ int float_near_abs_eps_array_ulp(const float *a, const float *b, float eps,
 int double_near_abs_eps(double a, double b, double eps);
 int double_near_abs_eps_array(const double *a, const double *b, double eps,
                               unsigned len);
-
-#define BENCH_RUNS (1 << 12) /* Trade-off between accuracy and speed */
 
 /* Decide whether or not the specified function needs to be tested */
 #define check_func(func, ...)\
@@ -455,7 +454,7 @@ void checkasm_simd_warmup(void);
             checkasm_set_signal_handler_state(1);\
             uint64_t tsum = 0;\
             int tcount = 0;\
-            unsigned truns = BENCH_RUNS >> 3;\
+            unsigned truns = checkasm_bench_runs() >> 3;\
             if (!truns)\
                 truns = 1;\
             for (unsigned ti = 0; ti < truns; ti++) {\

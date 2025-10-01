@@ -920,6 +920,11 @@ int checkasm_fail_func(const char *const msg, ...)
     return cfg.verbose;
 }
 
+unsigned checkasm_bench_runs(void)
+{
+    return cfg.bench_runs;
+}
+
 /* Update benchmark results of the current function */
 void checkasm_update_bench(const int iterations, const uint64_t cycles)
 {

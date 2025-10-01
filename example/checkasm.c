@@ -78,7 +78,7 @@ int main(int argc, char *argv[])
                 print_usage(argv[0]);
                 return 1;
             }
-            cfg.bench_runs = UINT64_C(1) << runs_log2;
+            cfg.bench_runs = 1u << runs_log2;
         } else if (!strncmp(argv[1], "--test=", 7)) {
             cfg.test_pattern = argv[1] + 7;
         } else if (!strcmp(argv[1], "-t")) {
