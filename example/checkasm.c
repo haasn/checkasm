@@ -57,7 +57,6 @@ int main(int argc, char *argv[])
         .nb_tests       = ARRAY_LEN(tests),
         .get_cpu_flags  = example_get_cpu_flags,
         .set_cpu_flags  = example_set_cpu_flags,
-
     };
 
     while (argc > 1) {
