@@ -62,8 +62,11 @@
 #include <mach/mach_time.h>
 #endif
 #endif
-#if CONFIG_MACOS_KPERF
-#include <dlfcn.h>
+
+#if CONFIG_LINUX_PERF
+    #include <sys/syscall.h>
+#elif CONFIG_MACOS_KPERF
+    #include <dlfcn.h>
 #endif
 
 #define COLOR_RED    31
@@ -111,6 +114,9 @@ static struct {
 #if ARCH_X86_64
     void (*simd_warmup)(void);
 #endif
+#if CONFIG_LINUX_PERF
+    int perf_sysfd;
+#endif
 } state;
 
 static uint32_t xs_state[4];
@@ -140,7 +146,37 @@ int xor128_rand(void) {
     return w >> 1;
 }
 
-#if CONFIG_MACOS_KPERF
+#if CONFIG_LINUX_PERF
+
+static int linux_perf_init(void)
+{
+    struct perf_event_attr attr = {
+        .type           = PERF_TYPE_HARDWARE,
+        .size           = sizeof(struct perf_event_attr),
+        .config         = PERF_COUNT_HW_CPU_CYCLES,
+        .disabled       = 1, // start counting only on demand
+        .exclude_kernel = 1,
+        .exclude_hv     = 1,
+#if !ARCH_X86
+        .exclude_guest  = 1,
+#endif
+    };
+
+    fprintf(stderr, "benchmarking with Linux Perf Monitoring API\n");
+    state.perf_sysfd = syscall(SYS_perf_event_open, &attr, 0, -1, -1, 0);
+    if (state.perf_sysfd == -1) {
+        perror("perf_event_open");
+        return 1;
+    }
+    return 0;
+}
+
+int checkasm_get_perf_sysfd(void)
+{
+    return state.perf_sysfd;
+}
+
+#elif CONFIG_MACOS_KPERF
 
 static int (*kpc_get_thread_counters)(int, unsigned int, void *);
 
@@ -382,7 +418,7 @@ static const char *cpu_suffix(const unsigned cpu)
     return "c";
 }
 
-#ifdef readtime
+#ifdef PERF_START
 static int cmp_nop(const void *a, const void *b)
 {
     return *(const uint16_t*)a - *(const uint16_t*)b;
@@ -394,9 +430,12 @@ static double measure_nop_time(void)
     uint16_t nops[10000];
     int nop_sum = 0;
 
+    PERF_SETUP();
     for (int i = 0; i < 10000; i++) {
-        uint64_t t = readtime();
-        nops[i] = (uint16_t) (readtime() - t);
+        uint64_t t;
+        PERF_START(t);
+        PERF_STOP(t);
+        nops[i] = (uint16_t) t;
     }
 
     qsort(nops, 10000, sizeof(uint16_t), cmp_nop);
@@ -742,12 +781,14 @@ int checkasm_run(const CheckasmConfig *config)
     if (!cfg.seed)
         cfg.seed = get_seed();
 
-#ifdef readtime
     if (cfg.bench) {
-  #if CONFIG_MACOS_KPERF
+    #if CONFIG_LINUX_PERF
+        if (linux_perf_init())
+            return 1;
+    #elif CONFIG_MACOS_KPERF
         if (kperf_init())
             return 1;
-  #endif
+    #elif defined(readtime)
         if (!checkasm_save_context()) {
             checkasm_set_signal_handler_state(1);
             readtime();
@@ -756,13 +797,11 @@ int checkasm_run(const CheckasmConfig *config)
             fprintf(stderr, "checkasm: unable to access cycle counter\n");
             return 1;
         }
-    }
-#else
-    if (cfg.bench) {
+    #else
         fprintf(stderr, "checkasm: benchmarking not supported on this platform\n");
         return 1;
+    #endif
     }
-#endif
 
 #if ARCH_X86_64
     state.simd_warmup = checkasm_get_simd_warmup_x86();
@@ -818,7 +857,7 @@ int checkasm_run(const CheckasmConfig *config)
             fprintf(stderr, "checkasm: all %d tests passed\n", state.num_checked);
         else
             fprintf(stderr, "checkasm: no tests to perform\n");
-#ifdef readtime
+#ifdef PERF_START
         if (cfg.bench && state.max_function_name_length) {
             state.nop_time = measure_nop_time();
             if (cfg.verbose)

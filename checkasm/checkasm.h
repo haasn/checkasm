@@ -139,6 +139,12 @@ int checkasm_run(const CheckasmConfig *config);
     #include "src/arm/arm-arch.h"
 #endif
 
+#if CONFIG_LINUX_PERF
+    #include <unistd.h>
+    #include <sys/ioctl.h>
+    #include <linux/perf_event.h>
+#endif
+
 int xor128_rand(void);
 #define rnd xor128_rand
 
@@ -445,7 +451,27 @@ void checkasm_simd_warmup(void);
     } while (0)
 
 /* Benchmark the function */
-#ifdef readtime
+#if CONFIG_LINUX_PERF
+    int checkasm_get_perf_sysfd(void);
+    #define PERF_SETUP()\
+        int sysfd = checkasm_get_perf_sysfd()
+    #define PERF_START(t) do {\
+        ioctl(sysfd, PERF_EVENT_IOC_RESET, 0);\
+        ioctl(sysfd, PERF_EVENT_IOC_ENABLE, 0);\
+    } while (0)
+    #define PERF_STOP(t) do {\
+        int _ret;\
+        ioctl(sysfd, PERF_EVENT_IOC_DISABLE, 0);\
+        _ret = read(sysfd, &t, sizeof(t));\
+        (void)_ret;\
+    } while (0)
+#elif defined(readtime)
+    #define PERF_SETUP()
+    #define PERF_START(t) t = readtime();
+    #define PERF_STOP(t)  t = readtime() - t
+#endif
+
+#ifdef PERF_START
 #define bench_new(...)\
     do {\
         if (checkasm_bench_func()) {\
@@ -453,15 +479,17 @@ void checkasm_simd_warmup(void);
             checkasm_set_signal_handler_state(1);\
             uint64_t tsum = 0;\
             int tcount = 0;\
+            PERF_SETUP();\
             unsigned truns = checkasm_bench_runs() >> 3;\
             if (!truns)\
                 truns = 1;\
             for (unsigned ti = 0; ti < truns; ti++) {\
-                uint64_t t = readtime();\
+                uint64_t t;\
                 int talt; (void)talt;\
+                PERF_START(t);\
                 CALL16(__VA_ARGS__);\
                 CALL16(__VA_ARGS__);\
-                t = readtime() - t;\
+                PERF_STOP(t);\
                 if (t*tcount <= tsum*4 && ti > 0) {\
                     tsum += t;\
                     tcount++;\

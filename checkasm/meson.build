@@ -45,6 +45,7 @@ endif
 checkasm_defines = {
   'HAVE_UNISTD_H':        cc.check_header('unistd.h'),
   'HAVE_PTHREAD_NP_H':    cc.check_header('pthread_np.h'),
+  'CONFIG_LINUX_PERF':    get_option('linux_perf'),
   'CONFIG_MACOS_KPERF':   get_option('macos_kperf'),
   'HAVE_C11_GENERIC':     cc.compiles('int x = _Generic(0, default: 0);', name: '_Generic', args: test_args),
   'ARCH_AARCH64':         host_machine.cpu_family() == 'aarch64' or host_machine.cpu() == 'arm64',
