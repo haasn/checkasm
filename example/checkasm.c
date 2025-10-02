@@ -24,6 +24,7 @@ static void print_usage(const char *const progname)
             "Options:\n"
             "    --affinity=<cpu>           Run the process on CPU <cpu>\n"
             "    --bench -b                 Benchmark the tested functions\n"
+            "    --csv, --tsv               Output results in rows of comma or tab separated values.\n"
             "    --function=<pattern> -f    Test only the functions matching <pattern>\n"
             "    --help -h                  Print this usage info\n"
             "    --list-cpuflags            List available cpu flags\n"
@@ -73,6 +74,10 @@ int main(int argc, char *argv[])
             cfg.list_functions = 1;
         } else if (!strcmp(argv[1], "--bench") || !strcmp(argv[1], "-b")) {
             cfg.bench = 1;
+        } else if (!strcmp(argv[1], "--csv")) {
+            cfg.separator = ',';
+        } else if (!strcmp(argv[1], "--tsv")) {
+            cfg.separator = '\t';
         } else if (!strncmp(argv[1], "--runs=", 7)) {
             const char *const s = argv[1] + 7;
             unsigned runs_log2;
