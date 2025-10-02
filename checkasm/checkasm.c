@@ -465,11 +465,16 @@ static void print_benchs(const CheckasmFunc *const f)
         if (v->iterations) {
             const double baseline = avg_cycles_per_call(v);
             do {
-                const int pad_length = 10 + state.max_function_name_length -
-                    printf("%s_%s:", f->name, cpu_suffix(v->cpu));
                 const double cycles = avg_cycles_per_call(v);
                 const double ratio = cycles ? baseline / cycles : 0.0;
-                printf("%*.1f (%5.2fx)\n", imax(pad_length, 0), cycles, ratio);
+                if (cfg.separator) {
+                    printf("%s%c%s%c%.1f\n", f->name, cfg.separator,
+                           cpu_suffix(v->cpu), cfg.separator, cycles);
+                } else {
+                    const int pad = 10 + state.max_function_name_length -
+                        printf("%s_%s:", f->name, cpu_suffix(v->cpu));
+                    printf("%*.1f (%5.2fx)\n", imax(pad, 0), cycles, ratio);
+                }
             } while ((v = v->next));
         }
 
@@ -860,8 +865,12 @@ int checkasm_run(const CheckasmConfig *config)
 #ifdef PERF_START
         if (cfg.bench && state.max_function_name_length) {
             state.nop_time = measure_nop_time();
-            if (cfg.verbose)
-                printf("nop:%*.1f\n", state.max_function_name_length + 6, state.nop_time);
+            if (cfg.verbose) {
+                if (cfg.separator)
+                    printf("nop%c%c%.1f\n", cfg.separator, cfg.separator, state.nop_time);
+                else
+                    printf("nop:%*.1f\n", state.max_function_name_length + 6, state.nop_time);
+            }
             print_benchs(state.funcs);
         }
 #endif

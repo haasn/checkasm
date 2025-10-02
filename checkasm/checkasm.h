@@ -68,6 +68,9 @@ typedef struct CheckasmConfig {
     /* If nonzero, enable verbose printing of failing test data. */
     int verbose;
 
+    /* If set, outputs benchmark numbers separated by this character */
+    char separator;
+
     /* If nonzero, output a list of all functions tested. */
     int list_functions;
 
