@@ -44,10 +44,10 @@ if get_option('b_sanitize') == 'memory'
   error('asm causes false positives with the memory sanitizer.')
 endif
 
-if cc.has_argument('-fvisibility=public')
-    add_project_arguments('-fvisibility=public', language: 'c')
+if cc.has_argument('-fvisibility=hidden')
+    add_project_arguments('-fvisibility=hidden', language: 'c')
 else
-    warning('Compiler does not support -fvisibility=public, symbols may be hidden!')
+    warning('Compiler does not support -fvisibility=hidden, all symbols will be public!')
 endif
 
 # Global paths

@@ -94,15 +94,15 @@ typedef struct CheckasmConfig {
 /**
  * Print a list of all cpuflags/tests available for testing.
  */
-void checkasm_list_cpu_flags(const CheckasmConfig *config);
-void checkasm_list_tests(const CheckasmConfig *config);
+CHECKASM_API void checkasm_list_cpu_flags(const CheckasmConfig *config);
+CHECKASM_API void checkasm_list_tests(const CheckasmConfig *config);
 
 /**
  * Run all tests (and benchmarks) matching the specified patterns.
  *
  * Returns 0 on success, or a negative AVERROR code on failure.
  */
-int checkasm_run(const CheckasmConfig *config);
+CHECKASM_API int checkasm_run(const CheckasmConfig *config);
 
 /********************************************
  * Internal checkasm API. Used inside tests *
@@ -149,32 +149,34 @@ int checkasm_run(const CheckasmConfig *config);
     #include <linux/perf_event.h>
 #endif
 
-int xor128_rand(void);
+CHECKASM_API int xor128_rand(void);
 #define rnd xor128_rand
 
-void *checkasm_check_func(void *func, const char *name, ...) ATTR_FORMAT_PRINTF(2, 3);
-int checkasm_bench_func(void);
-int checkasm_fail_func(const char *msg, ...) ATTR_FORMAT_PRINTF(1, 2);
-unsigned checkasm_bench_runs(void);
-void checkasm_update_bench(int iterations, uint64_t cycles);
-void checkasm_report(const char *name, ...) ATTR_FORMAT_PRINTF(1, 2);
-void checkasm_set_signal_handler_state(int enabled);
-void checkasm_handle_signal(void);
-extern checkasm_context checkasm_context_buf;
+CHECKASM_API void *checkasm_check_func(void *func, const char *name, ...) ATTR_FORMAT_PRINTF(2, 3);
+CHECKASM_API int checkasm_bench_func(void);
+CHECKASM_API int checkasm_fail_func(const char *msg, ...) ATTR_FORMAT_PRINTF(1, 2);
+CHECKASM_API unsigned checkasm_bench_runs(void);
+CHECKASM_API void checkasm_update_bench(int iterations, uint64_t cycles);
+CHECKASM_API void checkasm_report(const char *name, ...) ATTR_FORMAT_PRINTF(1, 2);
+CHECKASM_API void checkasm_set_signal_handler_state(int enabled);
+CHECKASM_API void checkasm_handle_signal(void);
+CHECKASM_API extern checkasm_context checkasm_context_buf;
 
 /* float compare utilities */
-int float_near_ulp(float a, float b, unsigned max_ulp);
-int float_near_abs_eps(float a, float b, float eps);
-int float_near_abs_eps_ulp(float a, float b, float eps, unsigned max_ulp);
-int float_near_ulp_array(const float *a, const float *b, unsigned max_ulp,
-                         int len);
-int float_near_abs_eps_array(const float *a, const float *b, float eps,
-                             int len);
-int float_near_abs_eps_array_ulp(const float *a, const float *b, float eps,
-                                 unsigned max_ulp, int len);
-int double_near_abs_eps(double a, double b, double eps);
-int double_near_abs_eps_array(const double *a, const double *b, double eps,
-                              unsigned len);
+CHECKASM_API int float_near_ulp(float a, float b, unsigned max_ulp);
+CHECKASM_API int float_near_abs_eps(float a, float b, float eps);
+CHECKASM_API int float_near_abs_eps_ulp(float a, float b, float eps,
+                                        unsigned max_ulp);
+CHECKASM_API int float_near_ulp_array(const float *a, const float *b,
+                                      unsigned max_ulp, int len);
+CHECKASM_API int float_near_abs_eps_array(const float *a, const float *b,
+                                          float eps, int len);
+CHECKASM_API int float_near_abs_eps_array_ulp(const float *a, const float *b,
+                                              float eps, unsigned max_ulp,
+                                              int len);
+CHECKASM_API int double_near_abs_eps(double a, double b, double eps);
+CHECKASM_API int double_near_abs_eps_array(const double *a, const double *b,
+                                           double eps, unsigned len);
 
 /* Decide whether or not the specified function needs to be tested */
 #define check_func(func, ...)\
@@ -214,7 +216,7 @@ int double_near_abs_eps_array(const double *a, const double *b, double eps,
         #define readtime readtime
     #endif
 #elif CONFIG_MACOS_KPERF
-    uint64_t checkasm_kperf_cycles(void);
+    CHECKASM_API uint64_t checkasm_kperf_cycles(void);
     #define readtime() checkasm_kperf_cycles()
 #elif (ARCH_AARCH64 || ARCH_ARM) && defined(__APPLE__)
     #include <mach/mach_time.h>
@@ -300,7 +302,7 @@ int double_near_abs_eps_array(const double *a, const double *b, double eps,
 
 /* Verifies that clobbered callee-saved registers
  * are properly saved and restored */
-void checkasm_checked_call(void *func, ...);
+CHECKASM_API void checkasm_checked_call(void *func, ...);
 
 #if ARCH_X86_64
 
@@ -310,7 +312,7 @@ void checkasm_checked_call(void *func, ...);
  * which is problematic when trying to benchmark individual functions. We can
  * work around this by periodically issuing "dummy" instructions that uses
  * those registers to keep them powered on. */
-void checkasm_simd_warmup(void);
+CHECKASM_API void checkasm_simd_warmup(void);
 
 /* The upper 32 bits of 32-bit data types are undefined when passed as function
  * parameters. In practice those bits usually end up being zero which may hide
@@ -377,7 +379,7 @@ void checkasm_simd_warmup(void);
     /* Use a dummy argument, to offset the real parameters by 2, not only 1.
     * This makes sure that potential 8-byte-alignment of parameters is kept
     * the same even when the extra parameters have been removed. */
-    extern void (*checkasm_checked_call_ptr)(void *func, int dummy, ...);
+    CHECKASM_API extern void (*checkasm_checked_call_ptr)(void *func, int dummy, ...);
     #define declare_new(ret, ...)\
         ret (*checked_call)(void *, int dummy, __VA_ARGS__,\
                             int, int, int, int, int, int, int, int,\
@@ -388,7 +390,7 @@ void checkasm_simd_warmup(void);
         checked_call(func_new, 0, __VA_ARGS__, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 0, 0, 0));\
         checkasm_set_signal_handler_state(0)
 #elif ARCH_AARCH64 && !defined(__APPLE__)
-    void checkasm_stack_clobber(uint64_t clobber, ...);
+    CHECKASM_API void checkasm_stack_clobber(uint64_t clobber, ...);
     #define declare_new(ret, ...)\
         ret (*checked_call)(void *, int, int, int, int, int, int, int,\
                             __VA_ARGS__, int, int, int, int, int, int, int, int,\
@@ -456,7 +458,7 @@ void checkasm_simd_warmup(void);
 
 /* Benchmark the function */
 #if CONFIG_LINUX_PERF
-    int checkasm_get_perf_sysfd(void);
+    CHECKASM_API int checkasm_get_perf_sysfd(void);
     #define PERF_SETUP()\
         int sysfd = checkasm_get_perf_sysfd()
     #define PERF_START(t) do {\
@@ -526,12 +528,12 @@ void checkasm_simd_warmup(void);
     memset(name##_buf, 0x99, sizeof(name##_buf)) \
 
 #define DECL_CHECKASM_CHECK_FUNC(type) \
-int checkasm_check_##type(const char *const file, const int line, \
-                          const type *const buf1, const ptrdiff_t stride1, \
-                          const type *const buf2, const ptrdiff_t stride2, \
-                          const int w, const int h, const char *const name, \
-                          const int align_w, const int align_h, \
-                          const int padding)
+CHECKASM_API int checkasm_check_##type(const char *const file, const int line, \
+                                       const type *const buf1, const ptrdiff_t stride1, \
+                                       const type *const buf2, const ptrdiff_t stride2, \
+                                       const int w, const int h, const char *const name, \
+                                       const int align_w, const int align_h, \
+                                       const int padding)
 
 DECL_CHECKASM_CHECK_FUNC(int8_t);
 DECL_CHECKASM_CHECK_FUNC(int16_t);
@@ -540,12 +542,12 @@ DECL_CHECKASM_CHECK_FUNC(uint8_t);
 DECL_CHECKASM_CHECK_FUNC(uint16_t);
 DECL_CHECKASM_CHECK_FUNC(uint32_t);
 
-int checkasm_check_float_ulp(const char *file, int line,
-                             const float *buf1, ptrdiff_t stride1,
-                             const float *buf2, ptrdiff_t stride2,
-                             int w, int h, const char *name,
-                             unsigned max_ulp, int align_w, int align_h,
-                             int padding);
+CHECKASM_API int checkasm_check_float_ulp(const char *file, int line,
+                                          const float *buf1, ptrdiff_t stride1,
+                                          const float *buf2, ptrdiff_t stride2,
+                                          int w, int h, const char *name,
+                                          unsigned max_ulp, int align_w, int align_h,
+                                          int padding);
 
 #define CONCAT2(a,b) a ## b
 #define CONCAT(a,b) CONCAT2(a, b)

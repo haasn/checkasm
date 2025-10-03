@@ -75,4 +75,20 @@
     #define ALIGN_STK(type, var, sz1d, sznd) ALIGN(type var[sz1d]sznd, 8)
 #endif
 
+#ifndef CHECKASM_API
+    #ifdef _WIN32
+      #ifdef CHECKASM_BUILDING_DLL
+        #define CHECKASM_API __declspec(dllexport)
+      #else
+        #define CHECKASM_API
+      #endif
+    #else
+      #if __GNUC__ >= 4
+        #define CHECKASM_API __attribute__ ((visibility ("default")))
+      #else
+        #define CHECKASM_API
+      #endif
+    #endif
+#endif
+
 #endif /* CHECKASM_ATTRIBUTES_H */
