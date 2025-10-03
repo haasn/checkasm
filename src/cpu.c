@@ -46,6 +46,7 @@ COLD unsigned long checkasm_getauxval(unsigned long type) {
         errno = ret;
     return aux;
 #else
+    (void) type;
     errno = ENOSYS;
     return 0;
 #endif
