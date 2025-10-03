@@ -33,17 +33,17 @@
 #include "checkasm/config.h"
 
 #ifdef __GNUC__
-  #define ATTR_ALIAS __attribute__((may_alias))
-  #if defined(__MINGW32__) && !defined(__clang__)
-    #define ATTR_FORMAT_PRINTF(fmt, attr) __attribute__((__format__(__gnu_printf__, fmt, attr)))
-  #else
-    #define ATTR_FORMAT_PRINTF(fmt, attr) __attribute__((__format__(__printf__, fmt, attr)))
-  #endif
-  #define COLD __attribute__((cold))
+    #define ATTR_ALIAS __attribute__((may_alias))
+    #if defined(__MINGW32__) && !defined(__clang__)
+        #define ATTR_FORMAT_PRINTF(fmt, attr) __attribute__((__format__(__gnu_printf__, fmt, attr)))
+    #else
+        #define ATTR_FORMAT_PRINTF(fmt, attr) __attribute__((__format__(__printf__, fmt, attr)))
+    #endif
+    #define COLD __attribute__((cold))
 #else
-  #define ATTR_ALIAS
-  #define ATTR_FORMAT_PRINTF(fmt, attr)
-  #define COLD
+    #define ATTR_ALIAS
+    #define ATTR_FORMAT_PRINTF(fmt, attr)
+    #define COLD
 #endif
 
 /*
@@ -53,9 +53,9 @@
  *   ALIGN(uint8_t var[1][2][3][4], alignment).
  */
 #ifdef _MSC_VER
-  #define ALIGN(ll, a) __declspec(align(a)) ll
+    #define ALIGN(ll, a) __declspec(align(a)) ll
 #else
-  #define ALIGN(line, align) line __attribute__((aligned(align)))
+    #define ALIGN(line, align) line __attribute__((aligned(align)))
 #endif
 
 /*
@@ -66,13 +66,13 @@
  */
 #if ARCH_X86_64
 /* x86-64 needs 32- and 64-byte alignment for AVX2 and AVX-512. */
-  #define ALIGN_STK(type, var, sz1d, sznd) ALIGN(type var[sz1d]sznd, 64)
+    #define ALIGN_STK(type, var, sz1d, sznd) ALIGN(type var[sz1d]sznd, 64)
 #elif ARCH_AARCH64 || ARCH_ARM || ARCH_LOONGARCH || ARCH_PPC64LE || ARCH_X86_32
 /* ARM doesn't benefit from anything more than 16-byte alignment. */
-  #define ALIGN_STK(type, var, sz1d, sznd) ALIGN(type var[sz1d]sznd, 16)
+    #define ALIGN_STK(type, var, sz1d, sznd) ALIGN(type var[sz1d]sznd, 16)
 #else
 /* No need for extra alignment on platforms without assembly. */
-  #define ALIGN_STK(type, var, sz1d, sznd) ALIGN(type var[sz1d]sznd, 8)
+    #define ALIGN_STK(type, var, sz1d, sznd) ALIGN(type var[sz1d]sznd, 8)
 #endif
 
 #endif /* CHECKASM_ATTRIBUTES_H */
