@@ -322,11 +322,11 @@ CHECKASM_API void checkasm_simd_warmup(void);
  * specifying which parameters should have their upper halves clobbered. */
 #ifdef _WIN32
 /* Integer and floating-point parameters share "register slots". */
-  #define IGNORED_FP_ARGS 0
+    #define IGNORED_FP_ARGS 0
 #else
 /* Up to 8 floating-point parameters are passed in XMM registers, which are
  * handled orthogonally from integer parameters passed in GPR registers. */
-  #define IGNORED_FP_ARGS 8
+    #define IGNORED_FP_ARGS 8
 #endif
 
 #if HAVE_C11_GENERIC
@@ -346,8 +346,8 @@ CHECKASM_API void checkasm_simd_warmup(void);
         clobber_type(m); clobber_type(n); clobber_type(o); clobber_type(p);\
     }
 #else
-  /* Skip parameter clobbering on compilers without support for _Generic() */
-  #define init_clobber_mask(...) unsigned clobber_mask = 0
+    /* Skip parameter clobbering on compilers without support for _Generic() */
+    #define init_clobber_mask(...) unsigned clobber_mask = 0
 #endif
 
 #define declare_new(ret, ...)\
