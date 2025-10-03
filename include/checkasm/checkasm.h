@@ -180,7 +180,7 @@ CHECKASM_API int double_near_abs_eps_array(const double *a, const double *b,
 
 /* Decide whether or not the specified function needs to be tested */
 #define check_func(func, ...)\
-    (func_ref = checkasm_check_func((func_new = func), __VA_ARGS__))
+    (func_ref = checkasm_check_func((func_new = (void *) func), __VA_ARGS__))
 
 /* Declare the function prototype. The first argument is the return value,
  * the remaining arguments are the function parameters. Naming parameters
@@ -354,7 +354,9 @@ CHECKASM_API void checkasm_simd_warmup(void);
     ret (*checked_call)(__VA_ARGS__, int, int, int, int, int, int, int,\
                         int, int, int, int, int, int, int, int, int,\
                         void*, unsigned) =\
-        (void*)checkasm_checked_call;\
+        (ret (*)(__VA_ARGS__, int, int, int, int, int, int, int,\
+         int, int, int, int, int, int, int, int, int,\
+         void *, unsigned))checkasm_checked_call;\
     init_clobber_mask(__VA_ARGS__, void*, void*, void*, void*,\
                       void*, void*, void*, void*, void*, void*,\
                       void*, void*, void*, void*, void*);
@@ -369,7 +371,8 @@ CHECKASM_API void checkasm_simd_warmup(void);
     #define declare_new(ret, ...)\
         ret (*checked_call)(void *, __VA_ARGS__, int, int, int, int, int, int,\
                             int, int, int, int, int, int, int, int, int) =\
-            (void *)checkasm_checked_call;
+            (ret (*)(void *, __VA_ARGS__, int, int, int, int, int, int,\
+                     int, int, int, int, int, int, int, int, int))checkasm_checked_call;\
     #define call_new(...)\
         (checkasm_set_signal_handler_state(1),\
         checked_call(func_new, __VA_ARGS__, 15, 14, 13, 12,\
@@ -384,7 +387,9 @@ CHECKASM_API void checkasm_simd_warmup(void);
         ret (*checked_call)(void *, int dummy, __VA_ARGS__,\
                             int, int, int, int, int, int, int, int,\
                             int, int, int, int, int, int, int) =\
-        (void *)checkasm_checked_call_ptr;
+        (ret (*)(void *, int, __VA_ARGS__, \
+                 int, int, int, int, int, int, int, int,\
+                 int, int, int, int, int, int, int))checkasm_checked_call_ptr;
     #define call_new(...)\
         (checkasm_set_signal_handler_state(1),\
         checked_call(func_new, 0, __VA_ARGS__, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 0, 0, 0));\
@@ -395,7 +400,9 @@ CHECKASM_API void checkasm_simd_warmup(void);
         ret (*checked_call)(void *, int, int, int, int, int, int, int,\
                             __VA_ARGS__, int, int, int, int, int, int, int, int,\
                             int, int, int, int, int, int, int) =\
-        (void *)checkasm_checked_call;
+        (ret (*)(void *, int, int, int, int, int, int, int,\
+                 __VA_ARGS__, int, int, int, int, int, int, int, int,\
+                 int, int, int, int, int, int, int))checkasm_checked_call;
     #define CLOB (UINT64_C(0xdeadbeefdeadbeef))
     #define call_new(...)\
         (checkasm_set_signal_handler_state(1),\
@@ -411,7 +418,9 @@ CHECKASM_API void checkasm_simd_warmup(void);
         ret (*checked_call)(void *, int, int, int, int, int, int, int,\
                             __VA_ARGS__, int, int, int, int, int, int, int, int,\
                             int, int, int, int, int, int, int) =\
-        (void *)checkasm_checked_call;
+        (ret (*)(void *, int, int, int, int, int, int, int,\
+                 __VA_ARGS__, int, int, int, int, int, int, int, int,\
+                 int, int, int, int, int, int, int))checkasm_checked_call;
     #define call_new(...)\
         (checkasm_set_signal_handler_state(1),\
         checked_call(func_new, 0, 0, 0, 0, 0, 0, 0, __VA_ARGS__,\
@@ -422,7 +431,9 @@ CHECKASM_API void checkasm_simd_warmup(void);
         ret (*checked_call)(void *, int, int, int, int, int, int, int,\
                             __VA_ARGS__, int, int, int, int, int, int, int, int,\
                             int, int, int, int, int, int, int) =\
-        (void *)checkasm_checked_call;
+        (ret (*)(void *, int, int, int, int, int, int, int,\
+                 __VA_ARGS__, int, int, int, int, int, int, int, int,\
+                 int, int, int, int, int, int, int))checkasm_checked_call;
     #define call_new(...)\
         (checkasm_set_signal_handler_state(1),\
         checked_call(func_new, 0, 0, 0, 0, 0, 0, 0, __VA_ARGS__,\
@@ -481,7 +492,7 @@ CHECKASM_API void checkasm_simd_warmup(void);
 #define bench_new(...)\
     do {\
         if (checkasm_bench_func()) {\
-            func_type *const tfunc = func_new;\
+            func_type *const tfunc = (func_type *) func_new;\
             checkasm_set_signal_handler_state(1);\
             uint64_t tsum = 0;\
             int tcount = 0;\
