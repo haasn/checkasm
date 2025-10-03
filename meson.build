@@ -25,7 +25,7 @@
 
 project('checkasm',
   ['c', 'nasm'],
-  default_options: ['c_std=c99',
+  default_options: ['c_std=c11',
                     'buildtype=debugoptimized',
                     'b_ndebug=if-release',
                     'warning_level=3'],
