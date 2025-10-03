@@ -25,10 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "checkasm.h"
-
-#include <errno.h>
-#include <math.h>
+#include <assert.h>
 #include <inttypes.h>
 #include <math.h>
 #include <signal.h>
@@ -37,7 +34,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "checkasm.h"
 #include "cpu.h"
+#include "config_internal.h"
 
 #ifdef _WIN32
 #ifndef SIGBUS

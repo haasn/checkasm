@@ -22,90 +22,72 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#
 # Dependencies
-# These dependencies are needed by checkasm
-#
-cc = meson.get_compiler('c')
-
 libm_dependency     = cc.find_library('m', required: false)
 rt_dependency       = cc.find_library('rt', required: false)
 libdl_dependency    = cc.find_library('dl', required: false)
 thread_dependency   = dependency('threads')
 
-# Feature defines
-checkasm_c_args = []
-checkasm_nasm_args = []
-test_args = []
-
-if host_machine.system() in ['linux', 'gnu', 'emscripten']
-    test_args += '-D_GNU_SOURCE'
-endif
-
-checkasm_defines = {
-  'HAVE_UNISTD_H':        cc.check_header('unistd.h'),
-  'HAVE_PTHREAD_NP_H':    cc.check_header('pthread_np.h'),
-  'CONFIG_LINUX_PERF':    get_option('linux_perf'),
-  'CONFIG_MACOS_KPERF':   get_option('macos_kperf'),
-  'HAVE_C11_GENERIC':     cc.compiles('int x = _Generic(0, default: 0);', name: '_Generic', args: test_args),
-  'ARCH_AARCH64':         host_machine.cpu_family() == 'aarch64' or host_machine.cpu() == 'arm64',
-  'ARCH_ARM':             host_machine.cpu_family().startswith('arm') and host_machine.cpu() != 'arm64',
-  'ARCH_X86':             host_machine.cpu_family().startswith('x86'),
-  'ARCH_X86_64':          host_machine.cpu_family() == 'x86_64',
-  'ARCH_X86_32':          host_machine.cpu_family() == 'x86',
-  'ARCH_PPC64LE':         host_machine.cpu() == 'ppc64le',
-  'ARCH_RISCV':           host_machine.cpu_family().startswith('riscv'),
-  'ARCH_RV32':            host_machine.cpu_family() == 'riscv32',
-  'ARCH_RV64':            host_machine.cpu_family() == 'riscv64',
-  'ARCH_LOONGARCH':       host_machine.cpu_family().startswith('loongarch'),
-  'ARCH_LOONGARCH32':     host_machine.cpu_family() == 'loongarch32',
-  'ARCH_LOONGARCH64':     host_machine.cpu_family() == 'loongarch64',
-}
-
-if cc.symbols_have_underscore_prefix()
-  checkasm_defines += { 'PREFIX' : true }
-endif
-
+have_pthread_np = cc.check_header('pthread_np.h')
 have_pthread_setaffinity_np = cc.has_function('pthread_setaffinity_np',
   prefix: [
     '#include <pthread.h>',
-    (checkasm_defines['HAVE_PTHREAD_NP_H']) ? '#include <pthread_np.h>' : ''
+    have_pthread_np ? '#include <pthread_np.h>' : ''
   ],
   args: test_args,
   dependencies: thread_dependency,
 )
 
-checkasm_defines += {
-  'HAVE_PTHREAD_SETAFFINITY_NP': have_pthread_setaffinity_np
-}
+have_getauxval = false
+have_elf_aux_info = false
+if (host_machine.cpu_family() == 'aarch64' or
+    host_machine.cpu_family().startswith('arm') or
+    host_machine.cpu_family().startswith('loongarch') or
+    host_machine.cpu() == 'ppc64le' or
+    host_machine.cpu_family().startswith('riscv'))
+    have_getauxval = cc.has_function('getauxval', prefix : '#include <sys/auxv.h>', args : test_args)
+    have_elf_aux_info = cc.has_function('elf_aux_info', prefix : '#include <sys/auxv.h>', args : test_args)
+endif
 
-foreach define, value : checkasm_defines
-  value_str = value.to_string('1', '0')
-  checkasm_c_args += f'-D@define@=@value_str@'
+# Internal configuration
+cdata_internal = configuration_data()
+cdata_internal.set('PREFIX',                        cc.symbols_have_underscore_prefix())
+cdata_internal.set10('HAVE_UNISTD_H',               cc.check_header('unistd.h'))
+cdata_internal.set10('HAVE_PTHREAD_NP_H',           have_pthread_np)
+cdata_internal.set10('HAVE_PTHREAD_SETAFFINITY_NP', have_pthread_setaffinity_np)
+cdata_internal.set10('HAVE_GETAUXVAL',              have_getauxval)
+cdata_internal.set10('HAVE_ELF_AUX_INFO',           have_elf_aux_info)
 
-  if host_machine.cpu_family().startswith('x86')
-    if define in ['PREFIX', 'ARCH_X86_64', 'ARCH_X86_32']
-      checkasm_nasm_args += f'-D@define@=@value_str@'
-    endif
-  endif
-endforeach
+config_internal_target = configure_file(
+  output: 'config_internal.h',
+  configuration: cdata_internal,
+)
+
+# Compiler and assembler flags
+checkasm_nasm_args = []
 
 if host_machine.cpu_family().startswith('x86')
   checkasm_nasm_args += '-DPIC=1'
 
+  if cc.symbols_have_underscore_prefix()
+    checkasm_nasm_args += '-DPREFIX=1'
+  endif
+
+  if host_machine.cpu_family() == 'x86_64'
+    checkasm_nasm_args += '-DARCH_X86_64=1'
+  else
+    checkasm_nasm_args += '-DARCH_X86_32=1'
+  endif
+
   # Convert SSE asm into (128-bit) AVX when compiler flags are set to use AVX instructions
   if cc.get_define('__AVX__').strip() != ''
-    checkasm_nasm_args += '-DFORCE_VEX_ENCODING=1'
+      checkasm_nasm_args += '-DFORCE_VEX_ENCODING=1'
   else
-    checkasm_nasm_args += '-DFORCE_VEX_ENCODING=0'
+      checkasm_nasm_args += '-DFORCE_VEX_ENCODING=0'
   endif
 endif
 
-
-#
-# Build definition for the checkasm executable
-#
-
+# Build definition
 checkasm_sources = files(
   'checkasm.c',
   'cpu.c',
@@ -145,3 +127,18 @@ checkasm_dependencies = [
   libdl_dependency,
   libm_dependency,
 ]
+
+checkasm_library = library('checkasm',
+  checkasm_sources,
+  config_target,
+  config_internal_target,
+  include_directories: checkasm_inc_dirs,
+  nasm_args: checkasm_nasm_args,
+  dependencies: checkasm_dependencies,
+  install: true,
+)
+
+checkasm_dep = declare_dependency(
+  link_with: checkasm_library,
+  include_directories: checkasm_inc_dirs,
+)

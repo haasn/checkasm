@@ -1,7 +1,6 @@
 /*
- * Copyright © 2024, Marvin Scholz
- * Copyright © 2019, VideoLAN and dav1d authors
- * Copyright © 2019, Two Orioles, LLC
+ * Copyright © 2018-2022, VideoLAN and dav1d authors
+ * Copyright © 2018-2022, Two Orioles, LLC
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,47 +25,23 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#ifndef CHECKASM_CPU_H
+#define CHECKASM_CPU_H
 
-#include <checkasm/checkasm.h>
-#include "example.h"
+#include "config.h"
 
-static void check_nihcpy(nihcpy_func fun, size_t size)
-{
-    int8_t *src   = malloc(size);
-    int8_t *c_dst = malloc(size);
-    int8_t *a_dst = malloc(size);
+#if ARCH_AARCH64 || ARCH_ARM
+#include "arm/cpu.h"
+#elif ARCH_LOONGARCH
+#include "loongarch/cpu.h"
+#elif ARCH_PPC64LE
+#include "ppc/cpu.h"
+#elif ARCH_RISCV
+#include "riscv/cpu.h"
+#elif ARCH_X86
+#include "x86/cpu.h"
+#endif
 
-    declare_func(void,
-        void *dest, const void *src, size_t n);
+unsigned long checkasm_getauxval(unsigned long);
 
-    if (check_func(fun, "nihcpy_%zu", size)) {
-
-        /* Initialize the source buffer */
-        for (size_t i = 0; i < size; i++)
-            src[i] = rnd() & 7;
-
-        memset(c_dst, 0x88, size);
-        memset(a_dst, 0x88, size);
-
-        call_ref(c_dst, src, size);
-        call_new(a_dst, src, size);
-        checkasm_check(int8_t, c_dst, size, a_dst, size, size, 1, "nihcpy_data");
-
-        bench_new(a_dst, src, size);
-    }
-
-    report("nihcpy_%zu", size);
-}
-
-void checkasm_check_nihcpy(void)
-{
-    nihcpy_func fun = get_nihcpy_func();
-    check_nihcpy(fun, 3);
-    check_nihcpy(fun, 8);
-    check_nihcpy(fun, 16);
-    check_nihcpy(fun, 512);
-    check_nihcpy(fun, 2049);
-}
+#endif /* CHECKASM_CPU_H */

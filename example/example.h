@@ -1,6 +1,5 @@
 /*
- * Copyright © 2018, VideoLAN and dav1d authors
- * Copyright © 2018, Two Orioles, LLC
+ * Copyright © 2025, Niklas Haas
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,26 +24,25 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <errno.h>
+#ifndef EXAMPLE_CHECKASM_H
+#define EXAMPLE_CHECKASM_H
 
-#if HAVE_GETAUXVAL || HAVE_ELF_AUX_INFO
-#include <sys/auxv.h>
-#endif
+#include <stdint.h>
+#include <stddef.h>
 
-#include "cpu.h"
-#include "attributes.h"
+/* Example CPU flags (dummy) */
+enum {
+    EXAMPLE_CPU_FLAG_X86 = 1 << 0,
+};
 
-COLD unsigned long checkasm_getauxval(unsigned long type) {
-#if HAVE_GETAUXVAL
-    return getauxval(type);
-#elif HAVE_ELF_AUX_INFO
-    unsigned long aux = 0;
-    int ret = elf_aux_info(type, &aux, sizeof(aux));
-    if (ret != 0)
-        errno = ret;
-    return aux;
-#else
-    errno = ENOSYS;
-    return 0;
-#endif
-}
+uint64_t example_get_cpu_flags(void);
+void example_set_cpu_flags(uint64_t flags);
+
+/* Example function (nihcpy) */
+typedef void *(*nihcpy_func)(void *dest, const void *src, size_t n);
+nihcpy_func get_nihcpy_func(void);
+
+void *nihcpy(void *dest, const void *src, size_t n);
+void *nihcpy_x86(void *dest, const void *src, size_t n);
+
+#endif /* EXAMPLE_CHECKASM_H */

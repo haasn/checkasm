@@ -5,8 +5,10 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "checkasm.h"
+#include <checkasm/checkasm.h>
+#include "example.h"
 
+void checkasm_check_nihcpy(void);
 
 static const CheckasmCpuFlag flags[] = {
     { "x86", "x86", EXAMPLE_CPU_FLAG_X86 }

@@ -29,7 +29,8 @@
 #define CHECKASM_ATTRIBUTES_H
 
 #include <stddef.h>
-#include <assert.h>
+
+#include "checkasm/config.h"
 
 #ifdef __GNUC__
   #define ATTR_ALIAS __attribute__((may_alias))

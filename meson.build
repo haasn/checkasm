@@ -1,3 +1,4 @@
+# Copyright © 2025 Niklas Haas
 # Copyright © 2024, Marvin Scholz
 # All rights reserved.
 #
@@ -22,56 +23,55 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-
-# This is an example project that illustrates how checkasm would be integrated
-# and used to test a library, in this example the nihcpy library.
-project('checkasm_example',
+project('checkasm',
   ['c', 'nasm'],
-  default_options: ['warning_level=3'])
+  default_options: ['c_std=c99',
+                    'buildtype=debugoptimized',
+                    'b_ndebug=if-release',
+                    'warning_level=3'],
+  meson_version : '>=1.0.0')
 
+# Project arguments and basic checks
+cc = meson.get_compiler('c')
+
+test_args = []
 if host_machine.system() in ['linux', 'gnu', 'emscripten']
   add_project_arguments('-D_GNU_SOURCE', language: 'c')
+  test_args += '-D_GNU_SOURCE'
 endif
 
 if get_option('b_sanitize') == 'memory'
-    error('asm causes false positives with the memory sanitizer.')
+  error('asm causes false positives with the memory sanitizer.')
 endif
 
-# Include build definition for checkasm
-# For details see the checkasm/meson.build file
-subdir('checkasm')
-
-# This is the library we aim to test with checkasm in this project,
-# in an actual usecase this would be your library instead.
-example_sources = files('example/nihcpy.c')
-
-if host_machine.cpu_family() == 'x86_64'
-  example_sources += [
-    files('example/x86/nihcpy_x86.asm')
-  ]
+if cc.has_argument('-fvisibility=public')
+    add_project_arguments('-fvisibility=public', language: 'c')
 else
-  warning('Not building for x86_64, so there are no assembly functions to test.')
+    warning('Compiler does not support -fvisibility=public, symbols may be hidden!')
 endif
 
-example = library('example', example_sources,
-  install: false)
+# Global paths
+checkasm_src_root = meson.current_source_dir()
+checkasm_inc_dirs = include_directories(['.', 'include/checkasm', 'include'])
 
-# Checkasm test for the example library
-example_checkasm_sources = files('example/checkasm.c', 'example/test_nihcpy.c')
+# Global configuration
+cdata = configuration_data()
+cdata.set10('CONFIG_LINUX_PERF',    get_option('linux_perf'))
+cdata.set10('CONFIG_MACOS_KPERF',   get_option('macos_kperf'))
+cdata.set10('HAVE_C11_GENERIC',     cc.compiles('int x = _Generic(0, default: 0);', name: '_Generic', args: test_args))
+cdata.set10('ARCH_AARCH64',         host_machine.cpu_family() == 'aarch64' or host_machine.cpu() == 'arm64')
+cdata.set10('ARCH_ARM',             host_machine.cpu_family().startswith('arm') and host_machine.cpu() != 'arm64')
+cdata.set10('ARCH_X86',             host_machine.cpu_family().startswith('x86'))
+cdata.set10('ARCH_X86_64',          host_machine.cpu_family() == 'x86_64')
+cdata.set10('ARCH_X86_32',          host_machine.cpu_family() == 'x86')
+cdata.set10('ARCH_PPC64LE',         host_machine.cpu() == 'ppc64le')
+cdata.set10('ARCH_RISCV',           host_machine.cpu_family().startswith('riscv'))
+cdata.set10('ARCH_RV32',            host_machine.cpu_family() == 'riscv32')
+cdata.set10('ARCH_RV64',            host_machine.cpu_family() == 'riscv64')
+cdata.set10('ARCH_LOONGARCH',       host_machine.cpu_family().startswith('loongarch'))
+cdata.set10('ARCH_LOONGARCH32',     host_machine.cpu_family() == 'loongarch32')
+cdata.set10('ARCH_LOONGARCH64',     host_machine.cpu_family() == 'loongarch64')
 
-example_checkasm = executable('example_checkasm',
-  checkasm_sources + example_checkasm_sources,
-
-  c_args: checkasm_c_args,
-  nasm_args: checkasm_nasm_args,
-
-  objects: [
-    example.extract_all_objects(recursive: true),
-  ],
-
-  build_by_default: true,
-  dependencies: checkasm_dependencies,
-)
-
-test('checkasm', example_checkasm, suite: 'checkasm', timeout: 180)
-benchmark('checkasm', example_checkasm, suite: 'checkasm', timeout: 3600, args: '--bench')
+subdir('include')
+subdir('src')
+subdir('example')

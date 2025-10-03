@@ -26,10 +26,10 @@
  */
 
 #include <stdint.h>
-#include <string.h>
 
-#include "../attributes.h"
-#include "../cpu.h"
+#include "attributes.h"
+#include "config.h"
+#include "cpu.h"
 
 typedef struct {
     uint32_t eax, ebx, edx, ecx;

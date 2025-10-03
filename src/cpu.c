@@ -1,6 +1,6 @@
 /*
- * Copyright © 2018-2022, VideoLAN and dav1d authors
- * Copyright © 2018-2022, Two Orioles, LLC
+ * Copyright © 2018, VideoLAN and dav1d authors
+ * Copyright © 2018, Two Orioles, LLC
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,21 +25,28 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CHECKASM_CPU_H
-#define CHECKASM_CPU_H
+#include "config_internal.h"
 
-#if ARCH_AARCH64 || ARCH_ARM
-#include "arm/cpu.h"
-#elif ARCH_LOONGARCH
-#include "loongarch/cpu.h"
-#elif ARCH_PPC64LE
-#include "ppc/cpu.h"
-#elif ARCH_RISCV
-#include "riscv/cpu.h"
-#elif ARCH_X86
-#include "x86/cpu.h"
+#include <errno.h>
+
+#if HAVE_GETAUXVAL || HAVE_ELF_AUX_INFO
+#include <sys/auxv.h>
 #endif
 
-unsigned long checkasm_getauxval(unsigned long);
+#include "attributes.h"
+#include "cpu.h"
 
-#endif /* CHECKASM_CPU_H */
+COLD unsigned long checkasm_getauxval(unsigned long type) {
+#if HAVE_GETAUXVAL
+    return getauxval(type);
+#elif HAVE_ELF_AUX_INFO
+    unsigned long aux = 0;
+    int ret = elf_aux_info(type, &aux, sizeof(aux));
+    if (ret != 0)
+        errno = ret;
+    return aux;
+#else
+    errno = ENOSYS;
+    return 0;
+#endif
+}

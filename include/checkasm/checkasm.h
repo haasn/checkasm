@@ -30,7 +30,8 @@
 
 #include <stdint.h>
 
-#include "attributes.h"
+#include "checkasm/config.h"
+#include "checkasm/attributes.h"
 
 /*************************************
  * Per-project configuration structs *

@@ -25,7 +25,7 @@
 
 %undef private_prefix
 %define private_prefix checkasm
-%include "checkasm/x86/x86inc.asm"
+%include "src/x86/x86inc.asm"
 
 SECTION_RODATA 16
 
@@ -207,7 +207,7 @@ cglobal cpu_cpuid, 0, 5, 0, regs, leaf, subleaf
     cmovnz         %1, r13
 %endmacro
 
-cglobal checked_call, 2, 15, 16, max_args*8+64+8
+cvisible checked_call, 2, 15, 16, max_args*8+64+8
     mov          r10d, [num_fn_args]
     mov            r8, 0xdeadbeef00000000
     mov           r9d, [num_fn_args+r10*8+8] ; clobber_mask
@@ -418,7 +418,7 @@ WARMUP
 ;-----------------------------------------------------------------------------
 ; void checkasm_checked_call(void *func, ...)
 ;-----------------------------------------------------------------------------
-cglobal checked_call, 1, 7
+cvisible checked_call, 1, 7
     mov            r3, [esp+stack_offset]      ; return address
     mov            r1, [esp+stack_offset+17*4] ; num_stack_params
     mov            r2, 27
