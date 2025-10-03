@@ -25,8 +25,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CHECKASM_COMMON_ATTRIBUTES_H
-#define CHECKASM_COMMON_ATTRIBUTES_H
+#ifndef CHECKASM_ATTRIBUTES_H
+#define CHECKASM_ATTRIBUTES_H
 
 #include <stddef.h>
 #include <assert.h>
@@ -74,4 +74,4 @@
   #define ALIGN_STK(type, var, sz1d, sznd) ALIGN(type var[sz1d]sznd, 8)
 #endif
 
-#endif /* CHECKASM_COMMON_ATTRIBUTES_H */
+#endif /* CHECKASM_ATTRIBUTES_H */

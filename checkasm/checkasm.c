@@ -37,7 +37,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "common/cpu.h"
+#include "cpu.h"
 
 #ifdef _WIN32
 #ifndef SIGBUS

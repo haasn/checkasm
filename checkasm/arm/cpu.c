@@ -25,10 +25,10 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "common/attributes.h"
+#include "attributes.h"
 
-#include "common/cpu.h"
-#include "common/arm/cpu.h"
+#include "cpu.h"
+#include "arm/cpu.h"
 
 #if HAVE_GETAUXVAL || HAVE_ELF_AUX_INFO
 #include <sys/auxv.h>

@@ -1,6 +1,6 @@
 /*
- * Copyright © 2018-2022, VideoLAN and dav1d authors
- * Copyright © 2018-2022, Two Orioles, LLC
+ * Copyright © 2019, VideoLAN and dav1d authors
+ * Copyright © 2019, Janne Grunau
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,21 +25,23 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CHECKASM_COMMON_CPU_H
-#define CHECKASM_COMMON_CPU_H
+#include "attributes.h"
 
-#if ARCH_AARCH64 || ARCH_ARM
-#include "arm/cpu.h"
-#elif ARCH_LOONGARCH
-#include "loongarch/cpu.h"
-#elif ARCH_PPC64LE
+#include "cpu.h"
 #include "ppc/cpu.h"
-#elif ARCH_RISCV
-#include "riscv/cpu.h"
-#elif ARCH_X86
-#include "x86/cpu.h"
+
+#define HAVE_AUX ((HAVE_GETAUXVAL || HAVE_ELF_AUX_INFO) && ARCH_PPC64LE)
+#if HAVE_AUX
+#include <sys/auxv.h>
 #endif
 
-unsigned long checkasm_getauxval(unsigned long);
-
-#endif /* CHECKASM_COMMON_CPU_H */
+COLD unsigned checkasm_get_cpu_flags_ppc(void) {
+    unsigned flags = checkasm_get_default_cpu_flags();
+#if HAVE_AUX
+    unsigned long hw_cap = checkasm_getauxval(AT_HWCAP);
+    unsigned long hw_cap2 = checkasm_getauxval(AT_HWCAP2);
+    flags |= (hw_cap & PPC_FEATURE_HAS_VSX) ? CHECKASM_PPC_CPU_FLAG_VSX : 0;
+    flags |= (hw_cap2 & PPC_FEATURE2_ARCH_3_00) ? CHECKASM_PPC_CPU_FLAG_PWR9 : 0;
+#endif
+    return flags;
+}

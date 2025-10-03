@@ -108,34 +108,34 @@ endif
 
 checkasm_sources = files(
   'checkasm.c',
-  'common/cpu.c',
+  'cpu.c',
 )
 
 if host_machine.cpu_family() == 'aarch64' or host_machine.cpu() == 'arm64'
   checkasm_sources += files(
     'arm/checkasm_64.S',
-    'common/arm/cpu.c',
+    'arm/cpu.c',
   )
 elif host_machine.cpu_family().startswith('arm')
   checkasm_sources += files(
     'arm/checkasm_32.S',
-    'common/arm/cpu.c',
+    'arm/cpu.c',
   )
 elif host_machine.cpu_family() == 'riscv64'
   checkasm_sources += files(
     'riscv/checkasm_64.S',
-    'common/riscv/cpu.c',
-    'common/riscv/64/cpu.S',
+    'riscv/cpu.c',
+    'riscv/64/cpu.S',
   )
 elif host_machine.cpu_family().startswith('x86')
   checkasm_sources += files(
     'x86/checkasm.asm',
-    'common/x86/cpu.c',
+    'x86/cpu.c',
   )
 elif host_machine.cpu_family().startswith('loongarch')
   checkasm_sources += files(
     'loongarch/checkasm.S',
-    'common/loongarch/cpu.c',
+    'loongarch/cpu.c',
   )
 endif
 

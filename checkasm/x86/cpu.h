@@ -1,5 +1,6 @@
 /*
- * Copyright © 2023, VideoLAN and dav1d authors
+ * Copyright © 2018, VideoLAN and dav1d authors
+ * Copyright © 2018, Two Orioles, LLC
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -24,25 +25,10 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "common/attributes.h"
+#ifndef CHECKASM_X86_CPU_H
+#define CHECKASM_X86_CPU_H
 
-#include "common/cpu.h"
-#include "common/loongarch/cpu.h"
+typedef void (*checkasm_simd_warmup_func)(void);
+checkasm_simd_warmup_func checkasm_get_simd_warmup_x86(void);
 
-#if HAVE_GETAUXVAL
-#include <sys/auxv.h>
-
-#define LA_HWCAP_LSX    ( 1 << 4 )
-#define LA_HWCAP_LASX   ( 1 << 5 )
-#endif
-
-COLD unsigned checkasm_get_cpu_flags_loongarch(void) {
-    unsigned flags = checkasm_get_default_cpu_flags();
-#if HAVE_GETAUXVAL
-    unsigned long hw_cap = checkasm_getauxval(AT_HWCAP);
-    flags |= (hw_cap & LA_HWCAP_LSX) ? CHECKASM_LOONGARCH_CPU_FLAG_LSX : 0;
-    flags |= (hw_cap & LA_HWCAP_LASX) ? CHECKASM_LOONGARCH_CPU_FLAG_LASX : 0;
-#endif
-
-    return flags;
-}
+#endif /* CHECKASM_X86_CPU_H */

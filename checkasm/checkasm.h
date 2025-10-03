@@ -30,7 +30,7 @@
 
 #include <stdint.h>
 
-#include "common/attributes.h"
+#include "attributes.h"
 
 /*************************************
  * Per-project configuration structs *
