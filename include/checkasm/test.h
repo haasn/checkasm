@@ -38,37 +38,6 @@
  * Internal checkasm API. Used inside tests *
  ********************************************/
 
-#ifdef _WIN32
-    #include <windows.h>
-    #if ARCH_X86_32
-        #include <setjmp.h>
-        typedef jmp_buf checkasm_context;
-        #define checkasm_save_context() setjmp(checkasm_context_buf)
-        #define checkasm_load_context() longjmp(checkasm_context_buf, 1)
-    #elif WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
-        /* setjmp/longjmp on Windows on architectures using SEH (all except
-         * x86_32) will try to use SEH to unwind the stack, which doesn't work
-         * for assembly functions without unwind information. */
-        typedef struct { CONTEXT c; int status; } checkasm_context;
-        #define checkasm_save_context() \
-            (checkasm_context_buf.status = 0, \
-            RtlCaptureContext(&checkasm_context_buf.c), \
-            checkasm_context_buf.status)
-        #define checkasm_load_context() \
-            (checkasm_context_buf.status = 1, \
-            RtlRestoreContext(&checkasm_context_buf.c, NULL))
-    #else
-        typedef void* checkasm_context;
-        #define checkasm_save_context() 0
-        #define checkasm_load_context() do {} while (0)
-    #endif
-#else /* !_WIN32 */
-    #include <setjmp.h>
-    typedef sigjmp_buf checkasm_context;
-    #define checkasm_save_context() sigsetjmp(checkasm_context_buf, 1)
-    #define checkasm_load_context() siglongjmp(checkasm_context_buf, 1)
-#endif
-
 CHECKASM_API int xor128_rand(void);
 #define rnd xor128_rand
 
@@ -80,7 +49,6 @@ CHECKASM_API void checkasm_update_bench(int iterations, uint64_t cycles);
 CHECKASM_API void checkasm_report(const char *name, ...) ATTR_FORMAT_PRINTF(1, 2);
 CHECKASM_API void checkasm_set_signal_handler_state(int enabled);
 CHECKASM_API void checkasm_handle_signal(void);
-CHECKASM_API extern checkasm_context checkasm_context_buf;
 
 /* float compare utilities */
 CHECKASM_API int float_near_ulp(float a, float b, unsigned max_ulp);
@@ -109,7 +77,7 @@ CHECKASM_API int double_near_abs_eps_array(const double *a, const double *b,
     declare_new(ret, __VA_ARGS__)\
     void *func_ref, *func_new;\
     typedef ret func_type(__VA_ARGS__);\
-    if (checkasm_save_context()) checkasm_handle_signal()
+    checkasm_handle_signal()
 
 /* Indicate that the current test has failed */
 #define fail() checkasm_fail_func("%s:%d", __FILE__, __LINE__)

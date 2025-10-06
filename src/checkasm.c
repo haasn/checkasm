@@ -571,10 +571,40 @@ static CheckasmFunc *get_func(CheckasmFunc **const root, const char *const name)
     return f;
 }
 
-checkasm_context checkasm_context_buf;
-
 /* Crash handling: attempt to catch crashes and handle them
  * gracefully instead of just aborting abruptly. */
+
+#ifdef _WIN32
+    #include <windows.h>
+    #if ARCH_X86_32
+        #include <setjmp.h>
+        static jmp_buf checkasm_context;
+        #define checkasm_save_context() setjmp(checkasm_context)
+        #define checkasm_load_context() longjmp(checkasm_context, 1)
+    #elif WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
+        /* setjmp/longjmp on Windows on architectures using SEH (all except
+        * x86_32) will try to use SEH to unwind the stack, which doesn't work
+        * for assembly functions without unwind information. */
+        static struct { CONTEXT c; int status; } checkasm_context;
+        #define checkasm_save_context() \
+            (checkasm_context.status = 0, \
+            RtlCaptureContext(&checkasm_context.c), \
+            checkasm_context.status)
+        #define checkasm_load_context() \
+            (checkasm_context.status = 1, \
+            RtlRestoreContext(&checkasm_context.c, NULL))
+    #else
+        static void* checkasm_context;
+        #define checkasm_save_context() 0
+        #define checkasm_load_context() do {} while (0)
+    #endif
+#else /* !_WIN32 */
+    #include <setjmp.h>
+    static sigjmp_buf checkasm_context;
+    #define checkasm_save_context() sigsetjmp(checkasm_context, 1)
+    #define checkasm_load_context() siglongjmp(checkasm_context, 1)
+#endif
+
 #ifdef _WIN32
 #if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
 static LONG NTAPI signal_handler(EXCEPTION_POINTERS *const e)
@@ -1029,11 +1059,13 @@ void checkasm_set_signal_handler_state(const int enabled)
 
 void checkasm_handle_signal(void)
 {
-    const int s = state.sig;
-    checkasm_fail_func(s == SIGFPE ? "fatal arithmetic error" :
-                       s == SIGILL ? "illegal instruction" :
-                       s == SIGBUS ? "bus error" :
-                                     "segmentation fault");
+    if (checkasm_save_context()) {
+        const int s = state.sig;
+        checkasm_fail_func(s == SIGFPE ? "fatal arithmetic error" :
+                        s == SIGILL ? "illegal instruction" :
+                        s == SIGBUS ? "bus error" :
+                                        "segmentation fault");
+    }
 }
 
 static int check_err(const char *const file, const int line,
