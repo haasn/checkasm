@@ -35,5 +35,5 @@ install_headers(checkasm_api_headers, subdir: 'checkasm')
 config_target = configure_file(output: 'config.h',
   configuration: cdata,
   install: true,
-  install_dir: 'checkasm',
+  install_dir: get_option('includedir') / 'checkasm'
 )
