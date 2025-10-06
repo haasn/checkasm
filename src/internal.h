@@ -44,6 +44,12 @@ void checkasm_setup_fprintf(FILE *const f);
 void checkasm_fprintf(FILE *const f, const int color, const char *const fmt, ...)
     ATTR_FORMAT_PRINTF(3, 4);
 
+/* Platform specific signal handling */
+void checkasm_set_signal_handlers(void);
+int checkasm_save_context(void);
+void checkasm_load_context(void);
+
+/* Miscellaneous helpers */
 static inline int imax(const int a, const int b)
 {
     return a > b ? a : b;

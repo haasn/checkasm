@@ -27,7 +27,6 @@
 
 #include <assert.h>
 #include <inttypes.h>
-#include <signal.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -40,25 +39,20 @@
 #include "internal.h"
 #include "test.h"
 
-#ifdef _WIN32
-#ifndef SIGBUS
-/* non-standard, use the same value as mingw-w64 */
-#define SIGBUS 10
-#endif
-#else
-#include <time.h>
-#if HAVE_UNISTD_H
-#include <unistd.h>
-#endif
-#if HAVE_PTHREAD_SETAFFINITY_NP
-#include <pthread.h>
-#if HAVE_PTHREAD_NP_H
-#include <pthread_np.h>
-#endif
-#endif
-#ifdef __APPLE__
-#include <mach/mach_time.h>
-#endif
+#ifndef _WIN32
+    #include <time.h>
+    #if HAVE_UNISTD_H
+        #include <unistd.h>
+    #endif
+    #if HAVE_PTHREAD_SETAFFINITY_NP
+        #include <pthread.h>
+        #if HAVE_PTHREAD_NP_H
+            #include <pthread_np.h>
+        #endif
+    #endif
+    #ifdef __APPLE__
+        #include <mach/mach_time.h>
+    #endif
 #endif
 
 #if CONFIG_LINUX_PERF
@@ -66,8 +60,6 @@
 #elif CONFIG_MACOS_KPERF
     #include <dlfcn.h>
 #endif
-
-#define ARRAY_LEN(a) (sizeof(a) / sizeof((a)[0]))
 
 #if ARCH_AARCH64 && HAVE_SVE
 int checkasm_sve_length(void);
@@ -102,7 +94,6 @@ static struct {
     double nop_time;
     unsigned cpu_flag;
     const char *cpu_flag_name;
-    volatile sig_atomic_t sig; // SIG_ATOMIC_MAX = signal handling enabled
     int suffix_length;
     int max_function_name_length;
 #if ARCH_X86_64
@@ -411,91 +402,6 @@ static CheckasmFunc *get_func(CheckasmFunc **const root, const char *const name)
     return f;
 }
 
-/* Crash handling: attempt to catch crashes and handle them
- * gracefully instead of just aborting abruptly. */
-
-#ifdef _WIN32
-    #include <windows.h>
-    #if ARCH_X86_32
-        #include <setjmp.h>
-        static jmp_buf checkasm_context;
-        #define checkasm_save_context() setjmp(checkasm_context)
-        #define checkasm_load_context() longjmp(checkasm_context, 1)
-    #elif WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
-        /* setjmp/longjmp on Windows on architectures using SEH (all except
-        * x86_32) will try to use SEH to unwind the stack, which doesn't work
-        * for assembly functions without unwind information. */
-        static struct { CONTEXT c; int status; } checkasm_context;
-        #define checkasm_save_context() \
-            (checkasm_context.status = 0, \
-            RtlCaptureContext(&checkasm_context.c), \
-            checkasm_context.status)
-        #define checkasm_load_context() \
-            (checkasm_context.status = 1, \
-            RtlRestoreContext(&checkasm_context.c, NULL))
-    #else
-        static void* checkasm_context;
-        #define checkasm_save_context() 0
-        #define checkasm_load_context() do {} while (0)
-    #endif
-#else /* !_WIN32 */
-    #include <setjmp.h>
-    static sigjmp_buf checkasm_context;
-    #define checkasm_save_context() sigsetjmp(checkasm_context, 1)
-    #define checkasm_load_context() siglongjmp(checkasm_context, 1)
-#endif
-
-#ifdef _WIN32
-#if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
-static LONG NTAPI signal_handler(EXCEPTION_POINTERS *const e)
-{
-    if (state.sig == SIG_ATOMIC_MAX) {
-        int s;
-        switch (e->ExceptionRecord->ExceptionCode) {
-        case EXCEPTION_FLT_DIVIDE_BY_ZERO:
-        case EXCEPTION_INT_DIVIDE_BY_ZERO:
-            s = SIGFPE;
-            break;
-        case EXCEPTION_ILLEGAL_INSTRUCTION:
-        case EXCEPTION_PRIV_INSTRUCTION:
-            s = SIGILL;
-            break;
-        case EXCEPTION_ACCESS_VIOLATION:
-        case EXCEPTION_ARRAY_BOUNDS_EXCEEDED:
-        case EXCEPTION_DATATYPE_MISALIGNMENT:
-        case EXCEPTION_STACK_OVERFLOW:
-            s = SIGSEGV;
-            break;
-        case EXCEPTION_IN_PAGE_ERROR:
-            s = SIGBUS;
-            break;
-        default:
-            return EXCEPTION_CONTINUE_SEARCH;
-        }
-        state.sig = s;
-        checkasm_load_context();
-    }
-    return EXCEPTION_CONTINUE_SEARCH;
-}
-#endif
-#else
-static void signal_handler(int s);
-
-static const struct sigaction signal_handler_act = {
-    .sa_handler = signal_handler,
-    .sa_flags = SA_RESETHAND,
-};
-
-static void signal_handler(const int s)
-{
-    if (state.sig == SIG_ATOMIC_MAX) {
-        state.sig = s;
-        sigaction(s, &signal_handler_act, NULL);
-        checkasm_load_context();
-    }
-}
-#endif
-
 /* Compares a string with a wildcard pattern. */
 static int wildstrcmp(const char *str, const char *pattern)
 {
@@ -557,26 +463,6 @@ static unsigned get_seed(void)
     clock_gettime(CLOCK_MONOTONIC, &ts);
     return (unsigned) (1000000000ULL * ts.tv_sec + ts.tv_nsec);
 #endif
-}
-
-static void set_signal_handlers(void)
-{
-    static int handlers_set;
-    if (handlers_set)
-        return;
-
-#ifdef _WIN32
-  #if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
-    AddVectoredExceptionHandler(0, signal_handler);
-  #endif
-#else
-    sigaction(SIGBUS,  &signal_handler_act, NULL);
-    sigaction(SIGFPE,  &signal_handler_act, NULL);
-    sigaction(SIGILL,  &signal_handler_act, NULL);
-    sigaction(SIGSEGV, &signal_handler_act, NULL);
-#endif
-
-    handlers_set = 1;
 }
 
 static int set_cpu_affinity(const uint64_t affinity)
@@ -650,7 +536,7 @@ int checkasm_run(const CheckasmConfig *config)
     memset(&state, 0, sizeof(state));
     cfg = *config;
 
-    set_signal_handlers();
+    checkasm_set_signal_handlers();
     set_cpu_affinity(cfg.cpu_affinity);
     checkasm_setup_fprintf(cfg.list_functions ? stdout : stderr);
 
@@ -889,22 +775,6 @@ void checkasm_report(const char *const name, ...)
 
         if (length > max_length)
             max_length = length;
-    }
-}
-
-void checkasm_set_signal_handler_state(const int enabled)
-{
-    state.sig = enabled ? SIG_ATOMIC_MAX : 0;
-}
-
-void checkasm_handle_signal(void)
-{
-    if (checkasm_save_context()) {
-        const int s = state.sig;
-        checkasm_fail_func(s == SIGFPE ? "fatal arithmetic error" :
-                        s == SIGILL ? "illegal instruction" :
-                        s == SIGBUS ? "bus error" :
-                                        "segmentation fault");
     }
 }
 
