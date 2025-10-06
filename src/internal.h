@@ -49,6 +49,10 @@ void checkasm_set_signal_handlers(void);
 int checkasm_save_context(void);
 void checkasm_load_context(void);
 
+/* Platform specific timing code */
+int checkasm_perf_init(void);
+double checkasm_measure_nop_time(void);
+
 /* Miscellaneous helpers */
 static inline int imax(const int a, const int b)
 {

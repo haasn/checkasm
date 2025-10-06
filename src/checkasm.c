@@ -40,25 +40,12 @@
 #include "test.h"
 
 #ifndef _WIN32
-    #include <time.h>
-    #if HAVE_UNISTD_H
-        #include <unistd.h>
-    #endif
     #if HAVE_PTHREAD_SETAFFINITY_NP
         #include <pthread.h>
         #if HAVE_PTHREAD_NP_H
             #include <pthread_np.h>
         #endif
     #endif
-    #ifdef __APPLE__
-        #include <mach/mach_time.h>
-    #endif
-#endif
-
-#if CONFIG_LINUX_PERF
-    #include <sys/syscall.h>
-#elif CONFIG_MACOS_KPERF
-    #include <dlfcn.h>
 #endif
 
 #if ARCH_AARCH64 && HAVE_SVE
@@ -99,117 +86,7 @@ static struct {
 #if ARCH_X86_64
     void (*simd_warmup)(void);
 #endif
-#if CONFIG_LINUX_PERF
-    int perf_sysfd;
-#endif
 } state;
-
-#if CONFIG_LINUX_PERF
-
-static int linux_perf_init(void)
-{
-    struct perf_event_attr attr = {
-        .type           = PERF_TYPE_HARDWARE,
-        .size           = sizeof(struct perf_event_attr),
-        .config         = PERF_COUNT_HW_CPU_CYCLES,
-        .disabled       = 1, // start counting only on demand
-        .exclude_kernel = 1,
-        .exclude_hv     = 1,
-#if !ARCH_X86
-        .exclude_guest  = 1,
-#endif
-    };
-
-    fprintf(stderr, "benchmarking with Linux Perf Monitoring API\n");
-    state.perf_sysfd = syscall(SYS_perf_event_open, &attr, 0, -1, -1, 0);
-    if (state.perf_sysfd == -1) {
-        perror("perf_event_open");
-        return 1;
-    }
-    return 0;
-}
-
-int checkasm_get_perf_sysfd(void)
-{
-    return state.perf_sysfd;
-}
-
-#elif CONFIG_MACOS_KPERF
-
-static int (*kpc_get_thread_counters)(int, unsigned int, void *);
-
-#define CFGWORD_EL0A64EN_MASK (0x20000)
-
-#define CPMU_CORE_CYCLE 0x02
-
-#define KPC_CLASS_FIXED_MASK        (1 << 0)
-#define KPC_CLASS_CONFIGURABLE_MASK (1 << 1)
-
-#define COUNTERS_COUNT 10
-#define CONFIG_COUNT 8
-#define KPC_MASK (KPC_CLASS_CONFIGURABLE_MASK | KPC_CLASS_FIXED_MASK)
-
-static int kperf_init(void)
-{
-    uint64_t config[COUNTERS_COUNT] = { 0 };
-
-    void *kperf = dlopen("/System/Library/PrivateFrameworks/kperf.framework/kperf", RTLD_LAZY);
-    if (!kperf) {
-        fprintf(stderr, "checkasm: Unable to load kperf: %s\n", dlerror());
-        return 1;
-    }
-
-    int (*kpc_force_all_ctrs_set)(int) = dlsym(kperf, "kpc_force_all_ctrs_set");
-    int (*kpc_set_counting)(uint32_t) = dlsym(kperf, "kpc_set_counting");
-    int (*kpc_set_thread_counting)(uint32_t) = dlsym(kperf, "kpc_set_thread_counting");
-    int (*kpc_set_config)(uint32_t, void *) = dlsym(kperf, "kpc_set_config");
-    uint32_t (*kpc_get_counter_count)(uint32_t) = dlsym(kperf, "kpc_get_counter_count");
-    uint32_t (*kpc_get_config_count)(uint32_t) = dlsym(kperf, "kpc_get_config_count");
-    kpc_get_thread_counters = dlsym(kperf, "kpc_get_thread_counters");
-
-    if (!kpc_get_thread_counters) {
-        fprintf(stderr, "checkasm: Unable to load kpc_get_thread_counters\n");
-        return 1;
-    }
-
-    if (!kpc_get_counter_count || kpc_get_counter_count(KPC_MASK) != COUNTERS_COUNT) {
-        fprintf(stderr, "checkasm: Unxpected kpc_get_counter_count\n");
-        return 1;
-    }
-    if (!kpc_get_config_count || kpc_get_config_count(KPC_MASK) != CONFIG_COUNT) {
-        fprintf(stderr, "checkasm: Unxpected kpc_get_config_count\n");
-        return 1;
-    }
-
-    config[0] = CPMU_CORE_CYCLE | CFGWORD_EL0A64EN_MASK;
-
-    if (!kpc_set_config || kpc_set_config(KPC_MASK, config)) {
-        fprintf(stderr, "checkasm: The kperf API needs to be run as root\n");
-        return 1;
-    }
-    if (!kpc_force_all_ctrs_set || kpc_force_all_ctrs_set(1)) {
-        fprintf(stderr, "checkasm: kpc_force_all_ctrs_set failed\n");
-        return 1;
-    }
-    if (!kpc_set_counting || kpc_set_counting(KPC_MASK)) {
-        fprintf(stderr, "checkasm: kpc_set_counting failed\n");
-        return 1;
-    }
-    if (!kpc_set_counting || kpc_set_thread_counting(KPC_MASK)) {
-        fprintf(stderr, "checkasm: kpc_set_thread_counting failed\n");
-        return 1;
-    }
-    return 0;
-}
-
-uint64_t checkasm_kperf_cycles(void) {
-    uint64_t counters[COUNTERS_COUNT];
-    if (kpc_get_thread_counters(0, COUNTERS_COUNT, counters))
-        return -1;
-
-    return counters[0];
-}
-#endif
 
 /* Deallocate a tree */
 static void destroy_func_tree(CheckasmFunc *const f)
@@ -251,32 +128,6 @@ static const char *cpu_suffix(const unsigned cpu)
 }
 
 #ifdef PERF_START
-static int cmp_nop(const void *a, const void *b)
-{
-    return *(const uint16_t*)a - *(const uint16_t*)b;
-}
-
-/* Measure the overhead of the timing code (in decicycles) */
-static double measure_nop_time(void)
-{
-    uint16_t nops[10000];
-    int nop_sum = 0;
-
-    PERF_SETUP();
-    for (int i = 0; i < 10000; i++) {
-        uint64_t t;
-        PERF_START(t);
-        PERF_STOP(t);
-        nops[i] = (uint16_t) t;
-    }
-
-    qsort(nops, 10000, sizeof(uint16_t), cmp_nop);
-    for (int i = 2500; i < 7500; i++)
-        nop_sum += nops[i];
-
-    return nop_sum / 5000.0;
-}
-
 static double avg_cycles_per_call(const CheckasmFuncVersion *const v)
 {
     if (v->iterations) {
@@ -543,27 +394,8 @@ int checkasm_run(const CheckasmConfig *config)
     if (!cfg.seed)
         cfg.seed = get_seed();
 
-    if (cfg.bench) {
-    #if CONFIG_LINUX_PERF
-        if (linux_perf_init())
-            return 1;
-    #elif CONFIG_MACOS_KPERF
-        if (kperf_init())
-            return 1;
-    #elif defined(readtime)
-        if (!checkasm_save_context()) {
-            checkasm_set_signal_handler_state(1);
-            readtime();
-            checkasm_set_signal_handler_state(0);
-        } else {
-            fprintf(stderr, "checkasm: unable to access cycle counter\n");
-            return 1;
-        }
-    #else
-        fprintf(stderr, "checkasm: benchmarking not supported on this platform\n");
+    if (cfg.bench && checkasm_perf_init())
         return 1;
-    #endif
-    }
 
 #if ARCH_X86_64
     state.simd_warmup = checkasm_get_simd_warmup_x86();
@@ -621,7 +453,7 @@ int checkasm_run(const CheckasmConfig *config)
             fprintf(stderr, "checkasm: no tests to perform\n");
 #ifdef PERF_START
         if (cfg.bench && state.max_function_name_length) {
-            state.nop_time = measure_nop_time();
+            state.nop_time = checkasm_measure_nop_time();
             if (cfg.verbose) {
                 if (cfg.separator)
                     printf("nop%c%c%.1f\n", cfg.separator, cfg.separator, state.nop_time);

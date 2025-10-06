@@ -91,6 +91,7 @@ endif
 checkasm_sources = files(
   'checkasm.c',
   'cpu.c',
+  'perf.c',
   'signal.c',
   'util.c',
 )
