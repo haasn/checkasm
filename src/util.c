@@ -26,9 +26,22 @@
  */
 
 #include <math.h>
+#include <stdarg.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+
+#include "config_internal.h"
+
+#if HAVE_UNISTD_H
+    #include <unistd.h>
+#endif
+
+#ifdef _WIN32
+    #ifndef ENABLE_VIRTUAL_TERMINAL_PROCESSING
+        #define ENABLE_VIRTUAL_TERMINAL_PROCESSING 0x04
+    #endif
+#endif
 
 #include "checkasm/test.h"
 #include "internal.h"
@@ -58,6 +71,41 @@ int xor128_rand(void) {
     xs_state[3] = w;
 
     return w >> 1;
+}
+
+/* Print colored text to stderr if the terminal supports it */
+static int use_printf_color;
+void checkasm_fprintf(FILE *const f, const int color, const char *const fmt, ...)
+{
+    va_list arg;
+
+    if (use_printf_color)
+        fprintf(f, "\x1b[0;%dm", color);
+
+    va_start(arg, fmt);
+    vfprintf(f, fmt, arg);
+    va_end(arg);
+
+    if (use_printf_color)
+        fprintf(f, "\x1b[0m");
+}
+
+COLD void checkasm_setup_fprintf(FILE *const f)
+{
+#ifdef _WIN32
+  #if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
+    HANDLE con = GetStdHandle(f == stderr ? STD_ERROR_HANDLE : STD_OUTPUT_HANDLE);
+    DWORD con_mode = 0;
+    use_printf_color = con && con != INVALID_HANDLE_VALUE &&
+                       GetConsoleMode(con, &con_mode) &&
+                       SetConsoleMode(con, con_mode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+  #endif
+#elif HAVE_UNISTD_H
+    if (isatty(f == stderr ? 2 : 1)) {
+        const char *const term = getenv("TERM");
+        use_printf_color = term && strcmp(term, "dumb");
+    }
+#endif
 }
 
 /* float compare support code */

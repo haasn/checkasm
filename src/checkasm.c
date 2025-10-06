@@ -45,9 +45,6 @@
 /* non-standard, use the same value as mingw-w64 */
 #define SIGBUS 10
 #endif
-#ifndef ENABLE_VIRTUAL_TERMINAL_PROCESSING
-#define ENABLE_VIRTUAL_TERMINAL_PROCESSING 0x04
-#endif
 #else
 #include <time.h>
 #if HAVE_UNISTD_H
@@ -69,10 +66,6 @@
 #elif CONFIG_MACOS_KPERF
     #include <dlfcn.h>
 #endif
-
-#define COLOR_RED    31
-#define COLOR_GREEN  32
-#define COLOR_YELLOW 33
 
 #define ARRAY_LEN(a) (sizeof(a) / sizeof((a)[0]))
 
@@ -226,41 +219,6 @@ uint64_t checkasm_kperf_cycles(void) {
     return counters[0];
 }
 #endif
-
-/* Print colored text to stderr if the terminal supports it */
-static int use_printf_color;
-static void color_fprintf(FILE *const f, const int color, const char *const fmt, ...)
-{
-    va_list arg;
-
-    if (use_printf_color)
-        fprintf(f, "\x1b[0;%dm", color);
-
-    va_start(arg, fmt);
-    vfprintf(f, fmt, arg);
-    va_end(arg);
-
-    if (use_printf_color)
-        fprintf(f, "\x1b[0m");
-}
-
-static void setup_printf(FILE *const f)
-{
-#ifdef _WIN32
-  #if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
-    HANDLE con = GetStdHandle(f == stderr ? STD_ERROR_HANDLE : STD_OUTPUT_HANDLE);
-    DWORD con_mode = 0;
-    use_printf_color = con && con != INVALID_HANDLE_VALUE &&
-                       GetConsoleMode(con, &con_mode) &&
-                       SetConsoleMode(con, con_mode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
-  #endif
-#else
-    if (isatty(f == stderr ? 2 : 1)) {
-        const char *const term = getenv("TERM");
-        use_printf_color = term && strcmp(term, "dumb");
-    }
-#endif
-}
 
 /* Deallocate a tree */
 static void destroy_func_tree(CheckasmFunc *const f)
@@ -581,7 +539,7 @@ static void check_cpu_flag(const char *const name, unsigned flag)
 static void print_cpu_name(void)
 {
     if (state.cpu_flag_name) {
-        color_fprintf(stderr, COLOR_YELLOW, "%s:\n", state.cpu_flag_name);
+        checkasm_fprintf(stderr, COLOR_YELLOW, "%s:\n", state.cpu_flag_name);
         state.cpu_flag_name = NULL;
     }
 }
@@ -668,13 +626,13 @@ void checkasm_list_cpu_flags(const CheckasmConfig *cfg)
 {
     const unsigned cpu_flags = cfg->get_cpu_flags();
     const int last_flag = cfg->nb_cpu_flags - 1;
-    setup_printf(stdout);
+    checkasm_setup_fprintf(stdout);
 
     for (int i = 0; i < cfg->nb_cpu_flags; i++) {
         if (cfg->cpu_flags[i].flag & cpu_flags)
-            color_fprintf(stdout, COLOR_GREEN, "%s", cfg->cpu_flags[i].suffix);
+            checkasm_fprintf(stdout, COLOR_GREEN, "%s", cfg->cpu_flags[i].suffix);
         else
-            color_fprintf(stdout, COLOR_RED, "~%s", cfg->cpu_flags[i].suffix);
+            checkasm_fprintf(stdout, COLOR_RED, "~%s", cfg->cpu_flags[i].suffix);
         printf(i == last_flag ? "\n" : ", ");
     }
 }
@@ -694,7 +652,7 @@ int checkasm_run(const CheckasmConfig *config)
 
     set_signal_handlers();
     set_cpu_affinity(cfg.cpu_affinity);
-    setup_printf(cfg.list_functions ? stdout : stderr);
+    checkasm_setup_fprintf(cfg.list_functions ? stdout : stderr);
 
     if (!cfg.seed)
         cfg.seed = get_seed();
@@ -912,9 +870,9 @@ void checkasm_report(const char *const name, ...)
         fprintf(stderr, "%*c", imax(pad_length, 0) + 2, '[');
 
         if (state.num_failed == prev_failed)
-            color_fprintf(stderr, COLOR_GREEN, "OK");
+            checkasm_fprintf(stderr, COLOR_GREEN, "OK");
         else
-            color_fprintf(stderr, COLOR_RED, "FAILED");
+            checkasm_fprintf(stderr, COLOR_RED, "FAILED");
         fprintf(stderr, "]\n");
 
         prev_checked = state.num_checked;

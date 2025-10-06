@@ -29,7 +29,20 @@
 #ifndef CHECKASM_INTERNAL_H
 #define CHECKASM_INTERNAL_H
 
+#include <stdio.h>
+
+#include "checkasm/attributes.h"
+
 void xor128_srand(unsigned seed);
+
+#define COLOR_RED    31
+#define COLOR_GREEN  32
+#define COLOR_YELLOW 33
+
+/* Colored variant of fprintf for terminals that support it */
+void checkasm_setup_fprintf(FILE *const f);
+void checkasm_fprintf(FILE *const f, const int color, const char *const fmt, ...)
+    ATTR_FORMAT_PRINTF(3, 4);
 
 static inline int imax(const int a, const int b)
 {
