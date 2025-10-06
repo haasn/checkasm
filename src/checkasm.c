@@ -84,6 +84,7 @@ static struct {
     const char *cpu_flag_name;
     int suffix_length;
     int max_function_name_length;
+    int skip_tests;
 } state;
 
 /* Deallocate a tree */
@@ -163,19 +164,6 @@ static void print_benchs(const CheckasmFunc *const f)
     }
 }
 #endif
-
-static void print_functions(const CheckasmFunc *const f)
-{
-    if (f) {
-        print_functions(f->child[0]);
-        const CheckasmFuncVersion *v = &f->versions;
-        printf("%s (%s", f->name, cpu_suffix(v->cpu));
-        while ((v = v->next))
-            printf(", %s", cpu_suffix(v->cpu));
-        printf(")\n");
-        print_functions(f->child[1]);
-    }
-}
 
 #define is_digit(x) ((x) >= '0' && (x) <= '9')
 
@@ -378,6 +366,33 @@ void checkasm_list_tests(const CheckasmConfig *config)
         printf("%s\n", config->tests[i].name);
 }
 
+static void print_functions(const CheckasmFunc *const f)
+{
+    if (f) {
+        print_functions(f->child[0]);
+        const CheckasmFuncVersion *v = &f->versions;
+        printf("%s (%s", f->name, cpu_suffix(v->cpu));
+        while ((v = v->next))
+            printf(", %s", cpu_suffix(v->cpu));
+        printf(")\n");
+        print_functions(f->child[1]);
+    }
+}
+
+void checkasm_list_functions(const CheckasmConfig *config)
+{
+    memset(&state, 0, sizeof(state));
+    state.skip_tests = 1;
+    cfg = *config;
+
+    check_cpu_flag(NULL, 0);
+    for (int i = 0; i < cfg.nb_cpu_flags; i++)
+        check_cpu_flag(cfg.cpu_flags[i].name, cfg.cpu_flags[i].flag);
+
+    print_functions(state.funcs);
+    destroy_func_tree(state.funcs);
+}
+
 int checkasm_run(const CheckasmConfig *config)
 {
     assert(config->get_cpu_flags);
@@ -387,7 +402,7 @@ int checkasm_run(const CheckasmConfig *config)
 
     checkasm_set_signal_handlers();
     set_cpu_affinity(cfg.cpu_affinity);
-    checkasm_setup_fprintf(cfg.list_functions ? stdout : stderr);
+    checkasm_setup_fprintf(stderr);
 
     if (!cfg.seed)
         cfg.seed = get_seed();
@@ -433,9 +448,7 @@ int checkasm_run(const CheckasmConfig *config)
         check_cpu_flag(cfg.cpu_flags[i].name, cfg.cpu_flags[i].flag);
 
     int ret = 0;
-    if (cfg.list_functions) {
-        print_functions(state.funcs);
-    } else if (state.num_failed) {
+    if (state.num_failed) {
         fprintf(stderr, "checkasm: %d of %d tests failed\n",
                 state.num_failed, state.num_checked);
         ret = 1;
@@ -510,7 +523,7 @@ void *checkasm_check_func(void *const func, const char *const name, ...)
     v->ok = 1;
     v->cpu = state.cpu_flag;
     state.current_func_ver = v;
-    if (cfg.list_functions) /* Save function names without running tests */
+    if (state.skip_tests)
         return NULL;
 
     checkasm_srand(cfg.seed);
@@ -572,6 +585,7 @@ void checkasm_report(const char *const name, ...)
     if (state.num_checked > prev_checked) {
         int pad_length = (int) max_length + 4;
         va_list arg;
+        assert(!state.skip_tests);
 
         print_cpu_name();
         pad_length -= fprintf(stderr, " - %s.", state.current_test_name);
@@ -655,7 +669,8 @@ int checkasm_main(CheckasmConfig *config, int argc, const char *argv[])
             checkasm_list_tests(config);
             return 0;
         } else if (!strcmp(argv[1], "--list-functions")) {
-            config->list_functions = 1;
+            checkasm_list_functions(config);
+            return 0;
         } else if (!strcmp(argv[1], "--bench") || !strcmp(argv[1], "-b")) {
             config->bench = 1;
         } else if (!strcmp(argv[1], "--csv")) {

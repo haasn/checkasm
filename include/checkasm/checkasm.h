@@ -67,9 +67,6 @@ typedef struct CheckasmConfig {
     /* If set, outputs benchmark numbers separated by this character */
     char separator;
 
-    /* If nonzero, output a list of all functions tested. */
-    int list_functions;
-
     /* If nonzero, enable benchmarking, with the specified number of
      * iterations, defaulting to 1024 if left unset. */
     int bench;
@@ -83,10 +80,11 @@ typedef struct CheckasmConfig {
 } CheckasmConfig;
 
 /**
- * Print a list of all cpuflags/tests available for testing.
+ * Print a list of all cpuflags/tests/functions available for testing.
  */
 CHECKASM_API void checkasm_list_cpu_flags(const CheckasmConfig *config);
 CHECKASM_API void checkasm_list_tests(const CheckasmConfig *config);
+CHECKASM_API void checkasm_list_functions(const CheckasmConfig *config);
 
 /**
  * Run all tests (and benchmarks) matching the specified patterns.
