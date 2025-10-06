@@ -28,7 +28,6 @@
 #ifndef CHECKASM_X86_CPU_H
 #define CHECKASM_X86_CPU_H
 
-typedef void (*checkasm_simd_warmup_func)(void);
-checkasm_simd_warmup_func checkasm_get_simd_warmup_x86(void);
+void checkasm_simd_warmup(void);
 
 #endif /* CHECKASM_X86_CPU_H */

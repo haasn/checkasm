@@ -84,9 +84,6 @@ static struct {
     const char *cpu_flag_name;
     int suffix_length;
     int max_function_name_length;
-#if ARCH_X86_64
-    void (*simd_warmup)(void);
-#endif
 } state;
 
 /* Deallocate a tree */
@@ -398,11 +395,6 @@ int checkasm_run(const CheckasmConfig *config)
     if (cfg.bench && checkasm_perf_init())
         return 1;
 
-#if ARCH_X86_64
-    state.simd_warmup = checkasm_get_simd_warmup_x86();
-    checkasm_simd_warmup();
-#endif
-
 #if ARCH_ARM
     const unsigned cpu_flags = checkasm_get_cpu_flags_arm();
     void checkasm_checked_call_vfp(void *func, int dummy, ...);
@@ -612,11 +604,6 @@ void checkasm_report(const char *const name, ...)
 }
 
 #if ARCH_X86_64
-void checkasm_simd_warmup(void)
-{
-    if (state.simd_warmup)
-        state.simd_warmup();
-}
 #endif
 
 #if ARCH_ARM

@@ -27,9 +27,13 @@
 
 #include <stdint.h>
 
-#include "attributes.h"
+#include "checkasm/attributes.h"
+#include "checkasm/test.h"
+
 #include "config.h"
 #include "cpu.h"
+
+#if ARCH_X86_64
 
 typedef struct {
     uint32_t eax, ebx, edx, ecx;
@@ -40,14 +44,13 @@ uint64_t checkasm_cpu_xgetbv(unsigned xcr);
 
 void checkasm_warmup_avx2(void);
 void checkasm_warmup_avx512(void);
+static void noop(void) {}
 
-#define X(reg, mask) (((reg) & (mask)) == (mask))
-
-COLD checkasm_simd_warmup_func checkasm_get_simd_warmup_x86(void)
+typedef void (*checkasm_simd_warmup_func)(void);
+static COLD checkasm_simd_warmup_func get_simd_warmup(void)
 {
-    checkasm_simd_warmup_func simd_warmup = NULL;
+    checkasm_simd_warmup_func simd_warmup = noop;
 
-#if ARCH_X86_64
     union {
         CpuidRegisters r;
         struct {
@@ -62,6 +65,7 @@ COLD checkasm_simd_warmup_func checkasm_get_simd_warmup_x86(void)
         checkasm_cpu_cpuid(&r, 1, 0);
 
         /* We only support >128-bit SIMD on x86-64. */
+        #define X(reg, mask) (((reg) & (mask)) == (mask))
         if (X(r.ecx, 0x18000000)) /* OSXSAVE/AVX */ {
             const uint64_t xcr0 = checkasm_cpu_xgetbv(0);
             if (X(xcr0, 0x00000006)) /* XMM/YMM */ {
@@ -78,7 +82,17 @@ COLD checkasm_simd_warmup_func checkasm_get_simd_warmup_x86(void)
             }
         }
     }
-#endif
 
     return simd_warmup;
 }
+
+void checkasm_simd_warmup(void)
+{
+    static checkasm_simd_warmup_func simd_warmup = NULL;
+    if (!simd_warmup)
+        simd_warmup = get_simd_warmup();
+
+    simd_warmup();
+}
+
+#endif // ARCH_X86_64
