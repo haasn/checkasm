@@ -33,7 +33,7 @@
 #include <sys/auxv.h>
 #endif
 
-#include "attributes.h"
+#include "internal.h"
 #include "cpu.h"
 
 COLD unsigned long checkasm_getauxval(unsigned long type) {

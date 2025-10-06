@@ -28,10 +28,10 @@
 
 #include <stdint.h>
 
-#include "checkasm/attributes.h"
 #include "checkasm/test.h"
 
 #include "config.h"
+#include "internal.h"
 #include "cpu.h"
 
 #if ARCH_X86_64

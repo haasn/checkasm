@@ -33,6 +33,12 @@
 
 #include "checkasm/attributes.h"
 
+#ifdef __GNUC__
+    #define COLD __attribute__((cold))
+#else
+    #define COLD
+#endif
+
 void checkasm_srand(unsigned seed);
 
 #define COLOR_RED    31

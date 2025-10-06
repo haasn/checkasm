@@ -33,18 +33,18 @@
 
 #include "checkasm/config.h"
 
-#ifdef __GNUC__
-    #define ATTR_ALIAS __attribute__((may_alias))
-    #if defined(__MINGW32__) && !defined(__clang__)
-        #define ATTR_FORMAT_PRINTF(fmt, attr) __attribute__((__format__(__gnu_printf__, fmt, attr)))
+#ifndef ATTR_FORMAT_PRINTF
+    #ifdef __GNUC__
+        #if defined(__MINGW32__) && !defined(__clang__)
+            #define ATTR_FORMAT_PRINTF(fmt, attr)\
+                __attribute__((__format__(__gnu_printf__, fmt, attr)))
+        #else
+            #define ATTR_FORMAT_PRINTF(fmt, attr)\
+                __attribute__((__format__(__printf__, fmt, attr)))
+        #endif
     #else
-        #define ATTR_FORMAT_PRINTF(fmt, attr) __attribute__((__format__(__printf__, fmt, attr)))
+        #define ATTR_FORMAT_PRINTF(fmt, attr)
     #endif
-    #define COLD __attribute__((cold))
-#else
-    #define ATTR_ALIAS
-    #define ATTR_FORMAT_PRINTF(fmt, attr)
-    #define COLD
 #endif
 
 /*
