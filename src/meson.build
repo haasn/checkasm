@@ -131,7 +131,7 @@ checkasm_dependencies = [
   libm_dependency,
 ]
 
-checkasm_library = library('checkasm',
+checkasm_library = library(meson.project_name(),
   checkasm_sources,
   config_target,
   config_internal_target,

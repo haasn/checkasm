@@ -30,10 +30,10 @@ checkasm_api_headers = [
   'test.h',
 ]
 
-install_headers(checkasm_api_headers, subdir: 'checkasm')
+install_headers(checkasm_api_headers, subdir: meson.project_name())
 
 config_target = configure_file(output: 'config.h',
   configuration: cdata,
   install: true,
-  install_dir: get_option('includedir') / 'checkasm'
+  install_dir: get_option('includedir') / meson.project_name(),
 )
