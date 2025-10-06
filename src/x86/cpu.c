@@ -1,4 +1,5 @@
 /*
+ * Copyright © 2025, Niklas Haas
  * Copyright © 2018, VideoLAN and dav1d authors
  * Copyright © 2018, Two Orioles, LLC
  * All rights reserved.
