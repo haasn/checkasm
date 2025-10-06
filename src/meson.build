@@ -91,6 +91,7 @@ endif
 checkasm_sources = files(
   'checkasm.c',
   'cpu.c',
+  'util.c',
 )
 
 if host_machine.cpu_family() == 'aarch64' or host_machine.cpu() == 'arm64'
