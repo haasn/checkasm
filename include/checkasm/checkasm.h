@@ -95,4 +95,12 @@ CHECKASM_API void checkasm_list_tests(const CheckasmConfig *config);
  */
 CHECKASM_API int checkasm_run(const CheckasmConfig *config);
 
+/**
+ * Entry-point for main() that parses common args (mutating `config`), and
+ * prints usage on failure. The user should set project-specific fields in
+ * `config` before calling this function; in particular `config.cpu_flags`,
+ * `config.tests` and `config.{get,set}_cpu_flags`.
+ */
+CHECKASM_API int checkasm_main(CheckasmConfig *config, int argc, const char *argv[]);
+
 #endif /* CHECKASM_CHECKASM_H */
