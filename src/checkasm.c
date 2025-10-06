@@ -49,10 +49,6 @@
     #endif
 #endif
 
-#if ARCH_AARCH64 && HAVE_SVE
-int checkasm_sve_length(void);
-#endif
-
 typedef struct CheckasmFuncVersion {
     struct CheckasmFuncVersion *next;
     void *func;
@@ -616,9 +612,6 @@ void checkasm_report(const char *const name, ...)
             max_length = length;
     }
 }
-
-#if ARCH_X86_64
-#endif
 
 #if ARCH_ARM
 void (*checkasm_checked_call_ptr)(void *func, int dummy, ...);

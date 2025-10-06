@@ -28,6 +28,8 @@
 #ifndef CHECKASM_SRC_ARM_CPU_H
 #define CHECKASM_SRC_ARM_CPU_H
 
+#include "config.h"
+
 enum CpuFlags {
     CHECKASM_ARM_CPU_FLAG_NEON = 1 << 0,
     CHECKASM_ARM_CPU_FLAG_DOTPROD = 1 << 1,
@@ -37,5 +39,9 @@ enum CpuFlags {
 };
 
 unsigned checkasm_get_cpu_flags_arm(void);
+
+#if ARCH_AARCH64 && HAVE_SVE
+int checkasm_sve_length(void);
+#endif
 
 #endif /* CHECKASM_SRC_ARM_CPU_H */
