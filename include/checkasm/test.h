@@ -331,8 +331,10 @@ CHECKASM_API int checkasm_check_float_ulp(const char *file, int line,
                                           unsigned max_ulp, int align_w, int align_h,
                                           int padding);
 
-#define CONCAT2(a,b) a ## b
-#define CONCAT(a,b) CONCAT2(a, b)
+#ifndef CONCAT
+    #define CONCAT2(a,b) a ## b
+    #define CONCAT(a,b) CONCAT2(a, b)
+#endif
 
 #define checkasm_check2(prefix, ...) CONCAT(checkasm_check_, prefix)(__FILE__, __LINE__, __VA_ARGS__)
 #define checkasm_check(prefix, ...) checkasm_check2(prefix, __VA_ARGS__, 0, 0, 0)
