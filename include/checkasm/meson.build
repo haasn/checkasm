@@ -26,6 +26,8 @@
 checkasm_api_headers = [
   'attributes.h',
   'checkasm.h',
+  'perf.h',
+  'test.h',
 ]
 
 install_headers(checkasm_api_headers, subdir: 'checkasm')

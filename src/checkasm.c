@@ -34,9 +34,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "config_internal.h"
+
 #include "checkasm.h"
 #include "cpu.h"
-#include "config_internal.h"
+#include "test.h"
 
 #ifdef _WIN32
 #ifndef SIGBUS

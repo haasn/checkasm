@@ -30,7 +30,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <checkasm/checkasm.h>
+#include <checkasm/test.h>
 #include "example.h"
 
 static void check_nihcpy(nihcpy_func fun, size_t size)
