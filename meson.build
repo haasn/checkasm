@@ -28,7 +28,7 @@ project('checkasm',
   default_options: ['c_std=c11',
                     'buildtype=debugoptimized',
                     'b_ndebug=if-release',
-                    'warning_level=3'],
+                    'warning_level=2'],
   meson_version : '>=1.0.0')
 
 # Project arguments and basic checks
