@@ -51,14 +51,14 @@
 //             doi:10.18637/jss.v008.i14.
 static uint32_t xs_state[4];
 
-void xor128_srand(unsigned seed) {
+void checkasm_srand(unsigned seed) {
     xs_state[0] = seed;
     xs_state[1] = ( seed & 0xffff0000) | (~seed & 0x0000ffff);
     xs_state[2] = (~seed & 0xffff0000) | ( seed & 0x0000ffff);
     xs_state[3] = ~seed;
 }
 
-int xor128_rand(void) {
+int checkasm_rand(void) {
     const uint32_t x = xs_state[0];
     const uint32_t t = x ^ (x << 11);
 

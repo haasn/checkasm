@@ -528,7 +528,7 @@ static void check_cpu_flag(const char *const name, unsigned flag)
         for (int i = 0; i < cfg.nb_tests; i++) {
             if (cfg.test_pattern && wildstrcmp(cfg.tests[i].name, cfg.test_pattern))
                 continue;
-            xor128_srand(cfg.seed);
+            checkasm_srand(cfg.seed);
             state.current_test_name = cfg.tests[i].name;
             cfg.tests[i].func();
         }
@@ -802,7 +802,7 @@ void *checkasm_check_func(void *const func, const char *const name, ...)
     if (cfg.list_functions) /* Save function names without running tests */
         return NULL;
 
-    xor128_srand(cfg.seed);
+    checkasm_srand(cfg.seed);
 
     if (state.cpu_flag)
         state.num_checked++;

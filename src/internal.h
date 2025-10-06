@@ -33,7 +33,7 @@
 
 #include "checkasm/attributes.h"
 
-void xor128_srand(unsigned seed);
+void checkasm_srand(unsigned seed);
 
 #define COLOR_RED    31
 #define COLOR_GREEN  32
