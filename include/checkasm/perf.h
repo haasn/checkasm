@@ -33,7 +33,7 @@
 #include "checkasm/config.h"
 #include "checkasm/attributes.h"
 
-#if CONFIG_LINUX_PERF
+#if CHECKASM_LINUX_PERF
     #include <unistd.h>
     #include <sys/ioctl.h>
     #include <linux/perf_event.h>
@@ -51,7 +51,7 @@
         }
         #define readtime readtime
     #endif
-#elif CONFIG_MACOS_KPERF
+#elif CHECKASM_MACOS_KPERF
     CHECKASM_API uint64_t checkasm_kperf_cycles(void);
     #define readtime() checkasm_kperf_cycles()
 #elif (ARCH_AARCH64 || ARCH_ARM) && defined(__APPLE__)
@@ -136,7 +136,7 @@
     #define readtime readtime
 #endif
 
-#if CONFIG_LINUX_PERF
+#if CHECKASM_LINUX_PERF
     CHECKASM_API int checkasm_get_perf_sysfd(void);
     #define PERF_SETUP()\
         int sysfd = checkasm_get_perf_sysfd()

@@ -33,13 +33,13 @@
 #include "checkasm/test.h"
 #include "internal.h"
 
-#if CONFIG_LINUX_PERF
+#if CHECKASM_LINUX_PERF
     #include <sys/syscall.h>
-#elif CONFIG_MACOS_KPERF
+#elif CHECKASM_MACOS_KPERF
     #include <dlfcn.h>
 #endif
 
-#if CONFIG_LINUX_PERF
+#if CHECKASM_LINUX_PERF
 
 static int perf_sysfd;
 
@@ -71,7 +71,7 @@ int checkasm_get_perf_sysfd(void)
     return perf_sysfd;
 }
 
-#elif CONFIG_MACOS_KPERF
+#elif CHECKASM_MACOS_KPERF
 
 static int (*kpc_get_thread_counters)(int, unsigned int, void *);
 
