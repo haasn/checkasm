@@ -31,9 +31,9 @@
 
 #include <windows.h>
 
-#define readtime() (_InstructionSynchronizationBarrier(), ReadTimeStampCounter())
+#define readtime_sync() (_InstructionSynchronizationBarrier(), ReadTimeStampCounter())
 #define PERF_SETUP()
-#define PERF_START(t) t = readtime();
-#define PERF_STOP(t)  t = readtime() - t
+#define PERF_START(t) t = readtime_sync();
+#define PERF_STOP(t)  t = readtime_sync() - t
 
 #endif /* CHECKASM_PERF_WINDOWS_H */

@@ -31,9 +31,8 @@
 
 #include <mach/mach_time.h>
 
-#define readtime mach_absolute_time
 #define PERF_SETUP()
-#define PERF_START(t) t = readtime();
-#define PERF_STOP(t)  t = readtime() - t
+#define PERF_START(t) t = mach_absolute_time();
+#define PERF_STOP(t)  t = mach_absolute_time() - t
 
 #endif /* CHECKASM_PERF_MACH_H */

@@ -33,7 +33,7 @@
 
 #include <stdint.h>
 
-static inline uint64_t readtime(void) {
+static inline uint64_t readtime_counter(void) {
     uint32_t cycle_counter;
     /* This requires enabling user mode access to the cycle counter (which
         * can only be done from kernel space). */
@@ -42,10 +42,10 @@ static inline uint64_t readtime(void) {
                         :: "memory");
     return cycle_counter;
 }
-#define readtime readtime
+
 #define PERF_SETUP()
-#define PERF_START(t) t = readtime();
-#define PERF_STOP(t)  t = readtime() - t
+#define PERF_START(t) t = readtime_counter();
+#define PERF_STOP(t)  t = readtime_counter() - t
 
 #endif /* !defined(_MSC_VER) && __ARM_ARCH >= 7 */
 #endif /* CHECKASM_PERF_ARM_H */

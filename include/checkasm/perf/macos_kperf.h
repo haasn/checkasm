@@ -34,7 +34,6 @@
 #include "checkasm/attributes.h"
 
 CHECKASM_API uint64_t checkasm_kperf_cycles(void);
-#define readtime checkasm_kperf_cycles
 
 #define PERF_SETUP()
 #define PERF_START(t) t = checkasm_kperf_cycles();

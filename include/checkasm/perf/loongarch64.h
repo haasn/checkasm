@@ -31,17 +31,16 @@
 
 #include <stdint.h>
 
-static inline uint64_t readtime(void) {
+static inline uint64_t readtime_rdtime(void) {
     uint64_t a, id;
     __asm__ __volatile__("rdtime.d  %0, %1"
                         : "=r"(a), "=r"(id)
                         :: );
     return a;
 }
-#define readtime readtime
 
 #define PERF_SETUP()
-#define PERF_START(t) t = readtime();
-#define PERF_STOP(t)  t = readtime() - t
+#define PERF_START(t) t = readtime_rdtime();
+#define PERF_STOP(t)  t = readtime_rdtime() - t
 
 #endif /* CHECKASM_PERF_LOONGARCH64_H */

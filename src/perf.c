@@ -30,6 +30,7 @@
 #include <stdlib.h>
 
 #include "config.h"
+
 #include "checkasm/perf.h"
 #include "checkasm/test.h"
 #include "internal.h"
@@ -147,13 +148,14 @@ uint64_t checkasm_kperf_cycles(void) {
     return counters[0];
 }
 
-#elif defined(readtime)
+#elif defined(PERF_START)
 
 COLD int checkasm_perf_init(void)
 {
     if (!checkasm_save_context()) {
+        uint64_t t; (void) t;
         checkasm_set_signal_handler_state(1);
-        readtime();
+        PERF_START(t);
         checkasm_set_signal_handler_state(0);
         return 0;
     } else {

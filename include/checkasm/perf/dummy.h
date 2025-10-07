@@ -29,7 +29,6 @@
 #ifndef CHECKASM_PERF_DUMMY_H
 #define CHECKASM_PERF_DUMMY_H
 
-#undef readtime
 #undef PERF_SETUP
 #undef PERF_START
 #undef PERF_STOP

@@ -33,18 +33,17 @@
 
 #if defined(_MSC_VER) && !defined(__clang__)
     #include <intrin.h>
-    #define readtime() (_mm_lfence(), __rdtsc())
+    #define readtime_tsc() (_mm_lfence(), __rdtsc())
 #else
-    static inline uint64_t readtime(void) {
+    static inline uint64_t readtime_tsc(void) {
         uint32_t eax, edx;
         __asm__ __volatile__("lfence\nrdtsc" : "=a"(eax), "=d"(edx));
         return (((uint64_t)edx) << 32) | eax;
     }
-    #define readtime readtime
 #endif
 
 #define PERF_SETUP()
-#define PERF_START(t) t = readtime();
-#define PERF_STOP(t)  t = readtime() - t
+#define PERF_START(t) t = readtime_tsc();
+#define PERF_STOP(t)  t = readtime_tsc() - t
 
 #endif /* CHECKASM_PERF_X86_H */

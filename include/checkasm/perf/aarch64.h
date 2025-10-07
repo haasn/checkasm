@@ -31,7 +31,7 @@
 
 #include <stdint.h>
 
-static inline uint64_t readtime(void) {
+static inline uint64_t readtime_pmccntr(void) {
     uint64_t cycle_counter;
     /* This requires enabling user mode access to the cycle counter
         * (which can only be done from kernel space).
@@ -44,9 +44,8 @@ static inline uint64_t readtime(void) {
     return cycle_counter;
 }
 
-#define readtime readtime
 #define PERF_SETUP()
-#define PERF_START(t) t = readtime();
-#define PERF_STOP(t)  t = readtime() - t
+#define PERF_START(t) t = readtime_pmccntr();
+#define PERF_STOP(t)  t = readtime_pmccntr() - t
 
 #endif /* CHECKASM_PERF_AARCH64_H */

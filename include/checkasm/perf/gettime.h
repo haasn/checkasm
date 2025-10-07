@@ -42,9 +42,8 @@ static inline uint64_t clock_gettime_nsec(void) {
     return ((uint64_t)ts.tv_sec*1000000000u) + (uint64_t)ts.tv_nsec;
 }
 
-#define readtime clock_gettime_nsec
 #define PERF_SETUP()
-#define PERF_START(t) t = readtime();
-#define PERF_STOP(t)  t = readtime() - t
+#define PERF_START(t) t = clock_gettime_nsec();
+#define PERF_STOP(t)  t = clock_gettime_nsec() - t
 
 #endif /* CHECKASM_PERF_GETTIME_H */

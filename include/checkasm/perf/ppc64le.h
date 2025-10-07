@@ -31,7 +31,7 @@
 
 #include <stdint.h>
 
-static inline uint64_t readtime(void) {
+static inline uint64_t readtime_mfspr(void) {
     uint32_t tbu, tbl, temp;
 
     __asm__ __volatile__(
@@ -48,9 +48,8 @@ static inline uint64_t readtime(void) {
     return (((uint64_t)tbu) << 32) | (uint64_t)tbl;
 }
 
-#define readtime readtime
 #define PERF_SETUP()
-#define PERF_START(t) t = readtime();
-#define PERF_STOP(t)  t = readtime() - t
+#define PERF_START(t) t = readtime_mfspr();
+#define PERF_STOP(t)  t = readtime_mfspr() - t
 
 #endif /* CHECKASM_PERF_PPC64LE_H */
