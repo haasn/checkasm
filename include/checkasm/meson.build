@@ -23,14 +23,38 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-checkasm_api_headers = [
+checkasm_api_headers = files(
   'attributes.h',
   'checkasm.h',
   'perf.h',
   'test.h',
-]
+)
+
+if arch_x86_64
+  osdep_header = files('osdep/x86_64.h')
+elif arch_x86_32
+  osdep_header = files('osdep/x86_32.h')
+elif arch_arm
+  osdep_header = files('osdep/arm.h')
+elif arch_aarch64
+  osdep_header = files('osdep/aarch64.h')
+elif arch_riscv
+  osdep_header = files('osdep/riscv.h')
+elif arch_loongarch
+  osdep_header = files('osdep/loongarch.h')
+else
+  osdep_header = files('osdep/generic.h')
+endif
 
 install_headers(checkasm_api_headers, subdir: meson.project_name())
+
+configure_file(
+  input: osdep_header,
+  output: 'osdep.h',
+  install: true,
+  install_dir: get_option('includedir') / meson.project_name(),
+  copy: true,
+)
 
 config_target = configure_file(output: 'config.h',
   configuration: cdata,
