@@ -96,4 +96,9 @@ CHECKASM_API void checkasm_simd_warmup(void);
                   7, 6, 5, 4, 3, 2, 1, func_new, clobber_mask));\
     checkasm_set_signal_handler_state(0)
 
+/* x86-64 needs 32- and 64-byte alignment for AVX2 and AVX-512. */
+#define ALIGN_64_VAL 64
+#define ALIGN_32_VAL 32
+#define ALIGN_16_VAL 16
+
 #endif /* CHECKASM_OSDEP_X86_64_H */

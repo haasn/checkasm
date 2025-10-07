@@ -158,9 +158,22 @@ CHECKASM_API void checkasm_checked_call(void *func, ...);
  * throughput, and not latency, is measured. */
 #define alternate(a, b) (talt ? (b) : (a))
 
+/*
+ * API for stack alignment (ALIGN_STK_$align()) of variables like:
+ * uint8_t var[1][2][3][4]
+ * becomes:
+ * ALIGN_STK_$align(uint8_t, var, 1, [2][3][4])
+ */
+#define ALIGN_STK_64(type, var, sz1d, sznd) \
+    ALIGN(type var[sz1d]sznd, ALIGN_64_VAL)
+#define ALIGN_STK_32(type, var, sz1d, sznd) \
+    ALIGN(type var[sz1d]sznd, ALIGN_32_VAL)
+#define ALIGN_STK_16(type, var, sz1d, sznd) \
+    ALIGN(type var[sz1d]sznd, ALIGN_16_VAL)
+
 #define ROUND_UP(x,a) (((x)+((a)-1)) & ~((a)-1))
 #define PIXEL_RECT(name, w, h) \
-    ALIGN_STK(pixel, name##_buf, ((h)+32)*(ROUND_UP(w,64)+64) + 64,); \
+    ALIGN_STK_64(pixel, name##_buf, ((h)+32)*(ROUND_UP(w,64)+64) + 64,); \
     ptrdiff_t name##_stride = sizeof(pixel)*(ROUND_UP(w,64)+64); \
     (void)name##_stride; \
     pixel *name = name##_buf + (ROUND_UP(w,64)+64)*16 + 64

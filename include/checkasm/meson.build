@@ -29,7 +29,7 @@ checkasm_api_headers = files(
   'test.h',
 )
 
-# Platform-specific checked_call implementation
+# Platform-specific code and definitions (besides timing)
 if arch_x86_64
   osdep_header = files('osdep/x86_64.h')
 elif arch_x86_32
@@ -38,6 +38,8 @@ elif arch_arm
   osdep_header = files('osdep/arm.h')
 elif arch_aarch64
   osdep_header = files('osdep/aarch64.h')
+elif arch_ppc64le
+  osdep_header = files('osdep/ppc64le.h')
 elif arch_riscv
   osdep_header = files('osdep/riscv.h')
 elif arch_loongarch

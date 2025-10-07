@@ -36,4 +36,8 @@
     ((func_type *)func_new)(__VA_ARGS__));\
     checkasm_set_signal_handler_state(0)
 
+#define ALIGN_64_VAL 8
+#define ALIGN_32_VAL 8
+#define ALIGN_16_VAL 8
+
 #endif /* CHECKASM_OSDEP_GENERIC_H */

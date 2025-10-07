@@ -26,25 +26,18 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CHECKASM_OSDEP_LOONGARCH_H
-#define CHECKASM_OSDEP_LOONGARCH_H
+#ifndef CHECKASM_OSDEP_PPC64LE_H
+#define CHECKASM_OSDEP_PPC64LE_H
 
-#define declare_new(ret, ...)\
-    ret (*checked_call)(void *, int, int, int, int, int, int, int,\
-                        __VA_ARGS__, int, int, int, int, int, int, int, int,\
-                        int, int, int, int, int, int, int) =\
-    (ret (*)(void *, int, int, int, int, int, int, int,\
-             __VA_ARGS__, int, int, int, int, int, int, int, int,\
-             int, int, int, int, int, int, int))checkasm_checked_call;
+#define declare_new(ret, ...)
 
 #define call_new(...)\
     (checkasm_set_signal_handler_state(1),\
-    checked_call(func_new, 0, 0, 0, 0, 0, 0, 0, __VA_ARGS__,\
-                7, 6, 5, 4, 3, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0));\
+    ((func_type *)func_new)(__VA_ARGS__));\
     checkasm_set_signal_handler_state(0)
 
 #define ALIGN_64_VAL 16
 #define ALIGN_32_VAL 16
 #define ALIGN_16_VAL 16
 
-#endif /* CHECKASM_OSDEP_LOONGARCH_H */
+#endif /* CHECKASM_OSDEP_PPC64LE_H */

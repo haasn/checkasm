@@ -59,23 +59,6 @@
     #define ALIGN(line, align) line __attribute__((aligned(align)))
 #endif
 
-/*
- * API for stack alignment (ALIGN_STK()) of variables like:
- *   uint8_t var[1][2][3][4]
- * becomes:
- *   ALIGN_STK(uint8_t, var, 1, [2][3][4])
- */
-#if ARCH_X86_64
-/* x86-64 needs 32- and 64-byte alignment for AVX2 and AVX-512. */
-    #define ALIGN_STK(type, var, sz1d, sznd) ALIGN(type var[sz1d]sznd, 64)
-#elif ARCH_AARCH64 || ARCH_ARM || ARCH_LOONGARCH || ARCH_PPC64LE || ARCH_X86_32
-/* ARM doesn't benefit from anything more than 16-byte alignment. */
-    #define ALIGN_STK(type, var, sz1d, sznd) ALIGN(type var[sz1d]sznd, 16)
-#else
-/* No need for extra alignment on platforms without assembly. */
-    #define ALIGN_STK(type, var, sz1d, sznd) ALIGN(type var[sz1d]sznd, 8)
-#endif
-
 #ifndef CHECKASM_API
     #ifdef _WIN32
       #ifdef CHECKASM_BUILDING_DLL
