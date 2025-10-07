@@ -71,3 +71,5 @@ arch_loongarch64 = host_machine.cpu_family() == 'loongarch64'
 subdir('include/checkasm')
 subdir('src')
 subdir('example')
+
+meson.override_dependency(meson.project_name(), checkasm_dep)
