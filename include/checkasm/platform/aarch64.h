@@ -42,7 +42,7 @@ CHECKASM_API void checkasm_stack_clobber(uint64_t clobber, ...);
                         int, int, int, int, int, int, int) =\
     (ret (*)(void *, int, int, int, int, int, int, int,\
             __VA_ARGS__, int, int, int, int, int, int, int, int,\
-            int, int, int, int, int, int, int))checkasm_checked_call;
+            int, int, int, int, int, int, int)) (void *) checkasm_checked_call;
 
 #define CLOB (UINT64_C(0xdeadbeefdeadbeef))
 #define call_new(...)\

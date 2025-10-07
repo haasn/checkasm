@@ -84,7 +84,7 @@ CHECKASM_API void checkasm_simd_warmup(void);
                         void*, unsigned) =\
         (ret (*)(__VA_ARGS__, int, int, int, int, int, int, int,\
          int, int, int, int, int, int, int, int, int,\
-         void *, unsigned))checkasm_checked_call;\
+         void *, unsigned)) (void *) checkasm_checked_call;\
     init_clobber_mask(__VA_ARGS__, void*, void*, void*, void*,\
                       void*, void*, void*, void*, void*, void*,\
                       void*, void*, void*, void*, void*);

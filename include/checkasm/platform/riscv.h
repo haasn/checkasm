@@ -35,7 +35,7 @@
                         int, int, int, int, int, int, int) =\
     (ret (*)(void *, int, int, int, int, int, int, int,\
              __VA_ARGS__, int, int, int, int, int, int, int, int,\
-             int, int, int, int, int, int, int))checkasm_checked_call;
+             int, int, int, int, int, int, int)) (void *) checkasm_checked_call;
 
 #define call_new(...)\
     (checkasm_set_signal_handler_state(1),\
