@@ -52,8 +52,8 @@ endif
 # Build configuration
 cdata = configuration_data()
 cdata.set('PREFIX',                         cc.symbols_have_underscore_prefix())
-cdata.set10('CHECKASM_LINUX_PERF',          get_option('linux_perf'))
-cdata.set10('CHECKASM_MACOS_KPERF',         get_option('macos_kperf'))
+cdata.set10('CONFIG_LINUX_PERF',            get_option('linux_perf'))
+cdata.set10('CONFIG_MACOS_KPERF',           get_option('macos_kperf'))
 cdata.set10('ARCH_AARCH64',                 arch_aarch64)
 cdata.set10('ARCH_ARM',                     arch_arm)
 cdata.set10('ARCH_X86',                     arch_x86)
