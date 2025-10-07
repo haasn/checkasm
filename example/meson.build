@@ -29,8 +29,13 @@ example_sources = files(
   'test_nihcpy.c'
 )
 
+example_nasm_args = []
+
 if host_machine.cpu_family() == 'x86_64'
   example_sources += files('x86/nihcpy_x86.asm')
+  if cc.symbols_have_underscore_prefix()
+    example_nasm_args += '-DPREFIX=1'
+  endif
 else
   warning('Not building for x86_64, so there are no assembly functions to test.')
 endif
@@ -38,6 +43,7 @@ endif
 example = executable('example',
   example_sources,
   dependencies: checkasm_dep,
+  nasm_args: example_nasm_args,
 )
 
 test('checkasm', example, suite: 'checkasm', timeout: 180)
