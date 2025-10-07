@@ -562,7 +562,7 @@ int checkasm_fail_func(const char *const msg, ...)
 
 unsigned checkasm_bench_runs(void)
 {
-    return cfg.bench_runs ? cfg.bench_runs : 1000;
+    return cfg.bench_runs ? cfg.bench_runs : (1 << 10);
 }
 
 /* Update benchmark results of the current function */
