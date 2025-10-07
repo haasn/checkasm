@@ -29,7 +29,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "config_internal.h"
+#include "config.h"
 #include "checkasm/perf.h"
 #include "checkasm/test.h"
 #include "internal.h"

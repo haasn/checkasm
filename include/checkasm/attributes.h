@@ -31,8 +31,6 @@
 
 #include <stddef.h>
 
-#include "checkasm/config.h"
-
 #ifndef ATTR_FORMAT_PRINTF
     #ifdef __GNUC__
         #if defined(__MINGW32__) && !defined(__clang__)

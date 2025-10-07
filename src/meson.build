@@ -49,18 +49,33 @@ if (host_machine.cpu_family() == 'aarch64' or
     have_elf_aux_info = cc.has_function('elf_aux_info', prefix : '#include <sys/auxv.h>', args : test_args)
 endif
 
-# Internal configuration
-cdata_internal = configuration_data()
-cdata_internal.set('PREFIX',                        cc.symbols_have_underscore_prefix())
-cdata_internal.set10('HAVE_UNISTD_H',               cc.check_header('unistd.h'))
-cdata_internal.set10('HAVE_PTHREAD_NP_H',           have_pthread_np)
-cdata_internal.set10('HAVE_PTHREAD_SETAFFINITY_NP', have_pthread_setaffinity_np)
-cdata_internal.set10('HAVE_GETAUXVAL',              have_getauxval)
-cdata_internal.set10('HAVE_ELF_AUX_INFO',           have_elf_aux_info)
+# Build configuration
+cdata = configuration_data()
+cdata.set('PREFIX',                         cc.symbols_have_underscore_prefix())
+cdata.set10('CHECKASM_LINUX_PERF',          get_option('linux_perf'))
+cdata.set10('CHECKASM_MACOS_KPERF',         get_option('macos_kperf'))
+cdata.set10('ARCH_AARCH64',                 arch_aarch64)
+cdata.set10('ARCH_ARM',                     arch_arm)
+cdata.set10('ARCH_X86',                     arch_x86)
+cdata.set10('ARCH_X86_64',                  arch_x86_64)
+cdata.set10('ARCH_X86_32',                  arch_x86_32)
+cdata.set10('ARCH_PPC64LE',                 arch_ppc64le)
+cdata.set10('ARCH_RISCV',                   arch_riscv)
+cdata.set10('ARCH_RV32',                    arch_rv32)
+cdata.set10('ARCH_RV64',                    arch_rv64)
+cdata.set10('ARCH_LOONGARCH',               arch_loongarch)
+cdata.set10('ARCH_LOONGARCH32',             arch_loongarch32)
+cdata.set10('ARCH_LOONGARCH64',             arch_loongarch64)
+cdata.set10('HAVE_UNISTD_H',                cc.check_header('unistd.h'))
+cdata.set10('HAVE_PTHREAD_NP_H',            have_pthread_np)
+cdata.set10('HAVE_PTHREAD_SETAFFINITY_NP',  have_pthread_setaffinity_np)
+cdata.set10('HAVE_GETAUXVAL',               have_getauxval)
+cdata.set10('HAVE_ELF_AUX_INFO',            have_elf_aux_info)
 
-config_internal_target = configure_file(
-  output: 'config_internal.h',
-  configuration: cdata_internal,
+config_target = configure_file(
+  output: 'config.h',
+  configuration: cdata,
+  install: false,
 )
 
 # Compiler and assembler flags
@@ -134,7 +149,6 @@ checkasm_dependencies = [
 checkasm_library = library(meson.project_name(),
   checkasm_sources,
   config_target,
-  config_internal_target,
   include_directories: checkasm_inc_dirs,
   nasm_args: checkasm_nasm_args,
   dependencies: checkasm_dependencies,

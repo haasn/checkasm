@@ -92,9 +92,3 @@ configure_file(
   install_dir: get_option('includedir') / meson.project_name(),
   copy: true,
 )
-
-config_target = configure_file(output: 'config.h',
-  configuration: cdata,
-  install: true,
-  install_dir: get_option('includedir') / meson.project_name(),
-)

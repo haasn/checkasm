@@ -54,7 +54,7 @@ endif
 checkasm_src_root = meson.current_source_dir()
 checkasm_inc_dirs = include_directories(['.', 'include/checkasm', 'include'])
 
-# Global configuration
+# Global platform flags
 arch_aarch64     = host_machine.cpu_family() == 'aarch64' or host_machine.cpu() == 'arm64'
 arch_arm         = host_machine.cpu_family().startswith('arm') and host_machine.cpu() != 'arm64'
 arch_x86         = host_machine.cpu_family().startswith('x86')
@@ -67,22 +67,6 @@ arch_rv64        = host_machine.cpu_family() == 'riscv64'
 arch_loongarch   = host_machine.cpu_family().startswith('loongarch')
 arch_loongarch32 = host_machine.cpu_family() == 'loongarch32'
 arch_loongarch64 = host_machine.cpu_family() == 'loongarch64'
-
-cdata = configuration_data()
-cdata.set10('CHECKASM_LINUX_PERF',  get_option('linux_perf'))
-cdata.set10('CHECKASM_MACOS_KPERF', get_option('macos_kperf'))
-cdata.set10('ARCH_AARCH64',         arch_aarch64)
-cdata.set10('ARCH_ARM',             arch_arm)
-cdata.set10('ARCH_X86',             arch_x86)
-cdata.set10('ARCH_X86_64',          arch_x86_64)
-cdata.set10('ARCH_X86_32',          arch_x86_32)
-cdata.set10('ARCH_PPC64LE',         arch_ppc64le)
-cdata.set10('ARCH_RISCV',           arch_riscv)
-cdata.set10('ARCH_RV32',            arch_rv32)
-cdata.set10('ARCH_RV64',            arch_rv64)
-cdata.set10('ARCH_LOONGARCH',       arch_loongarch)
-cdata.set10('ARCH_LOONGARCH32',     arch_loongarch32)
-cdata.set10('ARCH_LOONGARCH64',     arch_loongarch64)
 
 subdir('include')
 subdir('src')

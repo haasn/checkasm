@@ -34,7 +34,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "config_internal.h"
+#include "config.h"
 
 #include "checkasm.h"
 #include "cpu.h"

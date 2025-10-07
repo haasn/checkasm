@@ -32,7 +32,6 @@
 #include <stdint.h>
 
 #include "checkasm/attributes.h"
-#include "checkasm/config.h"
 #include "checkasm/perf.h"
 #include "checkasm/osdep.h"
 

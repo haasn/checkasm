@@ -31,7 +31,7 @@
 #include <signal.h>
 #include <stdarg.h>
 
-#include "config_internal.h"
+#include "config.h"
 
 #include "internal.h"
 #include "test.h"
