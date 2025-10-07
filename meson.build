@@ -68,6 +68,6 @@ arch_loongarch   = host_machine.cpu_family().startswith('loongarch')
 arch_loongarch32 = host_machine.cpu_family() == 'loongarch32'
 arch_loongarch64 = host_machine.cpu_family() == 'loongarch64'
 
-subdir('include')
+subdir('include/checkasm')
 subdir('src')
 subdir('example')
