@@ -26,18 +26,32 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CHECKASM_OSDEP_PPC64LE_H
-#define CHECKASM_OSDEP_PPC64LE_H
+#ifndef CHECKASM_PLATFORM_ARM_H
+#define CHECKASM_PLATFORM_ARM_H
 
-#define declare_new(ret, ...)
+#include "checkasm/attributes.h"
+
+/* Use a dummy argument, to offset the real parameters by 2, not only 1.
+ * This makes sure that potential 8-byte-alignment of parameters is kept
+ * the same even when the extra parameters have been removed. */
+CHECKASM_API extern void (*checkasm_checked_call_ptr)(void *func, int dummy, ...);
+
+#define declare_new(ret, ...)\
+    ret (*checked_call)(void *, int dummy, __VA_ARGS__,\
+                        int, int, int, int, int, int, int, int,\
+                        int, int, int, int, int, int, int) =\
+    (ret (*)(void *, int, __VA_ARGS__, \
+                int, int, int, int, int, int, int, int,\
+                int, int, int, int, int, int, int)) checkasm_checked_call_ptr;
 
 #define call_new(...)\
     (checkasm_set_signal_handler_state(1),\
-    ((func_type *)func_new)(__VA_ARGS__));\
+    checked_call(func_new, 0, __VA_ARGS__, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 0, 0, 0));\
     checkasm_set_signal_handler_state(0)
 
+/* ARM doesn't benefit from anything more than 16-byte alignment. */
 #define ALIGN_64_VAL 16
 #define ALIGN_32_VAL 16
 #define ALIGN_16_VAL 16
 
-#endif /* CHECKASM_OSDEP_PPC64LE_H */
+#endif /* CHECKASM_PLATFORM_ARM_H */

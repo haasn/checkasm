@@ -33,7 +33,7 @@
 
 #include "checkasm/attributes.h"
 #include "checkasm/perf.h"
-#include "checkasm/osdep.h"
+#include "checkasm/platform.h"
 
 /********************************************
  * Internal checkasm API. Used inside tests *

@@ -28,7 +28,7 @@
 
 #include <stdint.h>
 
-#include "checkasm/osdep.h"
+#include "checkasm/platform.h"
 
 #include "config.h"
 #include "internal.h"

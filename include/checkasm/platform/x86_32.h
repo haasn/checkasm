@@ -26,18 +26,23 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CHECKASM_OSDEP_GENERIC_H
-#define CHECKASM_OSDEP_GENERIC_H
+#ifndef CHECKASM_PLATFORM_X86_32_H
+#define CHECKASM_PLATFORM_X86_32_H
 
-#define declare_new(ret, ...)
+#define declare_new(ret, ...)\
+    ret (*checked_call)(void *, __VA_ARGS__, int, int, int, int, int, int,\
+                        int, int, int, int, int, int, int, int, int) =\
+        (ret (*)(void *, __VA_ARGS__, int, int, int, int, int, int,\
+                 int, int, int, int, int, int, int, int, int))checkasm_checked_call;
 
 #define call_new(...)\
     (checkasm_set_signal_handler_state(1),\
-    ((func_type *)func_new)(__VA_ARGS__));\
+    checked_call(func_new, __VA_ARGS__, 15, 14, 13, 12,\
+                11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1));\
     checkasm_set_signal_handler_state(0)
 
-#define ALIGN_64_VAL 8
-#define ALIGN_32_VAL 8
-#define ALIGN_16_VAL 8
+#define ALIGN_64_VAL 16
+#define ALIGN_32_VAL 16
+#define ALIGN_16_VAL 16
 
-#endif /* CHECKASM_OSDEP_GENERIC_H */
+#endif /* CHECKASM_PLATFORM_X86_32_H */

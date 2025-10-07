@@ -26,8 +26,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CHECKASM_OSDEP_X86_64_H
-#define CHECKASM_OSDEP_X86_64_H
+#ifndef CHECKASM_PLATFORM_X86_64_H
+#define CHECKASM_PLATFORM_X86_64_H
 
 #include <stdint.h>
 
@@ -101,4 +101,4 @@ CHECKASM_API void checkasm_simd_warmup(void);
 #define ALIGN_32_VAL 32
 #define ALIGN_16_VAL 16
 
-#endif /* CHECKASM_OSDEP_X86_64_H */
+#endif /* CHECKASM_PLATFORM_X86_64_H */

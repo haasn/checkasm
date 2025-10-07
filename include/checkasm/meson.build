@@ -31,21 +31,21 @@ checkasm_api_headers = files(
 
 # Platform-specific code and definitions (besides timing)
 if arch_x86_64
-  osdep_header = files('osdep/x86_64.h')
+  platform_header = files('platform/x86_64.h')
 elif arch_x86_32
-  osdep_header = files('osdep/x86_32.h')
+  platform_header = files('platform/x86_32.h')
 elif arch_arm
-  osdep_header = files('osdep/arm.h')
+  platform_header = files('platform/arm.h')
 elif arch_aarch64
-  osdep_header = files('osdep/aarch64.h')
+  platform_header = files('platform/aarch64.h')
 elif arch_ppc64le
-  osdep_header = files('osdep/ppc64le.h')
+  platform_header = files('platform/ppc64le.h')
 elif arch_riscv
-  osdep_header = files('osdep/riscv.h')
+  platform_header = files('platform/riscv.h')
 elif arch_loongarch
-  osdep_header = files('osdep/loongarch.h')
+  platform_header = files('platform/loongarch.h')
 else
-  osdep_header = files('osdep/generic.h')
+  platform_header = files('platform/generic.h')
 endif
 
 # Benchmarking / timing subsystem
@@ -78,8 +78,8 @@ endif
 install_headers(checkasm_api_headers, subdir: meson.project_name())
 
 configure_file(
-  input: osdep_header,
-  output: 'osdep.h',
+  input: platform_header,
+  output: 'platform.h',
   install: true,
   install_dir: get_option('includedir') / meson.project_name(),
   copy: true,

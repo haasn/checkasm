@@ -26,8 +26,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CHECKASM_OSDEP_RISCV_H
-#define CHECKASM_OSDEP_RISCV_H
+#ifndef CHECKASM_PLATFORM_RISCV_H
+#define CHECKASM_PLATFORM_RISCV_H
 
 #define declare_new(ret, ...)\
     ret (*checked_call)(void *, int, int, int, int, int, int, int,\
@@ -47,4 +47,4 @@
 #define ALIGN_32_VAL 16
 #define ALIGN_16_VAL 16
 
-#endif /* CHECKASM_OSDEP_RISCV_H */
+#endif /* CHECKASM_PLATFORM_RISCV_H */

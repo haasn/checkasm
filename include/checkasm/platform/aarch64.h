@@ -26,25 +26,46 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CHECKASM_OSDEP_LOONGARCH_H
-#define CHECKASM_OSDEP_LOONGARCH_H
+#ifndef CHECKASM_PLATFORM_AARCH64_H
+#define CHECKASM_PLATFORM_AARCH64_H
+
+#ifndef __APPLE__
+
+#include <stdint.h>
+#include "checkasm/attributes.h"
+
+CHECKASM_API void checkasm_stack_clobber(uint64_t clobber, ...);
 
 #define declare_new(ret, ...)\
     ret (*checked_call)(void *, int, int, int, int, int, int, int,\
                         __VA_ARGS__, int, int, int, int, int, int, int, int,\
                         int, int, int, int, int, int, int) =\
     (ret (*)(void *, int, int, int, int, int, int, int,\
-             __VA_ARGS__, int, int, int, int, int, int, int, int,\
-             int, int, int, int, int, int, int))checkasm_checked_call;
+            __VA_ARGS__, int, int, int, int, int, int, int, int,\
+            int, int, int, int, int, int, int))checkasm_checked_call;
 
+#define CLOB (UINT64_C(0xdeadbeefdeadbeef))
 #define call_new(...)\
     (checkasm_set_signal_handler_state(1),\
+    checkasm_stack_clobber(CLOB, CLOB, CLOB, CLOB, CLOB, CLOB,\
+                           CLOB, CLOB, CLOB, CLOB, CLOB, CLOB,\
+                           CLOB, CLOB, CLOB, CLOB, CLOB, CLOB,\
+                           CLOB, CLOB, CLOB, CLOB, CLOB),\
     checked_call(func_new, 0, 0, 0, 0, 0, 0, 0, __VA_ARGS__,\
                 7, 6, 5, 4, 3, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0));\
     checkasm_set_signal_handler_state(0)
 
+#else /* __APPLE__ */
+    #define declare_new(ret, ...)
+    #define call_new(...)\
+        (checkasm_set_signal_handler_state(1),\
+        ((func_type *)func_new)(__VA_ARGS__));\
+        checkasm_set_signal_handler_state(0)
+#endif
+
+/* ARM doesn't benefit from anything more than 16-byte alignment. */
 #define ALIGN_64_VAL 16
 #define ALIGN_32_VAL 16
 #define ALIGN_16_VAL 16
 
-#endif /* CHECKASM_OSDEP_LOONGARCH_H */
+#endif /* CHECKASM_PLATFORM_AARCH64_H */
