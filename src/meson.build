@@ -78,21 +78,18 @@ config_target = configure_file(
   install: false,
 )
 
+config_nasm_target = configure_file(
+  output: 'config.asm',
+  output_format: 'nasm',
+  configuration: cdata,
+  install: false,
+)
+
 # Compiler and assembler flags
 checkasm_nasm_args = []
 
-if host_machine.cpu_family().startswith('x86')
+if arch_x86
   checkasm_nasm_args += '-DPIC=1'
-
-  if cc.symbols_have_underscore_prefix()
-    checkasm_nasm_args += '-DPREFIX=1'
-  endif
-
-  if host_machine.cpu_family() == 'x86_64'
-    checkasm_nasm_args += '-DARCH_X86_64=1'
-  else
-    checkasm_nasm_args += '-DARCH_X86_32=1'
-  endif
 
   # Convert SSE asm into (128-bit) AVX when compiler flags are set to use AVX instructions
   if cc.get_define('__AVX__').strip() != ''
@@ -149,6 +146,7 @@ checkasm_dependencies = [
 checkasm_library = library(meson.project_name(),
   checkasm_sources,
   config_target,
+  config_nasm_target,
   include_directories: checkasm_inc_dirs,
   nasm_args: checkasm_nasm_args,
   dependencies: checkasm_dependencies,
