@@ -26,10 +26,10 @@
 checkasm_api_headers = files(
   'attributes.h',
   'checkasm.h',
-  'perf.h',
   'test.h',
 )
 
+# Platform-specific checked_call implementation
 if arch_x86_64
   osdep_header = files('osdep/x86_64.h')
 elif arch_x86_32
@@ -46,11 +46,46 @@ else
   osdep_header = files('osdep/generic.h')
 endif
 
+# Benchmarking / timing subsystem
+if get_option('linux_perf')
+  perf_header = files('perf/linux.h')
+elif get_option('macos_kperf')
+  perf_header = files('perf/macos_kperf.h')
+elif arch_x86
+  perf_header = files('perf/x86.h')
+elif arch_aarch64
+  if cc.get_id() == 'msvc'
+    perf_header = files('perf/windows.h')
+  else
+    perf_header = files('perf/aarch64.h')
+  endif
+elif arch_arm
+  perf_header = files('perf/arm.h')
+elif arch_ppc64le
+  perf_header = files('perf/ppc64le.h')
+elif arch_riscv
+  perf_header = files('perf/gettime.h')
+elif arch_loongarch64
+  perf_header = files('perf/loongarch64.h')
+elif arch_loongarch32
+  perf_header = files('perf/loongarch32.h')
+else
+  perf_header = files('perf/dummy.h')
+endif
+
 install_headers(checkasm_api_headers, subdir: meson.project_name())
 
 configure_file(
   input: osdep_header,
   output: 'osdep.h',
+  install: true,
+  install_dir: get_option('includedir') / meson.project_name(),
+  copy: true,
+)
+
+configure_file(
+  input: perf_header,
+  output: 'perf.h',
   install: true,
   install_dir: get_option('includedir') / meson.project_name(),
   copy: true,
