@@ -44,6 +44,7 @@ example = executable('example',
   example_sources,
   dependencies: checkasm_dep,
   nasm_args: example_nasm_args,
+  build_by_default: false,
 )
 
 test('checkasm', example, suite: 'checkasm', timeout: 180)
