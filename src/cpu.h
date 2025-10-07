@@ -38,8 +38,6 @@
 #include "ppc/cpu.h"
 #elif ARCH_RISCV
 #include "riscv/cpu.h"
-#elif ARCH_X86
-#include "x86/cpu.h"
 #endif
 
 unsigned long checkasm_getauxval(unsigned long);
