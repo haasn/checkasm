@@ -152,7 +152,7 @@ uint64_t checkasm_kperf_cycles(void) {
 
 COLD int checkasm_perf_init(void)
 {
-    if (!checkasm_save_context()) {
+    if (!checkasm_save_context(checkasm_context)) {
         uint64_t t; (void) t;
         checkasm_set_signal_handler_state(1);
         PERF_START(t);

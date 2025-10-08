@@ -26,41 +26,13 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CHECKASM_INTERNAL_H
-#define CHECKASM_INTERNAL_H
+#ifndef CHECKASM_SIGNAL_WIN32_H
+#define CHECKASM_SIGNAL_WIN32_H
 
-#include <stdio.h>
+#include <setjmp.h>
 
-#include "checkasm/attributes.h"
+typedef jmp_buf checkasm_jmp_buf;
+#define checkasm_save_context(ctx) setjmp(ctx)
+#define checkasm_load_context(ctx) longjmp(ctx, 1)
 
-#ifdef __GNUC__
-    #define COLD __attribute__((cold))
-#else
-    #define COLD
-#endif
-
-void checkasm_srand(unsigned seed);
-
-#define COLOR_RED    31
-#define COLOR_GREEN  32
-#define COLOR_YELLOW 33
-
-/* Colored variant of fprintf for terminals that support it */
-void checkasm_setup_fprintf(FILE *const f);
-void checkasm_fprintf(FILE *const f, const int color, const char *const fmt, ...)
-    ATTR_FORMAT_PRINTF(3, 4);
-
-/* Platform specific signal handling */
-void checkasm_set_signal_handlers(void);
-
-/* Platform specific timing code */
-int checkasm_perf_init(void);
-double checkasm_measure_nop_time(void);
-
-/* Miscellaneous helpers */
-static inline int imax(const int a, const int b)
-{
-    return a > b ? a : b;
-}
-
-#endif /* CHECKASM_INTERNAL_H */
+#endif /* CHECKASM_SIGNAL_WIN32_H */

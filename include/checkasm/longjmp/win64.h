@@ -26,41 +26,31 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CHECKASM_INTERNAL_H
-#define CHECKASM_INTERNAL_H
+#ifndef CHECKASM_SIGNAL_WIN64_H
+#define CHECKASM_SIGNAL_WIN64_H
 
-#include <stdio.h>
+#include <windows.h>
 
-#include "checkasm/attributes.h"
+#if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
 
-#ifdef __GNUC__
-    #define COLD __attribute__((cold))
-#else
-    #define COLD
+    /* setjmp/longjmp on Windows on architectures using SEH (all except
+    * x86_32) will try to use SEH to unwind the stack, which doesn't work
+    * for assembly functions without unwind information. */
+    typedef struct { CONTEXT c; int status; } checkasm_jmp_buf;
+
+    #define checkasm_save_context(ctx) \
+        (ctx.status = 0, \
+        RtlCaptureContext(&ctx.c), \
+        ctx.status)
+
+    #define checkasm_load_context(ctx) \
+        (ctx.status = 1, \
+        RtlRestoreContext(&ctx.c, NULL))
+
+#else /* !WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP) */
+    typedef int checkasm_jmp_buf;
+    #define checkasm_save_context(ctx) 0
+    #define checkasm_load_context(ctx) do {} while (0)
 #endif
 
-void checkasm_srand(unsigned seed);
-
-#define COLOR_RED    31
-#define COLOR_GREEN  32
-#define COLOR_YELLOW 33
-
-/* Colored variant of fprintf for terminals that support it */
-void checkasm_setup_fprintf(FILE *const f);
-void checkasm_fprintf(FILE *const f, const int color, const char *const fmt, ...)
-    ATTR_FORMAT_PRINTF(3, 4);
-
-/* Platform specific signal handling */
-void checkasm_set_signal_handlers(void);
-
-/* Platform specific timing code */
-int checkasm_perf_init(void);
-double checkasm_measure_nop_time(void);
-
-/* Miscellaneous helpers */
-static inline int imax(const int a, const int b)
-{
-    return a > b ? a : b;
-}
-
-#endif /* CHECKASM_INTERNAL_H */
+#endif /* CHECKASM_SIGNAL_WIN64_H */

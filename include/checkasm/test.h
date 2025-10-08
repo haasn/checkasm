@@ -32,6 +32,7 @@
 #include <stdint.h>
 
 #include "checkasm/attributes.h"
+#include "checkasm/longjmp.h"
 #include "checkasm/perf.h"
 #include "checkasm/platform.h"
 
@@ -50,6 +51,7 @@ CHECKASM_API void checkasm_update_bench(int iterations, uint64_t cycles);
 CHECKASM_API void checkasm_report(const char *name, ...) ATTR_FORMAT_PRINTF(1, 2);
 CHECKASM_API void checkasm_set_signal_handler_state(int enabled);
 CHECKASM_API void checkasm_handle_signal(void);
+CHECKASM_API extern checkasm_jmp_buf checkasm_context;
 
 /* float compare utilities */
 CHECKASM_API int float_near_ulp(float a, float b, unsigned max_ulp);
@@ -78,7 +80,7 @@ CHECKASM_API int double_near_abs_eps_array(const double *a, const double *b,
     declare_new(ret, __VA_ARGS__)\
     void *func_ref, *func_new;\
     typedef ret func_type(__VA_ARGS__);\
-    checkasm_handle_signal()
+    if (checkasm_save_context(checkasm_context)) checkasm_handle_signal()
 
 /* Indicate that the current test has failed */
 #define fail() checkasm_fail_func("%s:%d", __FILE__, __LINE__)

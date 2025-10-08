@@ -43,50 +43,7 @@
     #endif
 #endif
 
-/* Crash handling: attempt to catch crashes and handle them
- * gracefully instead of just aborting abruptly. */
-
-#ifdef _WIN32
-    #include <windows.h>
-    #if ARCH_X86_32
-        #include <setjmp.h>
-        static jmp_buf checkasm_context;
-        #define save_context() setjmp(checkasm_context)
-        #define load_context() longjmp(checkasm_context, 1)
-    #elif WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
-        /* setjmp/longjmp on Windows on architectures using SEH (all except
-        * x86_32) will try to use SEH to unwind the stack, which doesn't work
-        * for assembly functions without unwind information. */
-        static struct { CONTEXT c; int status; } checkasm_context;
-        #define save_context() \
-            (checkasm_context.status = 0, \
-            RtlCaptureContext(&checkasm_context.c), \
-            checkasm_context.status)
-        #define load_context() \
-            (checkasm_context.status = 1, \
-            RtlRestoreContext(&checkasm_context.c, NULL))
-    #else
-        static void* checkasm_context;
-        #define save_context() 0
-        #define load_context() do {} while (0)
-    #endif
-#else /* !_WIN32 */
-    #include <setjmp.h>
-    static sigjmp_buf checkasm_context;
-    #define save_context() sigsetjmp(checkasm_context, 1)
-    #define load_context() siglongjmp(checkasm_context, 1)
-#endif
-
-int checkasm_save_context(void)
-{
-    return save_context();
-}
-
-COLD void checkasm_load_context(void)
-{
-    load_context();
-}
-
+checkasm_jmp_buf checkasm_context;
 static volatile sig_atomic_t sig; // SIG_ATOMIC_MAX = signal handling enabled
 
 void checkasm_set_signal_handler_state(const int enabled)
@@ -123,7 +80,7 @@ static LONG NTAPI signal_handler(EXCEPTION_POINTERS *const e)
             return EXCEPTION_CONTINUE_SEARCH;
         }
         sig = s;
-        checkasm_load_context();
+        checkasm_load_context(checkasm_context);
     }
     return EXCEPTION_CONTINUE_SEARCH;
 }
@@ -143,7 +100,7 @@ static void signal_handler(const int s)
     if (sig == SIG_ATOMIC_MAX) {
         sig = s;
         sigaction(s, &signal_handler_act, NULL);
-        checkasm_load_context();
+        checkasm_load_context(checkasm_context);
     }
 }
 #endif
@@ -170,11 +127,9 @@ COLD void checkasm_set_signal_handlers(void)
 
 void checkasm_handle_signal(void)
 {
-    if (checkasm_save_context()) {
-        const int s = sig;
-        checkasm_fail_func(s == SIGFPE ? "fatal arithmetic error" :
-                           s == SIGILL ? "illegal instruction" :
-                           s == SIGBUS ? "bus error" :
-                                         "segmentation fault");
-    }
+    const int s = sig;
+    checkasm_fail_func(s == SIGFPE ? "fatal arithmetic error" :
+                       s == SIGILL ? "illegal instruction" :
+                       s == SIGBUS ? "bus error" :
+                                     "segmentation fault");
 }
