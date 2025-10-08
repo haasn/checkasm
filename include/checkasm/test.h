@@ -209,14 +209,13 @@ CHECKASM_API int checkasm_check_float_ulp(const char *file, int line,
     #define CONCAT(a,b) CONCAT2(a, b)
 #endif
 
-#define checkasm_check2(prefix, ...) CONCAT(checkasm_check_, prefix)(__FILE__, __LINE__, __VA_ARGS__)
-#define checkasm_check(prefix, ...) checkasm_check2(prefix, __VA_ARGS__, 0, 0, 0)
+#define checkasm_check2(type, ...)       CONCAT(checkasm_check_, type)(__FILE__, __LINE__, __VA_ARGS__)
+#define checkasm_check(type, ...)        checkasm_check2(type, __VA_ARGS__, 0, 0, 0)
+#define checkasm_check_padded(type, ...) checkasm_check2(type, __VA_ARGS__)
 
-#ifdef BITDEPTH
-    #define checkasm_check_pixel(...) checkasm_check(PIXEL_TYPE, __VA_ARGS__)
-    #define checkasm_check_pixel_padded(...) checkasm_check2(PIXEL_TYPE, __VA_ARGS__, 1, 1, 8)
-    #define checkasm_check_pixel_padded_align(...) checkasm_check2(PIXEL_TYPE, __VA_ARGS__, 8)
-    #define checkasm_check_coef(...)  checkasm_check(COEF_TYPE,  __VA_ARGS__)
-#endif
+#define checkasm_check_pixel(...)              checkasm_check(PIXEL_TYPE, __VA_ARGS__)
+#define checkasm_check_pixel_padded(...)       checkasm_check2(PIXEL_TYPE, __VA_ARGS__, 1, 1, 8)
+#define checkasm_check_pixel_padded_align(...) checkasm_check2(PIXEL_TYPE, __VA_ARGS__, 8)
+#define checkasm_check_coef(...)  checkasm_check(COEF_TYPE,  __VA_ARGS__)
 
 #endif /* CHECKASM_TEST_H */
