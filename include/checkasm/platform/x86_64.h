@@ -48,11 +48,11 @@ CHECKASM_API void checkasm_simd_warmup(void);
  * any issues. The following set of macros automatically calculates a bitmask
  * specifying which parameters should have their upper halves clobbered. */
 #ifdef _WIN32
-/* Integer and floating-point parameters share "register slots". */
+    /* Integer and floating-point parameters share "register slots". */
     #define IGNORED_FP_ARGS 0
 #else
-/* Up to 8 floating-point parameters are passed in XMM registers, which are
- * handled orthogonally from integer parameters passed in GPR registers. */
+    /* Up to 8 floating-point parameters are passed in XMM registers, which are
+    * handled orthogonally from integer parameters passed in GPR registers. */
     #define IGNORED_FP_ARGS 8
 #endif
 
