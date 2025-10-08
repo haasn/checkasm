@@ -26,26 +26,25 @@
 example_sources = files(
   'checkasm.c',
   'example.c',
-  'test_nihcpy.c'
+  'test.c'
 )
 
-example_nasm_args = []
-
 if host_machine.cpu_family() == 'x86_64'
-  example_sources += files('x86/nihcpy_x86.asm')
-  if cc.symbols_have_underscore_prefix()
-    example_nasm_args += '-DPREFIX=1'
-  endif
+  example_sources += files('x86/example.asm')
 else
   warning('Not building for x86_64, so there are no assembly functions to test.')
 endif
 
 example = executable('example',
   example_sources,
+  config_target,
+  config_nasm_target,
+  c_args: ['-Wno-unused-parameter', '-Wno-unused-local-typedef'],
   dependencies: checkasm_dep,
-  nasm_args: example_nasm_args,
   build_by_default: false,
 )
 
-test('checkasm', example, suite: 'checkasm', timeout: 180)
-benchmark('checkasm', example, suite: 'checkasm', timeout: 3600, args: '--bench')
+test('checkasm',      example, suite: 'checkasm', args: '--test=good')
+test('checkasm_bad',  example, suite: 'checkasm', args: '--test=bad',  should_fail: true)
+test('checkasm_ugly', example, suite: 'checkasm', args: '--test=ugly', should_fail: true)
+benchmark('checkasm', example, suite: 'checkasm', args: '--bench')

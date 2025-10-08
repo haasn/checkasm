@@ -1,14 +1,25 @@
 #include <checkasm/checkasm.h>
 #include "example.h"
 
-void checkasm_check_nihcpy(void);
+void checkasm_check_good(void);
+void checkasm_check_bad(void);
+void checkasm_check_ugly(void);
 
 static const CheckasmCpuFlag flags[] = {
-    { "x86", "x86", EXAMPLE_CPU_FLAG_X86 }
+    { "Bad C",          "badc",     EXAMPLE_CPU_FLAG_BAD_C  },
+#if ARCH_X86
+    { "Generic x86",    "x86",      EXAMPLE_CPU_FLAG_X86    },
+    { "MMX",            "mmx",      EXAMPLE_CPU_FLAG_MMX    },
+    { "SSE2",           "sse2",     EXAMPLE_CPU_FLAG_SSE2   },
+    { "AVX-2",          "avx2",     EXAMPLE_CPU_FLAG_AVX2   },
+    { "AVX-512",        "avx512",   EXAMPLE_CPU_FLAG_AVX512 },
+#endif
 };
 
 static const CheckasmTest tests[] = {
-    { "nihcpy", checkasm_check_nihcpy },
+    { "good", checkasm_check_good },
+    { "bad",  checkasm_check_bad },
+    { "ugly", checkasm_check_ugly },
 };
 
 int main(int argc, const char *argv[])
