@@ -44,7 +44,5 @@ example = executable('example',
   build_by_default: false,
 )
 
-test('checkasm',      example, suite: 'checkasm', args: '--test=good')
-test('checkasm_bad',  example, suite: 'checkasm', args: '--test=bad',  should_fail: true)
-test('checkasm_ugly', example, suite: 'checkasm', args: '--test=ugly', should_fail: true)
+test('checkasm',      example, suite: 'checkasm')
 benchmark('checkasm', example, suite: 'checkasm', args: '--bench')

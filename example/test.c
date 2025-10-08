@@ -103,6 +103,8 @@ void checkasm_check_good(void)
 
 void checkasm_check_bad(void)
 {
+    checkasm_should_fail(1);
+
     check_copy(get_bad_wrong(),             "wrong");
     check_copy(get_bad_overwrite_left(),    "overwrite_left");
     check_copy(get_bad_overwrite_right(),   "overwrite_right");
@@ -110,13 +112,19 @@ void checkasm_check_bad(void)
 
     check_noop(get_bad_segfault(),          "segfault");
     check_noop(get_bad_sigill(),            "sigill");
+
+    checkasm_should_fail(0);
 }
 
 void checkasm_check_ugly(void)
 {
+    checkasm_should_fail(1);
+
     check_copy(get_ugly_noemms(),           "noemms");
     check_copy(get_ugly_novzeroupper(),     "novzeroupper");
     check_noop(get_ugly_stack(),            "corrupt_stack");
 
     check_clobber(NUM_REGS);
+
+    checkasm_should_fail(0);
 }

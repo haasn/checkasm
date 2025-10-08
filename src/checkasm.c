@@ -82,6 +82,7 @@ static struct {
     int suffix_length;
     int max_function_name_length;
     int skip_tests;
+    int should_fail;
 } state;
 
 /* Deallocate a tree */
@@ -572,12 +573,22 @@ void checkasm_update_bench(const int iterations, const uint64_t cycles)
     state.current_func_ver->cycles += cycles;
 }
 
+void checkasm_should_fail(int s)
+{
+    state.should_fail = !!s;
+}
+
 /* Print the outcome of all tests performed since
  * the last time this function was called */
 void checkasm_report(const char *const name, ...)
 {
     static int prev_checked, prev_failed;
     static size_t max_length;
+
+    if (state.should_fail) {
+        /* Pass the test as a whole if any failure was reported */
+        state.num_failed = prev_failed + (state.num_failed == prev_failed);
+    }
 
     if (state.num_checked > prev_checked) {
         int pad_length = (int) max_length + 4;
@@ -592,7 +603,7 @@ void checkasm_report(const char *const name, ...)
         fprintf(stderr, "%*c", imax(pad_length, 0) + 2, '[');
 
         if (state.num_failed == prev_failed)
-            checkasm_fprintf(stderr, COLOR_GREEN, "OK");
+            checkasm_fprintf(stderr, COLOR_GREEN, state.should_fail ? "EXPECTED" : "OK");
         else
             checkasm_fprintf(stderr, COLOR_RED, "FAILED");
         fprintf(stderr, "]\n");
