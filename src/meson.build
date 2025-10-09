@@ -72,6 +72,11 @@ cdata.set10('HAVE_PTHREAD_SETAFFINITY_NP',  have_pthread_setaffinity_np)
 cdata.set10('HAVE_GETAUXVAL',               have_getauxval)
 cdata.set10('HAVE_ELF_AUX_INFO',            have_elf_aux_info)
 
+if arch_x86
+  cdata.set10('PIC', true)
+  cdata.set10('FORCE_VEX_ENCODING', cc.get_define('__AVX__').strip() != '')
+endif
+
 config_target = configure_file(
   output: 'config.h',
   configuration: cdata,
@@ -84,20 +89,6 @@ config_nasm_target = configure_file(
   configuration: cdata,
   install: false,
 )
-
-# Compiler and assembler flags
-checkasm_nasm_args = []
-
-if arch_x86
-  checkasm_nasm_args += '-DPIC=1'
-
-  # Convert SSE asm into (128-bit) AVX when compiler flags are set to use AVX instructions
-  if cc.get_define('__AVX__').strip() != ''
-      checkasm_nasm_args += '-DFORCE_VEX_ENCODING=1'
-  else
-      checkasm_nasm_args += '-DFORCE_VEX_ENCODING=0'
-  endif
-endif
 
 # Build definition
 checkasm_sources = files(
@@ -148,7 +139,6 @@ checkasm_library = library(meson.project_name(),
   config_target,
   config_nasm_target,
   include_directories: checkasm_inc_dirs,
-  nasm_args: checkasm_nasm_args,
   dependencies: checkasm_dependencies,
   install: true,
 )
