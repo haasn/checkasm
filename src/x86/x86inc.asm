@@ -1280,9 +1280,8 @@ INIT_XMM
                 ; the linker will eliminate unnecessary PLT indirections anyway.
                 %define %%j %%i wrt ..plt
             %endif
-        %elif PIC && cglobaled_%2 == 3
-            ; Go through the GOT for functions declared using cextern_naked with
-            ; PIC, as such functions presumably exists in external libraries.
+        %elif PIC && cglobaled_%2 >= 2
+            ; Go through the GOT for functions declared using cextern with PIC
             extern _GLOBAL_OFFSET_TABLE_
             LEA eax, $$+_GLOBAL_OFFSET_TABLE_ wrt ..gotpc
             %define %%j [eax+%%i wrt ..got]
