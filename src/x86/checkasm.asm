@@ -58,6 +58,7 @@ SECTION_RODATA 16
 errmsg_stack: db "stack corruption", 0
 errmsg_register: db "failed to preserve register:%s", 0
 errmsg_vzeroupper: db "missing vzeroupper", 0
+errmsg_emms: db "missing emms", 0
 
 SECTION .bss
 
@@ -375,6 +376,16 @@ cvisible checked_call, 2, 15, 16, max_args*8+64+8
     lea            r0, [errmsg_register]
     jmp .fail
 .gpr_xmm_ok:
+    fstenv             [stack_param]
+    mov           r0d, [stack_param + 8]
+    add           r0d, 1
+    jz .emms_ok ; x87 state clean
+    mov           r10, rax
+    mov           r11, rdx
+    lea            r0, [errmsg_emms]
+    emms
+    jmp .fail
+.emms_ok:
     ; Check for dirty YMM state, i.e. missing vzeroupper
     mov           ecx, [check_vzeroupper]
     test          ecx, ecx
@@ -488,6 +499,14 @@ cvisible checked_call, 1, 7
     LEA            r1, errmsg_stack
     jmp .fail
 .stack_ok:
+    fstenv        [esp]
+    mov            r0, [esp + 8]
+    add            r0, 1
+    jz .emms_ok ; x87 state clean
+    LEA            r1, errmsg_emms
+    emms
+    jmp .fail
+.emms_ok:
     ; check for dirty YMM state, i.e. missing vzeroupper
     LEA           ecx, check_vzeroupper
     mov           ecx, [ecx]
