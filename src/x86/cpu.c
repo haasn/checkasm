@@ -43,7 +43,7 @@ typedef struct {
 void checkasm_cpu_cpuid(CpuidRegisters *regs, unsigned leaf, unsigned subleaf);
 uint64_t checkasm_cpu_xgetbv(unsigned xcr);
 
-void checkasm_warmup_avx2(void);
+void checkasm_warmup_avx(void);
 void checkasm_warmup_avx512(void);
 static void noop(void) {}
 
@@ -51,38 +51,27 @@ typedef void (*checkasm_simd_warmup_func)(void);
 static COLD checkasm_simd_warmup_func get_simd_warmup(void)
 {
     checkasm_simd_warmup_func simd_warmup = noop;
+    CpuidRegisters r;
+    checkasm_cpu_cpuid(&r, 0, 0);
+    const uint32_t max_leaf = r.eax;
+    if (max_leaf < 1)
+        return simd_warmup;
 
-    union {
-        CpuidRegisters r;
-        struct {
-            uint32_t max_leaf;
-            char vendor[12];
-        };
-    } cpu;
-    checkasm_cpu_cpuid(&cpu.r, 0, 0);
+    checkasm_cpu_cpuid(&r, 1, 0);
+    if (~r.ecx & 0x18000000) /* OSXSAVE/AVX */
+        return simd_warmup;
 
-    if (cpu.max_leaf >= 1) {
-        CpuidRegisters r;
-        checkasm_cpu_cpuid(&r, 1, 0);
+    const uint64_t xcr0 = checkasm_cpu_xgetbv(0);
+    if (~xcr0 & 0x6) /* XMM/YMM */
+        return simd_warmup;
 
-        /* We only support >128-bit SIMD on x86-64. */
-        #define X(reg, mask) (((reg) & (mask)) == (mask))
-        if (X(r.ecx, 0x18000000)) /* OSXSAVE/AVX */ {
-            const uint64_t xcr0 = checkasm_cpu_xgetbv(0);
-            if (X(xcr0, 0x00000006)) /* XMM/YMM */ {
-                if (cpu.max_leaf >= 7) {
-                    checkasm_cpu_cpuid(&r, 7, 0);
-                    if (X(r.ebx, 0x00000128)) /* BMI1/BMI2/AVX2 */ {
-                        simd_warmup = checkasm_warmup_avx2;
-                        if (X(xcr0, 0x000000e0)) /* ZMM/OPMASK */ {
-                            if (X(r.ebx, 0xd0230000) && X(r.ecx, 0x00005f42))
-                                simd_warmup = checkasm_warmup_avx512;
-                        }
-                    }
-                }
-            }
-        }
-    }
+    simd_warmup = checkasm_warmup_avx;
+    if (max_leaf < 7 || ~xcr0 & 0xe0) /* ZMM/OPMASK */
+        return simd_warmup;
+
+    checkasm_cpu_cpuid(&r, 7, 0);
+    if (r.ebx & 0x00000020) /* AVX512F */
+        simd_warmup = checkasm_warmup_avx512;
 
     return simd_warmup;
 }

@@ -410,7 +410,7 @@ cglobal warmup, 0, 0
     RET
 %endmacro
 
-INIT_YMM avx2
+INIT_YMM avx
 WARMUP
 INIT_ZMM avx512
 WARMUP
