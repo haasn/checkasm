@@ -365,14 +365,13 @@ cvisible checked_call, 2, 15, 16, max_args*8+64+8
     cmp            r0, r5
     je .gpr_xmm_ok
     mov     byte [r0], 0
-    mov           r11, rdx
     mov            r1, r5
 %else ; UNIX64
     mov     byte [r0], 0
-    mov           r11, rdx
     mov            r1, rsp
 %endif
     mov           r10, rax
+    mov           r11, rdx
     lea            r0, [errmsg_register]
     jmp .fail
 .gpr_xmm_ok:
