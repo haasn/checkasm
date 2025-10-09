@@ -27,7 +27,7 @@
 %define private_prefix checkasm
 
 %include "config.asm"
-%include "src/x86/x86inc.asm"
+%include "x86/x86inc.asm"
 
 SECTION_RODATA 16
 
