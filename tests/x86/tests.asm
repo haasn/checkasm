@@ -39,8 +39,18 @@ cglobal copy%1, 3, 3, 1, dst, src, size
 
 ; Generic x86 functions
 cglobal copy_x86, 3, 3, 0, dst, src, size
+%if ARCH_X86_32 || WIN64
+    push    rdi
+    push    rsi
+    mov     rdi, dstq
+    mov     rsi, srcq
+%endif
     mov     rcx, sizeq
     rep     movsb
+%if ARCH_X86_32 || WIN64
+    pop     rsi
+    pop     rdi
+%endif
     RET
 
 cglobal sigill_x86
