@@ -2,14 +2,45 @@
 
 #include "tests.h"
 
+/* Re-use from main checkasm library */
+typedef struct {
+    uint32_t eax, ebx, edx, ecx;
+} CpuidRegisters;
+
+void checkasm_cpu_cpuid(CpuidRegisters *regs, unsigned leaf, unsigned subleaf);
+uint64_t checkasm_cpu_xgetbv(unsigned xcr);
+
 uint64_t checkasm_get_cpu_flags_x86(void)
 {
-    // TODO: implement runtime CPU detection
-    return CHECKASM_CPU_FLAG_X86 |
-           CHECKASM_CPU_FLAG_MMX |
-           CHECKASM_CPU_FLAG_SSE2 |
-           CHECKASM_CPU_FLAG_AVX2 |
-           CHECKASM_CPU_FLAG_AVX512;
+    uint64_t flags = CHECKASM_CPU_FLAG_X86;
+    CpuidRegisters r;
+    checkasm_cpu_cpuid(&r, 0, 0);
+    const uint32_t max_leaf = r.eax;
+    if (max_leaf < 1)
+        return flags;
+
+    checkasm_cpu_cpuid(&r, 1, 0);
+    if (r.edx & 0x00800000) /* MMX */
+        flags |= CHECKASM_CPU_FLAG_MMX;
+    if (r.edx & 0x02000000) /* SSE2 */
+        flags |= CHECKASM_CPU_FLAG_SSE2;
+    if (~r.ecx & 0x18000000) /* OSXSAVE/AVX */
+        return flags;
+
+    const uint64_t xcr0 = checkasm_cpu_xgetbv(0);
+    if (max_leaf < 7 || ~xcr0 & 0x6) /* XMM/YMM */
+        return flags;
+
+    checkasm_cpu_cpuid(&r, 7, 0);
+    if (r.ebx & 0x00000020) /* AVX2 */
+        flags |= CHECKASM_CPU_FLAG_AVX2;
+
+    if (~xcr0 & 0xe0) /* ZMM/OPMASK */
+        return flags;
+
+    if (r.ebx & 0x00000020) /* AVX512F */
+        flags |= CHECKASM_CPU_FLAG_AVX512;
+    return flags;
 }
 
 DEF_COPY_FUNC(copy_x86);
