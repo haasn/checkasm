@@ -37,8 +37,6 @@ static DEF_COPY_FUNC(blockcopy_c)
     memcpy(dst, src, size);
 }
 
-static DEF_NOOP_FUNC(noop_c) { }
-
 /* Bad functions */
 DEF_NOOP_FUNC(sigill_x86);
 
@@ -112,26 +110,29 @@ int num_preserved_regs(void)
 
 noop_func *get_clobber(int reg)
 {
-    const unsigned flag = example_get_cpu_flags() & EXAMPLE_CPU_FLAG_X86;
-    switch (reg) {
-    case 0:  return flag ? example_clobber_r0  : example_noop_c;
-    case 1:  return flag ? example_clobber_r1  : example_noop_c;
-    case 2:  return flag ? example_clobber_r2  : example_noop_c;
-    case 3:  return flag ? example_clobber_r3  : example_noop_c;
-    case 4:  return flag ? example_clobber_r4  : example_noop_c;
-    case 5:  return flag ? example_clobber_r5  : example_noop_c;
-    case 6:  return flag ? example_clobber_r6  : example_noop_c;
-    case 7:  return flag ? example_clobber_r7  : example_noop_c;
-    case 8:  return flag ? example_clobber_r8  : example_noop_c;
-    case 9:  return flag ? example_clobber_r9  : example_noop_c;
-    case 10: return flag ? example_clobber_r10 : example_noop_c;
-    case 11: return flag ? example_clobber_r11 : example_noop_c;
-    case 12: return flag ? example_clobber_r12 : example_noop_c;
-    case 13: return flag ? example_clobber_r13 : example_noop_c;
-    case 14: return flag ? example_clobber_r14 : example_noop_c;
-    /* can't clobber rsp without completely crashing the program */
-    default: return NULL;
+    const unsigned flags = example_get_cpu_flags();
+    if (flags & EXAMPLE_CPU_FLAG_X86) {
+        switch (reg) {
+        case 0:  return example_clobber_r0;
+        case 1:  return example_clobber_r1;
+        case 2:  return example_clobber_r2;
+        case 3:  return example_clobber_r3;
+        case 4:  return example_clobber_r4;
+        case 5:  return example_clobber_r5;
+        case 6:  return example_clobber_r6;
+        case 7:  return example_clobber_r7;
+        case 8:  return example_clobber_r8;
+        case 9:  return example_clobber_r9;
+        case 10: return example_clobber_r10;
+        case 11: return example_clobber_r11;
+        case 12: return example_clobber_r12;
+        case 13: return example_clobber_r13;
+        case 14: return example_clobber_r14;
+        /* can't clobber rsp without completely crashing the program */
+        }
     }
+
+    return NULL;
 }
 
 copy_func *get_bad_wrong(void)
@@ -159,7 +160,7 @@ noop_func *get_bad_segfault(void)
 {
     const unsigned flags = example_get_cpu_flags();
     if (flags & EXAMPLE_CPU_FLAG_BAD_C) return example_segfault;
-    return example_noop_c;
+    return NULL;
 }
 
 noop_func *get_bad_sigill(void)
@@ -168,7 +169,7 @@ noop_func *get_bad_sigill(void)
 #if ARCH_X86_64
     if (flags & EXAMPLE_CPU_FLAG_X86) return example_sigill_x86;
 #endif
-    return example_noop_c;
+    return NULL;
 }
 
 copy_func *get_bad_underwrite(void)
@@ -196,5 +197,5 @@ noop_func *get_ugly_stack(void)
 {
     const unsigned flags = example_get_cpu_flags();
     if (flags & EXAMPLE_CPU_FLAG_X86) return example_corrupt_stack_x86;
-    return example_noop_c;
+    return NULL;
 }
