@@ -1,5 +1,5 @@
 %undef private_prefix
-%define private_prefix example
+%define private_prefix checkasm
 
 %include "src/config.asm"
 %include "src/x86/x86inc.asm"
@@ -8,8 +8,8 @@ extern memcpy
 
 SECTION .text
 
-%macro blockcopy_vec 0-1 ; suffix
-cglobal blockcopy%1, 3, 3, 1, dst, src, size
+%macro copy_mm 0-1 ; suffix
+cglobal copy%1, 3, 3, 1, dst, src, size
     cmp     sizeq, mmsize
     jl memcpy
 
@@ -23,8 +23,8 @@ cglobal blockcopy%1, 3, 3, 1, dst, src, size
     jl .loop
 
     ; emit emms after all MMX functions unless suffix is _noemms
-%ifnidn %1, _noemms
-  %if mmsize == 8
+%if mmsize == 8
+  %ifnidn %1, _noemms
     emms
   %endif
 %endif
@@ -37,8 +37,8 @@ cglobal blockcopy%1, 3, 3, 1, dst, src, size
 %endif
 %endmacro
 
-; Baseline x86 functions
-cglobal blockcopy_x86, 3, 3, 0, dst, src, size
+; Generic x86 functions
+cglobal copy_x86, 3, 3, 0, dst, src, size
     mov     rcx, sizeq
     rep     movsb
     RET
@@ -52,7 +52,6 @@ cglobal clobber%2
     RET
 %endmacro
 
-; should succeed
 clobber r0,  _r0
 clobber r1,  _r1
 clobber r2,  _r2
@@ -60,15 +59,16 @@ clobber r3,  _r3
 clobber r4,  _r4
 clobber r5,  _r5
 clobber r6,  _r6
+%if ARCH_X86_64
 clobber r7,  _r7
 clobber r8,  _r8
-; should fail
 clobber r9,  _r9
 clobber r10, _r10
 clobber r11, _r11
 clobber r12, _r12
 clobber r13, _r13
 clobber r14, _r14
+%endif
 
 cglobal corrupt_stack_x86
     xor rax, rax
@@ -77,21 +77,21 @@ cglobal corrupt_stack_x86
 
 ; MMX functions
 INIT_MMX mmx
-blockcopy_vec
-blockcopy_vec _noemms
+copy_mm
+copy_mm _noemms
 
 cglobal noemms, 3, 3, 0, dst, src, size
     RET
 
 ; SSE2 functions
 INIT_XMM sse2
-blockcopy_vec
+copy_mm
 
 ; AVX2 functions
 INIT_YMM avx2
-blockcopy_vec
-blockcopy_vec _novzeroupper
+copy_mm
+copy_mm _novzeroupper
 
 ; AVX512 functions
 INIT_YMM avx512
-blockcopy_vec
+copy_mm

@@ -31,14 +31,14 @@
 #include <string.h>
 
 #include <checkasm/test.h>
-#include "example.h"
+#include "tests.h"
 
 typedef uint8_t pixel;
 #define PIXEL_TYPE uint8_t
 
-static void check_copy(copy_func fun, const char *name)
+void checkasm_test_copy(copy_func fun, const char *name)
 {
-    #define WIDTH 128
+    #define WIDTH 256
     PIXEL_RECT(c_dst, WIDTH, 1);
     PIXEL_RECT(a_dst, WIDTH, 1);
     ALIGN_STK_64(uint8_t, src, WIDTH, );
@@ -49,7 +49,7 @@ static void check_copy(copy_func fun, const char *name)
 
     declare_func(void, uint8_t *dest, const uint8_t *src, size_t n);
 
-    for (size_t w = 8; w <= WIDTH; w *= 2) {
+    for (size_t w = 1; w <= WIDTH; w *= 2) {
         if (check_func(fun, "%s_%zu", name, w)) {
             CLEAR_PIXEL_RECT(c_dst);
             CLEAR_PIXEL_RECT(a_dst);
@@ -67,7 +67,7 @@ static void check_copy(copy_func fun, const char *name)
     report("%s", name);
 }
 
-static void check_noop(noop_func fun, const char *name)
+void checkasm_test_noop(noop_func fun, const char *name)
 {
     declare_func(void, int);
 
@@ -79,52 +79,51 @@ static void check_noop(noop_func fun, const char *name)
     report("%s", name);
 }
 
-static void check_clobber(int num)
+static DEF_COPY_FUNC(memset)
 {
-    declare_func(void, int);
-
-    for (int reg = 0; reg < num; reg++) {
-        noop_func *clobber = get_clobber(reg);
-        if (!clobber)
-            break;
-
-        if (check_func(clobber, "clobber_r%d", reg))
-            call_new(0);
-    }
-
-    report("clobber");
+    memset(dst, 0xFF, size);
 }
 
-void checkasm_check_good(void)
+static DEF_COPY_FUNC(overwrite_left)
 {
-    check_copy(get_good_blockcopy(),        "blockcopy");
-    check_clobber(num_preserved_regs());
+    memcpy(dst, src, size);
+    dst[-1] = 0xFF;
 }
 
-void checkasm_check_bad(void)
+static DEF_COPY_FUNC(overwrite_right)
 {
+    memcpy(dst, src, size);
+    dst[size] = 0xFF;
+}
+
+static DEF_COPY_FUNC(underwrite)
+{
+    if (size < 4)
+        return;
+    memcpy(dst, src, size - 4);
+}
+
+static DEF_NOOP_FUNC(segfault)
+{
+    volatile int *bad = NULL;
+    *bad = 0;
+}
+
+DEF_COPY_GETTER(CHECKASM_CPU_FLAG_BAD_C, memset)
+DEF_COPY_GETTER(CHECKASM_CPU_FLAG_BAD_C, overwrite_left)
+DEF_COPY_GETTER(CHECKASM_CPU_FLAG_BAD_C, overwrite_right)
+DEF_COPY_GETTER(CHECKASM_CPU_FLAG_BAD_C, underwrite)
+DEF_NOOP_GETTER(CHECKASM_CPU_FLAG_BAD_C, segfault)
+
+void checkasm_check_generic(void)
+{
+    checkasm_test_copy(checkasm_copy_c,         "copy");
+
     checkasm_should_fail(1);
-
-    check_copy(get_bad_wrong(),             "wrong");
-    check_copy(get_bad_overwrite_left(),    "overwrite_left");
-    check_copy(get_bad_overwrite_right(),   "overwrite_right");
-    check_copy(get_bad_underwrite(),        "underwrite");
-
-    check_noop(get_bad_segfault(),          "segfault");
-    check_noop(get_bad_sigill(),            "sigill");
-
-    checkasm_should_fail(0);
-}
-
-void checkasm_check_ugly(void)
-{
-    checkasm_should_fail(1);
-
-    check_copy(get_ugly_noemms(),           "noemms");
-    check_copy(get_ugly_novzeroupper(),     "novzeroupper");
-    check_noop(get_ugly_stack(),            "corrupt_stack");
-
-    check_clobber(NUM_REGS);
-
+    checkasm_test_copy(get_memset(),            "memset");
+    checkasm_test_copy(get_overwrite_left(),    "overwrite_left");
+    checkasm_test_copy(get_overwrite_right(),   "overwrite_right");
+    checkasm_test_copy(get_underwrite(),        "underwrite");
+    checkasm_test_noop(get_segfault(),          "segfault");
     checkasm_should_fail(0);
 }

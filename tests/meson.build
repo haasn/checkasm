@@ -23,26 +23,29 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-example_sources = files(
+checkasm_test_sources = files(
   'checkasm.c',
-  'example.c',
-  'test.c'
+  'generic.c'
 )
 
-if host_machine.cpu_family() == 'x86_64'
-  example_sources += files('x86/example.asm')
+if arch_x86
+  checkasm_test_sources += files(
+    'x86/tests.asm',
+    'x86/tests.c',
+  )
 else
-  warning('Not building for x86_64, so there are no assembly functions to test.')
+  warning('There are no assembly functions to test on the current platform.')
 endif
 
-example = executable('example',
-  example_sources,
+checkasm_test = executable('checkasm',
+  checkasm_test_sources,
   config_target,
   config_nasm_target,
   c_args: ['-Wno-unused-parameter', '-Wno-unused-local-typedef'],
   dependencies: checkasm_dep,
   build_by_default: false,
+  install: false,
 )
 
-test('checkasm',      example, suite: 'checkasm')
-benchmark('checkasm', example, suite: 'checkasm', args: '--bench')
+test('checkasm',      checkasm_test, suite: 'checkasm')
+benchmark('checkasm', checkasm_test, suite: 'checkasm', args: '--bench')
