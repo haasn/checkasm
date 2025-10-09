@@ -585,12 +585,8 @@ void checkasm_report(const char *const name, ...)
     static int prev_checked, prev_failed;
     static size_t max_length;
 
-    if (state.should_fail) {
-        /* Pass the test as a whole if any failure was reported */
-        state.num_failed = prev_failed + (state.num_failed == prev_failed);
-    }
-
-    if (state.num_checked > prev_checked) {
+    const int new_checked = state.num_checked - prev_checked;
+    if (new_checked) {
         int pad_length = (int) max_length + 4;
         va_list arg;
         assert(!state.skip_tests);
@@ -602,10 +598,19 @@ void checkasm_report(const char *const name, ...)
         va_end(arg);
         fprintf(stderr, "%*c", imax(pad_length, 0) + 2, '[');
 
+        if (state.should_fail) {
+            /* Pass the test as a whole if *any* failure was recorded since the
+             * last time checkasm_report() was called; do this instead of
+             * requiring a failure for every single test, since not all checked
+             * functions in each block may actually trigger the failure,
+             * dependent on register sizes etc. */
+            state.num_failed = prev_failed + (state.num_failed == prev_failed) * new_checked;
+        }
+
         if (state.num_failed == prev_failed)
             checkasm_fprintf(stderr, COLOR_GREEN, state.should_fail ? "EXPECTED" : "OK");
         else
-            checkasm_fprintf(stderr, COLOR_RED, "FAILED");
+            checkasm_fprintf(stderr, COLOR_RED, state.should_fail ? "SHOULD FAIL" : "FAILED");
         fprintf(stderr, "]\n");
 
         prev_checked = state.num_checked;
