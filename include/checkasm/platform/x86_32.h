@@ -42,8 +42,8 @@
                 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1));\
     checkasm_set_signal_handler_state(0)
 
-#define ALIGN_64_VAL 16
-#define ALIGN_32_VAL 16
+#define ALIGN_64_VAL 64
+#define ALIGN_32_VAL 32
 #define ALIGN_16_VAL 16
 
 #endif /* CHECKASM_PLATFORM_X86_32_H */
