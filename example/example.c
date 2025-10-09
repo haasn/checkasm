@@ -100,7 +100,11 @@ copy_func *get_good_blockcopy(void)
 int num_preserved_regs(void)
 {
 #if ARCH_X86_64
-    return 9;
+    #if _WIN32
+        return 7;
+    #else
+        return 9;
+    #endif
 #else
     return 0;
 #endif
