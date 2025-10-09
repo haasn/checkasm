@@ -299,15 +299,12 @@ cvisible checked_call, 2, 15, 16, max_args*8+64+8
     lea           r3d, [r4+r3*2]
     %assign i i-1
 %endrep
-%if WIN64
-    lea            r0, [rsp+32] ; account for shadow space
-    mov            r5, r0
+    lea            r0, [stack_param]
     test          r3d, r3d
+%if WIN64
     jz .gpr_ok
 %else
-    test          r3d, r3d
     jz .gpr_xmm_ok
-    mov            r0, rsp
 %endif
 %assign i free_regs
 %rep 15-free_regs
@@ -362,14 +359,13 @@ cvisible checked_call, 2, 15, 16, max_args*8+64+8
     %assign i i+1
 %endrep
 .xmm_ok:
-    cmp            r0, r5
+    lea            r1, [stack_param]
+    cmp            r0, r1
     je .gpr_xmm_ok
-    mov     byte [r0], 0
-    mov            r1, r5
 %else ; UNIX64
-    mov     byte [r0], 0
     mov            r1, rsp
 %endif
+    mov     byte [r0], 0
     mov           r10, rax
     mov           r11, rdx
     lea            r0, [errmsg_register]
