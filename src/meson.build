@@ -116,6 +116,7 @@ elif arch_rv64
     'riscv/64/cpu.S',
   )
 elif arch_x86
+  add_languages('nasm', native: false)
   checkasm_sources += files(
     'x86/checkasm.asm',
     'x86/cpu.c',

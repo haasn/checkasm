@@ -23,7 +23,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-project('checkasm', ['c', 'nasm'],
+project('checkasm', 'c',
   version: '1.0.0',
   default_options: ['c_std=c11',
                     'buildtype=debugoptimized',
