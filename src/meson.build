@@ -99,28 +99,28 @@ checkasm_sources = files(
   'util.c',
 )
 
-if host_machine.cpu_family() == 'aarch64' or host_machine.cpu() == 'arm64'
+if arch_aarch64
   checkasm_sources += files(
     'arm/checkasm_64.S',
     'arm/cpu.c',
   )
-elif host_machine.cpu_family().startswith('arm')
+elif arch_arm
   checkasm_sources += files(
     'arm/checkasm_32.S',
     'arm/cpu.c',
   )
-elif host_machine.cpu_family() == 'riscv64'
+elif arch_rv64
   checkasm_sources += files(
     'riscv/checkasm_64.S',
     'riscv/cpu.c',
     'riscv/64/cpu.S',
   )
-elif host_machine.cpu_family().startswith('x86')
+elif arch_x86
   checkasm_sources += files(
     'x86/checkasm.asm',
     'x86/cpu.c',
   )
-elif host_machine.cpu_family().startswith('loongarch')
+elif arch_loongarch
   checkasm_sources += files(
     'loongarch/checkasm.S',
     'loongarch/cpu.c',
