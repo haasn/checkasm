@@ -28,8 +28,7 @@
 
 #define PRIVATE_PREFIX checkasm_
 
-#include "src/arm/asm.S"
-#include "src/arm/64/util.S"
+#include "arm/asm.S"
 
 const register_init, align=4
         .quad 0x21f86d66c8ca00ce
@@ -59,6 +58,36 @@ error_message_stack:
         .asciz "stack clobbered"
 endconst
 
+.macro  movrel rd, val, offset=0
+#if defined(__APPLE__)
+  .if \offset < 0
+        adrp            \rd, \val@PAGE
+        add             \rd, \rd, \val@PAGEOFF
+        sub             \rd, \rd, -(\offset)
+  .else
+        adrp            \rd, \val+(\offset)@PAGE
+        add             \rd, \rd, \val+(\offset)@PAGEOFF
+  .endif
+#elif defined(PIC) && defined(_WIN32)
+  .if \offset < 0
+        adrp            \rd, \val
+        add             \rd, \rd, :lo12:\val
+        sub             \rd, \rd, -(\offset)
+  .else
+        adrp            \rd, \val+(\offset)
+        add             \rd, \rd, :lo12:\val+(\offset)
+  .endif
+#elif __has_feature(hwaddress_sanitizer)
+        adrp            \rd, :pg_hi21_nc:\val+(\offset)
+        movk            \rd, #:prel_g3:\val+0x100000000
+        add             \rd, \rd, :lo12:\val+(\offset)
+#elif defined(PIC)
+        adrp            \rd, \val+(\offset)
+        add             \rd, \rd, :lo12:\val+(\offset)
+#else
+        ldr             \rd, =\val+\offset
+#endif
+.endm
 
 // max number of args used by any asm function.
 #define MAX_ARGS 15

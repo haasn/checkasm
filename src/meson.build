@@ -94,15 +94,9 @@ checkasm_sources = files(
 )
 
 if arch_aarch64
-  checkasm_sources += files(
-    'arm/checkasm_64.S',
-    'arm/cpu.c',
-  )
+  checkasm_sources += files('arm/checkasm_64.S')
 elif arch_arm
-  checkasm_sources += files(
-    'arm/checkasm_32.S',
-    'arm/cpu.c',
-  )
+  checkasm_sources += files('arm/checkasm_32.S')
 elif arch_rv64
   checkasm_sources += files(
     'riscv/checkasm_64.S',

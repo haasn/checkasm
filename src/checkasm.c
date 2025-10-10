@@ -433,6 +433,7 @@ int checkasm_run(const CheckasmConfig *config)
         snprintf(buf, sizeof(buf), "VLEN=%i bits, ", vlen);
     fprintf(stderr, "checkasm: %susing random seed %u\n", buf, cfg.seed);
 #elif ARCH_AARCH64 && HAVE_SVE
+    int checkasm_sve_length(void);
     char buf[48] = "";
     const unsigned sve_len = checkasm_sve_length();
     if (sve_len)

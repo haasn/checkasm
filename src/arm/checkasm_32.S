@@ -28,8 +28,44 @@
 
 #define PRIVATE_PREFIX checkasm_
 
-#include "src/arm/asm.S"
-#include "src/arm/32/util.S"
+#include "arm/asm.S"
+
+.macro movrel_local rd, val, offset=0
+#if (__ARM_ARCH >= 7 || defined(__ARM_ARCH_6T2__)) && !defined(PIC)
+        movw            \rd, #:lower16:\val+\offset
+        movt            \rd, #:upper16:\val+\offset
+#else
+        ldr             \rd,  90001f
+        b               90002f
+90001:
+        .word           \val + \offset - (90002f + 8 - 4 * CONFIG_THUMB)
+90002:
+        add             \rd,  \rd,  pc
+#endif
+.endm
+
+.macro movrel rd, val, offset=0
+#if defined(PIC) && defined(__APPLE__)
+        ldr             \rd,  1f
+        b               2f
+1:
+        .word           3f - (2f + 8 - 4 * CONFIG_THUMB)
+2:
+        ldr             \rd,  [pc, \rd]
+.if \offset < 0
+        sub             \rd,  \rd,  #-(\offset)
+.elseif \offset > 0
+        add             \rd,  \rd,  #\offset
+.endif
+        .non_lazy_symbol_pointer
+3:
+        .indirect_symbol \val
+        .word       0
+        .text
+#else
+        movrel_local    \rd, \val, \offset
+#endif
+.endm
 
 const register_init, align=3
         .quad 0x21f86d66c8ca00ce
@@ -104,7 +140,12 @@ function checked_call_\variant, export=1
         ldr             r2,  [sp, #ARG_STACK_A + pushed]
         ldr             r3,  [sp, #ARG_STACK_A + pushed + 4]
         @ Call the target function
-        v4blx           r12
+#if __ARM_ARCH >= 5
+        blx             r12
+#else
+        mov             lr,  pc
+        v4bx            r12
+#endif
 
         @ Load the number of stack parameters, stack canary and its reference
         ldr             r12, [sp, #ARG_STACK_A + pushed + 8 + 4*(MAX_ARGS-4)]

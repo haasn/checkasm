@@ -30,9 +30,7 @@
 
 #include "config.h"
 
-#if ARCH_AARCH64 || ARCH_ARM
-#include "arm/cpu.h"
-#elif ARCH_LOONGARCH
+#if ARCH_LOONGARCH
 #include "loongarch/cpu.h"
 #elif ARCH_PPC64LE
 #include "ppc/cpu.h"
