@@ -39,8 +39,7 @@ endif
 
 checkasm_test = executable('checkasm',
   checkasm_test_sources,
-  config_target,
-  config_nasm_target,
+  checkasm_config,
   c_args: ['-Wno-unused-parameter', '-Wno-unused-local-typedef'],
   objects: checkasm_library.extract_all_objects(recursive: true),
   dependencies: checkasm_dep,

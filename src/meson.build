@@ -77,15 +77,9 @@ if arch_x86
   cdata.set10('FORCE_VEX_ENCODING', cc.get_define('__AVX__').strip() != '')
 endif
 
-config_target = configure_file(
+checkasm_config = []
+checkasm_config += configure_file(
   output: 'config.h',
-  configuration: cdata,
-  install: false,
-)
-
-config_nasm_target = configure_file(
-  output: 'config.asm',
-  output_format: 'nasm',
   configuration: cdata,
   install: false,
 )
@@ -117,6 +111,12 @@ elif arch_rv64
   )
 elif arch_x86
   add_languages('nasm', native: false)
+  checkasm_config += configure_file(
+    output: 'config.asm',
+    output_format: 'nasm',
+    configuration: cdata,
+    install: false,
+  )
   checkasm_sources += files(
     'x86/checkasm.asm',
     'x86/cpu.c',
@@ -137,8 +137,7 @@ checkasm_dependencies = [
 
 checkasm_library = library(meson.project_name(),
   checkasm_sources,
-  config_target,
-  config_nasm_target,
+  checkasm_config,
   include_directories: checkasm_inc_dirs,
   dependencies: checkasm_dependencies,
   install: true,
