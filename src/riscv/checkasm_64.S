@@ -215,9 +215,9 @@ function checked_call, export=1, ext=v
 2:
   lla a0, error_message_sreg
 #ifdef PREFIX
-  call _checkasm_fail_func
+  call _checkasm_fail_internal
 #else
-  call checkasm_fail_func
+  call checkasm_fail_internal
 #endif
   j 1b
 
@@ -225,9 +225,9 @@ function checked_call, export=1, ext=v
 3:
   lla a0, error_message_fsreg
 #ifdef PREFIX
-  call _checkasm_fail_func
+  call _checkasm_fail_internal
 #else
-  call checkasm_fail_func
+  call checkasm_fail_internal
 #endif
   j 1b
 #endif
@@ -235,18 +235,18 @@ function checked_call, export=1, ext=v
 4:
   lla a0, error_message_rsvd
 #ifdef PREFIX
-  call _checkasm_fail_func
+  call _checkasm_fail_internal
 #else
-  call checkasm_fail_func
+  call checkasm_fail_internal
 #endif
   j 1b
 
 5:
   lla a0, error_message_stack
 #ifdef PREFIX
-  call _checkasm_fail_func
+  call _checkasm_fail_internal
 #else
-  call checkasm_fail_func
+  call checkasm_fail_internal
 #endif
   j 1b
 endfunc

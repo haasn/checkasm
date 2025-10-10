@@ -66,7 +66,7 @@ check_vzeroupper: resd 1
 
 SECTION .text
 
-cextern fail_func
+cextern fail_internal
 
 ; max number of args used by any asm function.
 ; (max_args % 4) must equal 3 for stack alignment
@@ -393,9 +393,9 @@ cvisible checked_call, 2, 15, 16, max_args*8+64+8
     lea            r0, [errmsg_vzeroupper]
     vzeroupper
 .fail:
-    ; Call fail_func() with a descriptive message to mark it as a failure.
+    ; Call fail_internal() with a descriptive message to mark it as a failure.
     xor           eax, eax
-    call fail_func
+    call fail_internal
 .restore_retval:
     mov           rax, r10
     mov           rdx, r11
@@ -514,7 +514,7 @@ cvisible checked_call, 1, 7
     vzeroupper
 .fail:
     mov         [esp], r1
-    call fail_func
+    call fail_internal
 .ok:
     add           esp, 27*4
     mov           eax, r5

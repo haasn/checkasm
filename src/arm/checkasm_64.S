@@ -191,9 +191,9 @@ function checked_call, export=1
         movrel          x0, error_message_stack
 1:
 #ifdef PREFIX
-        bl              _checkasm_fail_func
+        bl              _checkasm_fail_internal
 #else
-        bl              checkasm_fail_func
+        bl              checkasm_fail_internal
 #endif
 0:
         ldp             x0,  x1,  [sp], #16
