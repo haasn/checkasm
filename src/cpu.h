@@ -38,6 +38,7 @@
 
 unsigned long checkasm_getauxval(unsigned long);
 
+unsigned checkasm_init_x86(char *name); /* Returns cpuid */
 int checkasm_init_riscv(void); /* Returns vlenb, or 0 if no RVV */
 
 #endif /* CHECKASM_CPU_H */

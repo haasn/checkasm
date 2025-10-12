@@ -420,7 +420,6 @@ int checkasm_run(const CheckasmConfig *config)
 #endif
 
 #if ARCH_X86
-    unsigned checkasm_init_x86(char *name);
     char name[48];
     const unsigned cpuid = checkasm_init_x86(name);
     for (size_t len = strlen(name); len && name[len-1] == ' '; len--)
