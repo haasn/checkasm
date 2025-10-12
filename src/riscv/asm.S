@@ -28,8 +28,6 @@
 #ifndef CHECKASM_RISCV_ASM_S
 #define CHECKASM_RISCV_ASM_S
 
-#include "config.h"
-
 #if !defined(PIC)
 #if defined(__PIC__)
 #define PIC __PIC__
