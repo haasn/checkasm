@@ -41,6 +41,9 @@ enum {
     CHECKASM_CPU_FLAG_SSE2   = 1 << 3,
     CHECKASM_CPU_FLAG_AVX2   = 1 << 4,
     CHECKASM_CPU_FLAG_AVX512 = 1 << 5,
+#elif ARCH_RISCV
+    CHECKASM_CPU_FLAG_RISCV  = 1 << 1,
+    CHECKASM_CPU_FLAG_RVV    = 1 << 2,
 #endif
 };
 
@@ -48,6 +51,7 @@ uint64_t checkasm_get_cpu_flags(void);
 
 /* Should return the arch-specific flags */
 uint64_t checkasm_get_cpu_flags_x86(void);
+uint64_t checkasm_get_cpu_flags_riscv(void);
 
 /**
  * Copy `size` (power-of-two) bytes from aligned buffers `src` to `dst`.
@@ -86,5 +90,6 @@ void checkasm_test_noop(noop_func *func, const char *name);
 /* Platform-specific tests */
 void checkasm_check_generic(void);
 void checkasm_check_x86(void);
+void checkasm_check_riscv(void);
 
 #endif /* CHECKASM_TESTS_H */

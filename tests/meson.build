@@ -33,6 +33,11 @@ if arch_x86
     'x86/tests.asm',
     'x86/tests.c',
   )
+elif arch_rv64
+  checkasm_test_sources += files(
+    'riscv/tests.S',
+    'riscv/tests.c',
+  )
 else
   warning('There are no assembly functions to test on the current platform.')
 endif

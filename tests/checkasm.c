@@ -10,12 +10,18 @@ static const CheckasmCpuFlag flags[] = {
     { "AVX-2",          "avx2",     CHECKASM_CPU_FLAG_AVX2   },
     { "AVX-512",        "avx512",   CHECKASM_CPU_FLAG_AVX512 },
 #endif
+#if ARCH_RISCV
+    { "Generic RISC-V", "riscv",    CHECKASM_CPU_FLAG_RISCV  },
+    { "RVV",            "rvv",      CHECKASM_CPU_FLAG_RVV    },
+#endif
 };
 
 static const CheckasmTest tests[] = {
     { "generic", checkasm_check_generic },
 #if ARCH_X86
     { "x86",     checkasm_check_x86     },
+#elif ARCH_RISCV
+    { "riscv",   checkasm_check_riscv   },
 #endif
 };
 
@@ -28,6 +34,8 @@ uint64_t checkasm_get_cpu_flags(void)
         cpu_flags = CHECKASM_CPU_FLAG_BAD_C;
     #if ARCH_X86
         cpu_flags |= checkasm_get_cpu_flags_x86();
+    #elif ARCH_RISCV
+        cpu_flags |= checkasm_get_cpu_flags_riscv();
     #endif
     }
 
