@@ -426,8 +426,8 @@ int checkasm_run(const CheckasmConfig *config)
     for (size_t len = strlen(name); len && name[len-1] == ' '; len--)
         name[len-1] = '\0'; /* trim trailing whitespace */
     fprintf(stderr, "checkasm: %s (%08X) using random seed %u\n", name, cpuid, cfg.seed);
-#elif ARCH_RISCV
-    const unsigned vlen = checkasm_get_vlen();
+#elif ARCH_RV64
+    const unsigned vlen = checkasm_init_riscv() * 8;
     char buf[32] = "";
     if (vlen)
         snprintf(buf, sizeof(buf), "VLEN=%i bits, ", vlen);

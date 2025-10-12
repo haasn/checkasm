@@ -34,10 +34,10 @@
 #include "loongarch/cpu.h"
 #elif ARCH_PPC64LE
 #include "ppc/cpu.h"
-#elif ARCH_RISCV
-#include "riscv/cpu.h"
 #endif
 
 unsigned long checkasm_getauxval(unsigned long);
+
+int checkasm_init_riscv(void); /* Returns vlenb, or 0 if no RVV */
 
 #endif /* CHECKASM_CPU_H */
