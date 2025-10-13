@@ -47,7 +47,9 @@ typedef struct CheckasmTest {
 } CheckasmTest;
 
 typedef struct CheckasmConfig {
-    /* List of CPU flags understood by the implementation. */
+    /* List of CPU flags understood by the implementation. These will be tested
+     * in incremental order, each test run inheriting any active flags from
+     * previously tested CPUs. */
     const CheckasmCpuInfo *cpu_flags;
     int nb_cpu_flags;
 
@@ -55,10 +57,8 @@ typedef struct CheckasmConfig {
     const CheckasmTest *tests;
     int nb_tests;
 
-    /* External functions to get and set (override) CPU flags. A value of
-     * (CheckasmFlags) -1 will disable any override and enable all CPU flags. */
-    CheckasmCpu (*get_cpu_flags)(void);
-    void (*set_cpu_flags)(CheckasmCpu flags);
+    /* Detected CPU flags. */
+    CheckasmCpu cpu;
 
     /* Pattern of tests/functions to enable. NULL means all. */
     const char *test_pattern;
@@ -81,6 +81,9 @@ typedef struct CheckasmConfig {
     /* If nonzero, the process will be pinned to the specified CPU (id) */
     unsigned cpu_affinity;
 } CheckasmConfig;
+
+/* Returns the current (masked) set of CPU flags. */
+CHECKASM_API CheckasmCpu checkasm_get_cpu_flags(void);
 
 /**
  * Print a list of all cpuflags/tests/functions available for testing.

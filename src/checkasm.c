@@ -54,10 +54,10 @@
 typedef struct CheckasmFuncVersion {
     struct CheckasmFuncVersion *next;
     void *func;
-    int ok;
-    int iterations;
-    CheckasmCpu cpu;
+    const CheckasmCpuInfo *cpu;
     uint64_t cycles;
+    int iterations;
+    int ok;
 } CheckasmFuncVersion;
 
 /* Binary search tree node */
@@ -78,13 +78,19 @@ static struct {
     int num_checked;
     int num_failed;
     double nop_time;
-    CheckasmCpu cpu_flag;
-    const char *cpu_flag_name;
+    CheckasmCpu cpu_flags;
+    const CheckasmCpuInfo *cpu;
+    int cpu_name_printed;
     int suffix_length;
     int max_function_name_length;
     int skip_tests;
     int should_fail;
 } state;
+
+CheckasmCpu checkasm_get_cpu_flags(void)
+{
+    return state.cpu_flags;
+}
 
 /* Deallocate a tree */
 static void destroy_func_tree(CheckasmFunc *const f)
@@ -116,13 +122,9 @@ static void *checkasm_malloc(const size_t size)
 }
 
 /* Get the suffix of the specified cpu flag */
-static const char *cpu_suffix(const CheckasmCpu cpu)
+static const char *cpu_suffix(const CheckasmCpuInfo *cpu)
 {
-    for (int i = cfg.nb_cpu_flags - 1; i >= 0; i--)
-        if (cpu & cfg.cpu_flags[i].flag)
-            return cfg.cpu_flags[i].suffix;
-
-    return "c";
+    return cpu ? cpu->suffix : "c";
 }
 
 #ifdef PERF_START
@@ -256,17 +258,16 @@ static int wildstrcmp(const char *str, const char *pattern)
 
 /* Perform tests and benchmarks for the specified
  * cpu flag if supported by the host */
-static void check_cpu_flag(const char *const name, CheckasmCpu flag)
+static void check_cpu_flag(const CheckasmCpuInfo *cpu)
 {
-    const CheckasmCpu old_cpu_flag = state.cpu_flag;
+    const CheckasmCpu prev_cpu_flags = state.cpu_flags;
+    if (cpu)
+        state.cpu_flags |= cpu->flag & cfg.cpu;
 
-    flag |= old_cpu_flag;
-    cfg.set_cpu_flags(flag);
-    state.cpu_flag = cfg.get_cpu_flags();
-
-    if (!flag || state.cpu_flag != old_cpu_flag) {
-        state.cpu_flag_name = name;
-        state.suffix_length = (int) strlen(cpu_suffix(flag)) + 1;
+    if (!cpu || state.cpu_flags != prev_cpu_flags) {
+        state.cpu = cpu;
+        state.cpu_name_printed = 0;
+        state.suffix_length = (int) strlen(cpu_suffix(cpu)) + 1;
         for (int i = 0; i < cfg.nb_tests; i++) {
             if (cfg.test_pattern && wildstrcmp(cfg.tests[i].name, cfg.test_pattern))
                 continue;
@@ -280,9 +281,9 @@ static void check_cpu_flag(const char *const name, CheckasmCpu flag)
 /* Print the name of the current CPU flag, but only do it once */
 static void print_cpu_name(void)
 {
-    if (state.cpu_flag_name) {
-        checkasm_fprintf(stderr, COLOR_YELLOW, "%s:\n", state.cpu_flag_name);
-        state.cpu_flag_name = NULL;
+    if (state.cpu && !state.cpu_name_printed) {
+        checkasm_fprintf(stderr, COLOR_YELLOW, "%s:\n", state.cpu->name);
+        state.cpu_name_printed = 1;
     }
 }
 
@@ -346,12 +347,11 @@ static int set_cpu_affinity(const uint64_t affinity)
 
 void checkasm_list_cpu_flags(const CheckasmConfig *cfg)
 {
-    const unsigned cpu_flags = cfg->get_cpu_flags();
     const int last_flag = cfg->nb_cpu_flags - 1;
     checkasm_setup_fprintf(stdout);
 
     for (int i = 0; i < cfg->nb_cpu_flags; i++) {
-        if (cfg->cpu_flags[i].flag & cpu_flags)
+        if (cfg->cpu & cfg->cpu_flags[i].flag)
             checkasm_fprintf(stdout, COLOR_GREEN, "%s", cfg->cpu_flags[i].suffix);
         else
             checkasm_fprintf(stdout, COLOR_RED, "~%s", cfg->cpu_flags[i].suffix);
@@ -384,9 +384,9 @@ void checkasm_list_functions(const CheckasmConfig *config)
     state.skip_tests = 1;
     cfg = *config;
 
-    check_cpu_flag(NULL, 0);
+    check_cpu_flag(NULL);
     for (int i = 0; i < cfg.nb_cpu_flags; i++)
-        check_cpu_flag(cfg.cpu_flags[i].name, cfg.cpu_flags[i].flag);
+        check_cpu_flag(&cfg.cpu_flags[i]);
 
     print_functions(state.funcs);
     destroy_func_tree(state.funcs);
@@ -394,8 +394,6 @@ void checkasm_list_functions(const CheckasmConfig *config)
 
 int checkasm_run(const CheckasmConfig *config)
 {
-    assert(config->get_cpu_flags);
-    assert(config->set_cpu_flags);
     memset(&state, 0, sizeof(state));
     cfg = *config;
 
@@ -442,9 +440,9 @@ int checkasm_run(const CheckasmConfig *config)
     fprintf(stderr, "checkasm: using random seed %u\n", cfg.seed);
 #endif
 
-    check_cpu_flag(NULL, 0);
+    check_cpu_flag(NULL);
     for (int i = 0; i < cfg.nb_cpu_flags; i++)
-        check_cpu_flag(cfg.cpu_flags[i].name, cfg.cpu_flags[i].flag);
+        check_cpu_flag(&cfg.cpu_flags[i]);
 
     int ret = 0;
     if (state.num_failed) {
@@ -520,14 +518,14 @@ void *checkasm_check_func(void *const func, const char *const name, ...)
 
     v->func = func;
     v->ok = 1;
-    v->cpu = state.cpu_flag;
+    v->cpu = state.cpu;
     state.current_func_ver = v;
     if (state.skip_tests)
         return NULL;
 
     checkasm_srand(cfg.seed);
 
-    if (state.cpu_flag)
+    if (state.cpu)
         state.num_checked++;
 
     return ref;
@@ -619,7 +617,7 @@ void checkasm_report(const char *const name, ...)
 
         prev_checked = state.num_checked;
         prev_failed  = state.num_failed;
-    } else if (!state.cpu_flag) {
+    } else if (!state.cpu) {
         /* Calculate the amount of padding required
          * to make the output vertically aligned */
         size_t length = strlen(state.current_test_name);

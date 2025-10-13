@@ -25,28 +25,6 @@ static const CheckasmTest tests[] = {
 #endif
 };
 
-static CheckasmCpu cpu_flag_mask = (CheckasmCpu) -1;
-static CheckasmCpu cpu_flags;
-
-CheckasmCpu checkasm_get_cpu_flags(void)
-{
-    if (!cpu_flags) {
-        cpu_flags = CHECKASM_CPU_FLAG_BAD_C;
-    #if ARCH_X86
-        cpu_flags |= checkasm_get_cpu_flags_x86();
-    #elif ARCH_RISCV
-        cpu_flags |= checkasm_get_cpu_flags_riscv();
-    #endif
-    }
-
-    return cpu_flags & cpu_flag_mask;
-}
-
-static void set_cpu_flag_mask(CheckasmCpu flags)
-{
-    cpu_flag_mask = flags;
-}
-
 int main(int argc, const char *argv[])
 {
     CheckasmConfig cfg = {
@@ -55,9 +33,14 @@ int main(int argc, const char *argv[])
         .nb_cpu_flags   = ARRAY_LEN(cpus),
         .tests          = tests,
         .nb_tests       = ARRAY_LEN(tests),
-        .get_cpu_flags  = checkasm_get_cpu_flags,
-        .set_cpu_flags  = set_cpu_flag_mask,
+        .cpu            = CHECKASM_CPU_FLAG_BAD_C,
     };
+
+#if ARCH_X86
+    cfg.cpu |= checkasm_get_cpu_flags_x86();
+#elif ARCH_RISCV
+    cfg.cpu |= checkasm_get_cpu_flags_riscv();
+#endif
 
     return checkasm_main(&cfg, argc, argv);
 }
