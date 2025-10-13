@@ -32,9 +32,7 @@
 
 // max number of args used by any asm function.
 #define MAX_ARGS 15
-
-// + 16 for stack canary reference
-#define ARG_STACK ((8*(MAX_ARGS - 8) + 15) & ~15 + 16)
+#define ARG_STACK ((8*(MAX_ARGS - 8) + 15) & ~15)
 
 const register_init, align=4
         .quad 0x68909d060f4a7fdd
@@ -165,9 +163,8 @@ function checked_call, export=1, ext=v
   addi sp, sp, -ARG_STACK
   slli t0, t0, 3
   add t0, t0, sp
-  ld t0, (t0)
-  not t0, t0
-  sd t0, ARG_STACK - 8(sp)
+  not t1, t0
+  sd t1, (t0)
 
   /* Clobber the stack space right below SP */
   lla t0, register_init
@@ -225,9 +222,8 @@ function checked_call, export=1, ext=v
   ld t0, ARG_STACK + MAX_ARGS*8(sp)
   slli t0, t0, 3
   add t0, t0, sp
-  ld t0, (t0)
+  ld t1, (t0)
   not t0, t0
-  ld t1, ARG_STACK - 8(sp)
   bne t0, t1, 5f
 
 1:
