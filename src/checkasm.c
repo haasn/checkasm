@@ -649,7 +649,7 @@ static void print_usage(const char *const progname)
             "    --csv, --tsv               Output results in rows of comma or tab separated values.\n"
             "    --function=<pattern> -f    Test only the functions matching <pattern>\n"
             "    --help -h                  Print this usage info\n"
-            "    --list-cpuflags            List available cpu flags\n"
+            "    --list-cpu-flags           List available cpu flags\n"
             "    --list-functions           List available functions\n"
             "    --list-tests               List available tests\n"
             "    --runs=<shift>             Number of benchmark iterations to run (log 2)\n"
@@ -676,7 +676,7 @@ int checkasm_main(CheckasmConfig *config, int argc, const char *argv[])
         if (!strncmp(argv[1], "--help", 6) || !strcmp(argv[1], "-h")) {
             print_usage(argv[0]);
             return 0;
-        } else if (!strcmp(argv[1], "--list-cpuflags")) {
+        } else if (!strcmp(argv[1], "--list-cpu-flags") || !strcmp(argv[1], "--list-cpuflags")) {
             checkasm_list_cpu_flags(config);
             return 0;
         } else if (!strcmp(argv[1], "--list-tests")) {
