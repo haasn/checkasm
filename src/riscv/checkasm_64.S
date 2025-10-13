@@ -28,7 +28,7 @@
 #define PRIVATE_PREFIX checkasm_
 
 #include "config.h"
-#include "src/riscv/asm.S"
+#include "riscv/asm.S"
 
 // max number of args used by any asm function.
 #define MAX_ARGS 15
