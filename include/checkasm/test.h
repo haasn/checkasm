@@ -161,17 +161,29 @@ CHECKASM_API void checkasm_checked_call(void *func, ...);
 #define alternate(a, b) (talt ? (b) : (a))
 
 /*
+ * API for variables, struct members (ALIGN_ARR()) like:
+ *   uint8_t var[1][2][3][4]
+ * becomes:
+ *   ALIGN_ARR(uint8_t var[1][2][3][4], alignment).
+ */
+#ifdef _MSC_VER
+    #define ALIGN_ARR(ll, a) __declspec(align(a)) ll
+#else
+    #define ALIGN_ARR(line, align) line __attribute__((aligned(align)))
+#endif
+
+/*
  * API for stack alignment (ALIGN_STK_$align()) of variables like:
  * uint8_t var[1][2][3][4]
  * becomes:
  * ALIGN_STK_$align(uint8_t, var, 1, [2][3][4])
  */
 #define ALIGN_STK_64(type, var, sz1d, sznd) \
-    ALIGN(type var[sz1d]sznd, ALIGN_64_VAL)
+    ALIGN_ARR(type var[sz1d]sznd, ALIGN_64_VAL)
 #define ALIGN_STK_32(type, var, sz1d, sznd) \
-    ALIGN(type var[sz1d]sznd, ALIGN_32_VAL)
+    ALIGN_ARR(type var[sz1d]sznd, ALIGN_32_VAL)
 #define ALIGN_STK_16(type, var, sz1d, sznd) \
-    ALIGN(type var[sz1d]sznd, ALIGN_16_VAL)
+    ALIGN_ARR(type var[sz1d]sznd, ALIGN_16_VAL)
 
 #define ROUND_UP(x,a) (((x)+((a)-1)) & ~((a)-1))
 #define PIXEL_RECT(name, w, h) \
