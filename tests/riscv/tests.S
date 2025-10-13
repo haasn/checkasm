@@ -63,3 +63,12 @@ function clobber_ra, export=1
   li ra, 0
   jr t0
 endfunc
+
+function sigill_riscv, export=1
+  .word 0
+endfunc
+
+function corrupt_stack_riscv, export=1
+  li t0, 0
+  sd t0, (sp)
+  ret

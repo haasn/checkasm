@@ -30,6 +30,11 @@ DEF_NOOP_FUNC(clobber_s10); DEF_NOOP_FUNC(clobber_s11);
 DEF_NOOP_FUNC(clobber_t3);  DEF_NOOP_FUNC(clobber_t4);
 DEF_NOOP_FUNC(clobber_t5);  DEF_NOOP_FUNC(clobber_t6);
 
+DEF_NOOP_FUNC(sigill_riscv);
+DEF_NOOP_FUNC(corrupt_stack_riscv);
+DEF_NOOP_GETTER(CHECKASM_CPU_FLAG_RISCV, sigill_riscv)
+DEF_NOOP_GETTER(CHECKASM_CPU_FLAG_RISCV, corrupt_stack_riscv)
+
 typedef struct RiscvRegister {
     const char *name;
     noop_func *clobber;
@@ -79,6 +84,8 @@ void checkasm_check_riscv(void)
 
 #if ARCH_RV64
     checkasm_should_fail(1);
+    checkasm_test_noop(get_sigill_riscv(),          "sigill");
+    checkasm_test_noop(get_corrupt_stack_riscv(),   "corrupt_stack");
     check_clobber(registers_unsafe);
     checkasm_should_fail(0);
 #endif
