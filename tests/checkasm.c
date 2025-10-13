@@ -1,7 +1,7 @@
 #include <checkasm/checkasm.h>
 #include "tests.h"
 
-static const CheckasmCpuFlag flags[] = {
+static const CheckasmCpuInfo cpus[] = {
     { "Bad C",          "badc",     CHECKASM_CPU_FLAG_BAD_C  },
 #if ARCH_X86
     { "Generic x86",    "x86",      CHECKASM_CPU_FLAG_X86    },
@@ -25,10 +25,10 @@ static const CheckasmTest tests[] = {
 #endif
 };
 
-static uint64_t cpu_flag_mask = (uint64_t) -1;
-static uint64_t cpu_flags;
+static CheckasmCpu cpu_flag_mask = (CheckasmCpu) -1;
+static CheckasmCpu cpu_flags;
 
-uint64_t checkasm_get_cpu_flags(void)
+CheckasmCpu checkasm_get_cpu_flags(void)
 {
     if (!cpu_flags) {
         cpu_flags = CHECKASM_CPU_FLAG_BAD_C;
@@ -42,7 +42,7 @@ uint64_t checkasm_get_cpu_flags(void)
     return cpu_flags & cpu_flag_mask;
 }
 
-static void set_cpu_flag_mask(uint64_t flags)
+static void set_cpu_flag_mask(CheckasmCpu flags)
 {
     cpu_flag_mask = flags;
 }
@@ -51,8 +51,8 @@ int main(int argc, const char *argv[])
 {
     CheckasmConfig cfg = {
         #define ARRAY_LEN(x) (sizeof(x) / sizeof((x)[0]))
-        .cpu_flags      = flags,
-        .nb_cpu_flags   = ARRAY_LEN(flags),
+        .cpu_flags      = cpus,
+        .nb_cpu_flags   = ARRAY_LEN(cpus),
         .tests          = tests,
         .nb_tests       = ARRAY_LEN(tests),
         .get_cpu_flags  = checkasm_get_cpu_flags,

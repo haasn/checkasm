@@ -55,8 +55,8 @@ typedef struct CheckasmFuncVersion {
     struct CheckasmFuncVersion *next;
     void *func;
     int ok;
-    unsigned cpu;
     int iterations;
+    CheckasmCpu cpu;
     uint64_t cycles;
 } CheckasmFuncVersion;
 
@@ -78,7 +78,7 @@ static struct {
     int num_checked;
     int num_failed;
     double nop_time;
-    unsigned cpu_flag;
+    CheckasmCpu cpu_flag;
     const char *cpu_flag_name;
     int suffix_length;
     int max_function_name_length;
@@ -116,7 +116,7 @@ static void *checkasm_malloc(const size_t size)
 }
 
 /* Get the suffix of the specified cpu flag */
-static const char *cpu_suffix(const unsigned cpu)
+static const char *cpu_suffix(const CheckasmCpu cpu)
 {
     for (int i = cfg.nb_cpu_flags - 1; i >= 0; i--)
         if (cpu & cfg.cpu_flags[i].flag)
@@ -256,9 +256,9 @@ static int wildstrcmp(const char *str, const char *pattern)
 
 /* Perform tests and benchmarks for the specified
  * cpu flag if supported by the host */
-static void check_cpu_flag(const char *const name, unsigned flag)
+static void check_cpu_flag(const char *const name, CheckasmCpu flag)
 {
-    const unsigned old_cpu_flag = state.cpu_flag;
+    const CheckasmCpu old_cpu_flag = state.cpu_flag;
 
     flag |= old_cpu_flag;
     cfg.set_cpu_flags(flag);

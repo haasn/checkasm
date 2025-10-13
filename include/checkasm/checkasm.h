@@ -33,11 +33,13 @@
 
 #include "checkasm/attributes.h"
 
-typedef struct CheckasmCpuFlag {
+typedef uint64_t CheckasmCpu;
+
+typedef struct CheckasmCpuInfo {
     const char *name;
     const char *suffix;
-    uint64_t flag;
-} CheckasmCpuFlag;
+    CheckasmCpu flag;
+} CheckasmCpuInfo;
 
 typedef struct CheckasmTest {
     const char *name;
@@ -46,7 +48,7 @@ typedef struct CheckasmTest {
 
 typedef struct CheckasmConfig {
     /* List of CPU flags understood by the implementation. */
-    const CheckasmCpuFlag *cpu_flags;
+    const CheckasmCpuInfo *cpu_flags;
     int nb_cpu_flags;
 
     /* List of tests */
@@ -54,9 +56,9 @@ typedef struct CheckasmConfig {
     int nb_tests;
 
     /* External functions to get and set (override) CPU flags. A value of
-     * (uint64_t) -1 will disable any override and enable all CPU flags. */
-    uint64_t (*get_cpu_flags)(void);
-    void (*set_cpu_flags)(uint64_t flags);
+     * (CheckasmFlags) -1 will disable any override and enable all CPU flags. */
+    CheckasmCpu (*get_cpu_flags)(void);
+    void (*set_cpu_flags)(CheckasmCpu flags);
 
     /* Pattern of tests/functions to enable. NULL means all. */
     const char *test_pattern;
