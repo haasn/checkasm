@@ -57,7 +57,10 @@ typedef struct CheckasmConfig {
     const CheckasmTest *tests;
     int nb_tests;
 
-    /* Detected CPU flags. */
+    /* Detected CPU flags. Note: Any extra flags not included in `cpu_flags`
+     * will also be transparently included in checkasm_get_cpu_flags(), and
+     * can thus be used to signal flags that should be assumed to always be
+     * enabled. (e.g. CPU_FLAG_FAST_* modifiers) */
     CheckasmCpu cpu;
 
     /* If provided, this function will be called any time the active set of

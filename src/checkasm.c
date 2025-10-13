@@ -382,9 +382,19 @@ static void print_functions(const CheckasmFunc *const f)
     }
 }
 
+/* Also include any CPU flags not related to the CPU flags list */
+static CheckasmCpu initial_cpu_flags(const CheckasmConfig *config)
+{
+    CheckasmCpu cpu = config->cpu;
+    for (int i = 0; i < config->nb_cpu_flags; i++)
+        cpu &= ~config->cpu_flags[i].flag;
+    return cpu;
+}
+
 void checkasm_list_functions(const CheckasmConfig *config)
 {
     memset(&state, 0, sizeof(state));
+    state.cpu_flags  = initial_cpu_flags(config);
     state.skip_tests = 1;
     cfg = *config;
 
@@ -399,6 +409,7 @@ void checkasm_list_functions(const CheckasmConfig *config)
 int checkasm_run(const CheckasmConfig *config)
 {
     memset(&state, 0, sizeof(state));
+    state.cpu_flags = initial_cpu_flags(config);
     cfg = *config;
 
     checkasm_set_signal_handlers();
