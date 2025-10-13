@@ -60,6 +60,11 @@ typedef struct CheckasmConfig {
     /* Detected CPU flags. */
     CheckasmCpu cpu;
 
+    /* If provided, this function will be called any time the active set of
+     * CPU flags changes, with the new set of flags as argument; including
+     * once at the start of the program with the baseline set of flags. */
+    void (*cpu_flags_callback)(CheckasmCpu new_flags);
+
     /* Pattern of tests/functions to enable. NULL means all. */
     const char *test_pattern;
     const char *function_pattern;
