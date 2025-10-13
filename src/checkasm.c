@@ -354,7 +354,8 @@ void checkasm_list_cpu_flags(const CheckasmConfig *cfg)
     checkasm_setup_fprintf(stdout);
 
     for (int i = 0; i < cfg->nb_cpu_flags; i++) {
-        if (cfg->cpu & cfg->cpu_flags[i].flag)
+        const CheckasmCpu flag = cfg->cpu_flags[i].flag;
+        if ((cfg->cpu & flag) == flag)
             checkasm_fprintf(stdout, COLOR_GREEN, "%s", cfg->cpu_flags[i].suffix);
         else
             checkasm_fprintf(stdout, COLOR_RED, "~%s", cfg->cpu_flags[i].suffix);
