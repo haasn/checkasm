@@ -71,7 +71,7 @@ endconst
 
 const error_message_register
 error_message_rsvd:
-        .asciz "unallocatable register clobbered"
+        .asciz "unallocatable register %cp clobbered"
 error_message_sreg:
         .asciz "callee-saved integer register s%i modified"
 error_message_fsreg:
@@ -211,8 +211,10 @@ function checked_call, export=1, ext=v
   add t0, tp, t0
   ld t1, 16(t0)
   addi t1, t1, -ARG_STACK
+  li a1, 's'
   bne t1, sp, 4f
   ld t1, 24(t0)
+  li a1, 'g'
   bne t1, gp, 4f
 
   /* Check the stack canary */
