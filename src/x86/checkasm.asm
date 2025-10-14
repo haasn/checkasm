@@ -210,6 +210,16 @@ cglobal cpu_cpuid, 0, 5, 0, regs, leaf, subleaf
     cmovnz         %1, r13
 %endmacro
 
+%macro REPORT_FAILURE 1 ; err_msg
+    mov           r10, rax
+    mov           r11, rdx
+    lea            r0, [%1]
+    xor           eax, eax
+    call fail_internal
+    mov           rax, r10
+    mov           rdx, r11
+%endmacro
+
 cvisible checked_call, 2, 15, 16, max_args*8+64+8
     mov          r10d, [num_fn_args]
     mov            r8, 0xdeadbeef00000000
@@ -284,11 +294,7 @@ cvisible checked_call, 2, 15, 16, max_args*8+64+8
     xor            r3, [stack_param+(r0+7)*8]
     or             r4, r3
     jz .stack_ok
-    ; Save the return value located in rdx:rax first to prevent clobbering.
-    mov           r10, rax
-    mov           r11, rdx
-    lea            r0, [errmsg_stack]
-    jmp .fail
+    REPORT_FAILURE errmsg_stack
 .stack_ok:
 
     ; check for failure to preserve registers
@@ -366,20 +372,14 @@ cvisible checked_call, 2, 15, 16, max_args*8+64+8
     mov            r1, rsp
 %endif
     mov     byte [r0], 0
-    mov           r10, rax
-    mov           r11, rdx
-    lea            r0, [errmsg_register]
-    jmp .fail
+    REPORT_FAILURE errmsg_register
 .gpr_xmm_ok:
     fstenv             [stack_param]
     mov           r0d, [stack_param + 8]
     add           r0d, 1
     jz .emms_ok ; x87 state clean
-    mov           r10, rax
-    mov           r11, rdx
-    lea            r0, [errmsg_emms]
     emms
-    jmp .fail
+    REPORT_FAILURE errmsg_emms
 .emms_ok:
     ; Check for dirty YMM state, i.e. missing vzeroupper
     mov           ecx, [check_vzeroupper]
@@ -389,16 +389,11 @@ cvisible checked_call, 2, 15, 16, max_args*8+64+8
     mov           r11, rdx
     xgetbv
     test           al, 0x04
-    jz .restore_retval ; clean ymm state
-    lea            r0, [errmsg_vzeroupper]
-    vzeroupper
-.fail:
-    ; Call fail_internal() with a descriptive message to mark it as a failure.
-    xor           eax, eax
-    call fail_internal
-.restore_retval:
     mov           rax, r10
     mov           rdx, r11
+    jz .ok ; clean ymm state
+    vzeroupper
+    REPORT_FAILURE errmsg_vzeroupper
 .ok:
     RET
 
@@ -422,6 +417,16 @@ WARMUP
 %assign n4 0xe02f3e23
 %assign n5 0xb78d0d1d
 %assign n6 0x33627ba7
+
+%macro REPORT_FAILURE 1 ; err_msg
+    mov            r5, eax
+    mov            r6, edx
+    LEA            r1, %1
+    mov         [esp], r1
+    call fail_internal
+    mov           eax, r5
+    mov           edx, r6
+%endmacro
 
 ;-----------------------------------------------------------------------------
 ; void checkasm_checked_call(void *func, ...)
@@ -469,10 +474,7 @@ cvisible checked_call, 1, 7
     %assign i i+1
 %endrep
     mov     byte [r1], 0
-    mov            r5, eax
-    mov            r6, edx
-    LEA            r1, errmsg_register
-    jmp .fail
+    REPORT_FAILURE errmsg_register
 .gpr_ok:
     ; check for stack corruption
     mov            r3, [esp+48*4] ; num_stack_params
@@ -487,38 +489,33 @@ cvisible checked_call, 1, 7
     or             r4, r5
     inc            r3
     jl .check_canary
-    mov            r5, eax
-    mov            r6, edx
     test           r4, r4
     jz .stack_ok
-    LEA            r1, errmsg_stack
-    jmp .fail
+    REPORT_FAILURE errmsg_stack
 .stack_ok:
     fstenv        [esp]
     mov            r0, [esp + 8]
     add            r0, 1
     jz .emms_ok ; x87 state clean
-    LEA            r1, errmsg_emms
     emms
-    jmp .fail
+    REPORT_FAILURE errmsg_emms
 .emms_ok:
     ; check for dirty YMM state, i.e. missing vzeroupper
     LEA           ecx, check_vzeroupper
     mov           ecx, [ecx]
     test          ecx, ecx
     jz .ok ; not supported, skip
+    mov           r5, eax
+    mov           r6, edx
     xgetbv
     test           al, 0x04
+    mov          eax, r5
+    mov          edx, r6
     jz .ok ; clean ymm state
-    LEA            r1, errmsg_vzeroupper
     vzeroupper
-.fail:
-    mov         [esp], r1
-    call fail_internal
+    REPORT_FAILURE errmsg_vzeroupper
 .ok:
     add           esp, 27*4
-    mov           eax, r5
-    mov           edx, r6
     RET
 
 %endif ; ARCH_X86_32
