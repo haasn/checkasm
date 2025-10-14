@@ -47,6 +47,10 @@
 #include "checkasm/test.h"
 #include "internal.h"
 
+void checkasm_noop(void *ptr) {
+    (void) ptr;
+}
+
 // xor128 from Marsaglia, George (July 2003). "Xorshift RNGs".
 //             Journal of Statistical Software. 8 (14).
 //             doi:10.18637/jss.v008.i14.
