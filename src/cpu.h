@@ -30,15 +30,18 @@
 
 #include "config.h"
 
-#if ARCH_LOONGARCH
+#if ARCH_X86
+unsigned checkasm_init_x86(char *name); /* Returns cpuid */
+#elif ARCH_LOONGARCH
 #include "loongarch/cpu.h"
 #elif ARCH_PPC64LE
 #include "ppc/cpu.h"
+#elif ARCH_RISCV
+int checkasm_init_riscv(void); /* Returns vlenb, or 0 if no RVV */
+#elif ARCH_AARCH64 && HAVE_SVE
+int checkasm_sve_length(void);
 #endif
 
 unsigned long checkasm_getauxval(unsigned long);
-
-unsigned checkasm_init_x86(char *name); /* Returns cpuid */
-int checkasm_init_riscv(void); /* Returns vlenb, or 0 if no RVV */
 
 #endif /* CHECKASM_CPU_H */

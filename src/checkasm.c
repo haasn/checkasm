@@ -447,7 +447,6 @@ int checkasm_run(const CheckasmConfig *config)
     if (vlenb)
         fprintf(stderr, " - VLEN: %d bits\n", vlenb * 8);
 #elif ARCH_AARCH64 && HAVE_SVE
-    int checkasm_sve_length(void);
     const unsigned sve_len = checkasm_sve_length();
     if (sve_len)
         fprintf(stderr, " - SVE: %d bits\n", sve_len);
