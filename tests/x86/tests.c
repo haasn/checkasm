@@ -148,9 +148,35 @@ static void check_clobber(int from, int to)
     report("clobber");
 }
 
+static void test_copy_emms(copy_func fun, const char *name)
+{
+    ALIGN_STK_64(uint8_t, c_dst, 256, );
+    ALIGN_STK_64(uint8_t, a_dst, 256, );
+    ALIGN_STK_64(uint8_t,   src, 256, );
+    RANDOMIZE_BUF(src);
+
+    declare_func_emms(CHECKASM_CPU_FLAG_MMX, void, uint8_t *dest, const uint8_t *src, size_t n);
+
+    for (size_t w = 1; w <= 256; w *= 2) {
+        if (check_func(fun, "%s_%zu", name, w)) {
+            CLEAR_BUF(c_dst);
+            CLEAR_BUF(a_dst);
+
+            call_ref(c_dst, src, w);
+            call_new(a_dst, src, w);
+            checkasm_check(uint8_t, c_dst, 0, a_dst, 0, 256, 1, "dst data");
+            bench_new(a_dst, src, w);
+        }
+    }
+
+    report("%s", name);
+}
+
+
 void checkasm_check_x86(void)
 {
     checkasm_test_copy(get_copy_x86(),                  "copy");
+    test_copy_emms(get_copy_noemms_mmx(),               "copy_noemms");
     check_clobber(0, NUM_SAFE);
 
     checkasm_should_fail(1);
