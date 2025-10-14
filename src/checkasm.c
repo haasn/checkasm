@@ -419,6 +419,8 @@ int checkasm_run(const CheckasmConfig *config)
 
     if (!cfg.seed)
         cfg.seed = get_seed();
+    if (!cfg.bench_runs)
+        cfg.bench_runs = 1 << 12;
 
     if (cfg.bench && checkasm_perf_init())
         return 1;
@@ -433,28 +435,26 @@ int checkasm_run(const CheckasmConfig *config)
         checkasm_checked_call_ptr = checkasm_checked_call_novfp;
 #endif
 
+    checkasm_fprintf(stderr, COLOR_YELLOW, "checkasm:\n");
 #if ARCH_X86
     char name[48];
     const unsigned cpuid = checkasm_init_x86(name);
     for (size_t len = strlen(name); len && name[len-1] == ' '; len--)
         name[len-1] = '\0'; /* trim trailing whitespace */
-    fprintf(stderr, "checkasm: %s (%08X) using random seed %u\n", name, cpuid, cfg.seed);
+    fprintf(stderr, " - CPU: %s (%08X)\n", name, cpuid);
 #elif ARCH_RV64
-    const unsigned vlen = checkasm_init_riscv() * 8;
-    char buf[32] = "";
-    if (vlen)
-        snprintf(buf, sizeof(buf), "VLEN=%i bits, ", vlen);
-    fprintf(stderr, "checkasm: %susing random seed %u\n", buf, cfg.seed);
+    const unsigned vlenb = checkasm_init_riscv();
+    if (vlenb)
+        fprintf(stderr, " - VLEN: %d bits\n", vlenb * 8);
 #elif ARCH_AARCH64 && HAVE_SVE
     int checkasm_sve_length(void);
-    char buf[48] = "";
     const unsigned sve_len = checkasm_sve_length();
     if (sve_len)
-        snprintf(buf, sizeof(buf), "SVE %d bits, ", sve_len);
-    fprintf(stderr, "checkasm: %susing random seed %u\n", buf, cfg.seed);
-#else
-    fprintf(stderr, "checkasm: using random seed %u\n", cfg.seed);
+        fprintf(stderr, " - SVE: %d bits\n", sve_len);
 #endif
+    if (cfg.bench)
+        fprintf(stderr, " - Bench runs: %d\n", cfg.bench_runs);
+    fprintf(stderr, " - Random seed: %u\n", cfg.seed);
 
     check_cpu_flag(NULL);
     for (int i = 0; i < cfg.nb_cpu_flags; i++)
@@ -581,7 +581,7 @@ int checkasm_fail_internal(const char *msg, ...) ATTR_FORMAT_PRINTF(1, 2);
 
 unsigned checkasm_bench_runs(void)
 {
-    return cfg.bench_runs ? cfg.bench_runs : (1 << 12);
+    return cfg.bench_runs;
 }
 
 /* Update benchmark results of the current function */
