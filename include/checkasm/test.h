@@ -41,7 +41,6 @@
  ********************************************/
 
 CHECKASM_API int checkasm_rand(void);
-#define rnd checkasm_rand
 
 CHECKASM_API void *checkasm_check_func(void *func, const char *name, ...) ATTR_FORMAT_PRINTF(2, 3);
 CHECKASM_API int checkasm_bench_func(void);

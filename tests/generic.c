@@ -45,7 +45,7 @@ void checkasm_test_copy(copy_func fun, const char *name)
 
     /* Initialize the source buffer */
     for (int i = 0; i < WIDTH; i++)
-        src[i] = (uint8_t) rnd();
+        src[i] = (uint8_t) checkasm_rand();
 
     declare_func(void, uint8_t *dest, const uint8_t *src, size_t n);
 
