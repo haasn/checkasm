@@ -80,7 +80,7 @@ error_message_stack:
         .asciz "stack clobbered"
 endconst
 
-thread_local saved_regs, quads=29 # 5 + 12 + 12
+thread_local saved_regs, quads=29 # 4 + 12 + 12
 data vlenb_compliant, words=1
 
 // This function detects non-compliant RVV 0.7.1 hardware which reports support
@@ -121,11 +121,10 @@ function checked_call, export=1, ext=v
   sd ra, 8(t0)
   sd sp, 16(t0)
   sd gp, 24(t0)
-  sd tp, 32(t0)
 .irp n, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11
-  sd s\n, 40 + 16*\n(t0)
+  sd s\n, 32 + 16*\n(t0)
 #ifdef __riscv_float_abi_double
-  fsd fs\n, 48 + 16*\n(t0)
+  fsd fs\n, 40 + 16*\n(t0)
 #endif
 .endr
 
@@ -215,8 +214,6 @@ function checked_call, export=1, ext=v
   bne t1, sp, 4f
   ld t1, 24(t0)
   bne t1, gp, 4f
-  ld t1, 32(t0)
-  bne t1, tp, 4f
 
   /* Check the stack canary */
   ld t0, ARG_STACK + MAX_ARGS*8(sp)
@@ -233,9 +230,9 @@ function checked_call, export=1, ext=v
   ld ra, 8(t0)
   ld sp, 16(t0)
 .irp n, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11
-  ld s\n, 40 + 16*\n(t0)
+  ld s\n, 32 + 16*\n(t0)
 #ifdef __riscv_float_abi_double
-  fld fs\n, 48 + 16*\n(t0)
+  fld fs\n, 40 + 16*\n(t0)
 #endif
 .endr
   ret
@@ -264,7 +261,6 @@ function checked_call, export=1, ext=v
   /* Restore reserved registers first to prevent segfault */
   ld sp, 16(t0)
   ld gp, 24(t0)
-  ld tp, 32(t0)
   lla a0, error_message_rsvd
 #ifdef PREFIX
   call _checkasm_fail_internal
