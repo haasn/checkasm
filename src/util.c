@@ -74,6 +74,41 @@ int checkasm_rand(void) {
     return w >> 1;
 }
 
+void checkasm_randomize(void *bufp, size_t bytes)
+{
+    uint8_t *buf = bufp;
+    while (bytes--)
+        *buf++ = checkasm_rand() & 0xFF;
+}
+
+void checkasm_randomize_mask8(uint8_t *buf, int width, uint8_t mask)
+{
+    while (width--)
+        *buf++ = checkasm_rand() & mask;
+}
+
+void checkasm_randomize_mask16(uint16_t *buf, int width, uint16_t mask)
+{
+    while (width--)
+        *buf++ = checkasm_rand() & mask;
+}
+
+void checkasm_clear(void *buf, size_t bytes)
+{
+    memset(buf, 0xAA, bytes);
+}
+
+void checkasm_clear8(uint8_t *buf, int width, uint8_t val)
+{
+    memset(buf, val, width);
+}
+
+void checkasm_clear16(uint16_t *buf, int width, uint16_t val)
+{
+    while (width--)
+        *buf++ = val;
+}
+
 /* Print colored text to stderr if the terminal supports it */
 static int use_printf_color;
 void checkasm_fprintf(FILE *const f, const int color, const char *const fmt, ...)

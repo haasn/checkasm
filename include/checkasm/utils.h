@@ -35,6 +35,18 @@
 
 CHECKASM_API int checkasm_rand(void);
 
+/* memory manipulation / initialization utilities */
+CHECKASM_API void checkasm_randomize(void *buf, size_t bytes);
+CHECKASM_API void checkasm_randomize_mask8 (uint8_t  *buf, int width, uint8_t  mask);
+CHECKASM_API void checkasm_randomize_mask16(uint16_t *buf, int width, uint16_t mask);
+
+CHECKASM_API void checkasm_clear(void *buf, size_t bytes);
+CHECKASM_API void checkasm_clear8 (uint8_t  *buf, int width, uint8_t  val);
+CHECKASM_API void checkasm_clear16(uint16_t *buf, int width, uint16_t val);
+
+#define CLEAR_BUF(buf)     checkasm_clear(buf, sizeof(buf))
+#define RANDOMIZE_BUF(buf) checkasm_randomize(buf, sizeof(buf))
+
 /* float compare utilities */
 CHECKASM_API int float_near_ulp(float a, float b, unsigned max_ulp);
 CHECKASM_API int float_near_abs_eps(float a, float b, float eps);
@@ -85,8 +97,8 @@ CHECKASM_API int double_near_abs_eps_array(const double *a, const double *b,
     (void)name##_buf_h;\
     pixel *name = name##_buf + (CHECKASM_ROUND(w,64)+64)*16 + 64
 
-#define CLEAR_PIXEL_RECT(name) \
-    memset(name##_buf, 0x99, sizeof(name##_buf)) \
+#define CLEAR_PIXEL_RECT(name)     CLEAR_BUF(name##_buf)
+#define RANDOMIZE_PIXEL_RECT(name) RANDOMIZE_BUF(name##_buf)
 
 #define DECL_CHECKASM_CHECK_FUNC(type) \
 CHECKASM_API int checkasm_check_##type(const char *const file, const int line, \
