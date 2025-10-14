@@ -193,6 +193,17 @@ function checked_call, export=1, ext=v
   ld t0, (t0)
   jalr t0
 
+  /* Check unallocatable register values */
+  la.tls.ie t0, saved_regs
+  add t0, tp, t0
+  ld t1, 16(t0)
+  addi t1, t1, -ARG_STACK
+  li a1, 's'
+  bne t1, sp, 4f
+  ld t1, 24(t0)
+  li a1, 'g'
+  bne t1, gp, 4f
+
   /* Check the value of callee-saved registers */
   lla t0, register_init
 .irp n, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11
@@ -205,17 +216,6 @@ function checked_call, export=1, ext=v
   bne t1, t2, 3f
 #endif
 .endr
-
-  /* Check unallocatable register values */
-  la.tls.ie t0, saved_regs
-  add t0, tp, t0
-  ld t1, 16(t0)
-  addi t1, t1, -ARG_STACK
-  li a1, 's'
-  bne t1, sp, 4f
-  ld t1, 24(t0)
-  li a1, 'g'
-  bne t1, gp, 4f
 
   /* Check the stack canary */
   ld t0, ARG_STACK + MAX_ARGS*8(sp)
