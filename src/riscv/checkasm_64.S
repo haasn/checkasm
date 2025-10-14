@@ -261,6 +261,10 @@ function checked_call, export=1, ext=v
 #endif
 
 4:
+  /* Restore reserved registers first to prevent segfault */
+  ld sp, 16(t0)
+  ld gp, 24(t0)
+  ld tp, 32(t0)
   lla a0, error_message_rsvd
 #ifdef PREFIX
   call _checkasm_fail_internal
