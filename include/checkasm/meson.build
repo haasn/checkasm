@@ -27,6 +27,7 @@ checkasm_api_headers = files(
   'attributes.h',
   'checkasm.h',
   'test.h',
+  'utils.h',
 )
 
 # Platform-specific code and definitions (besides timing)
