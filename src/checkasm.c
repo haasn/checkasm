@@ -127,7 +127,6 @@ static const char *cpu_suffix(const CheckasmCpuInfo *cpu)
     return cpu ? cpu->suffix : "c";
 }
 
-#ifdef PERF_START
 static double avg_cycles_per_call(const CheckasmFuncVersion *const v)
 {
     if (v->iterations) {
@@ -165,7 +164,6 @@ static void print_benchs(const CheckasmFunc *const f)
         print_benchs(f->child[1]);
     }
 }
-#endif
 
 #define is_digit(x) ((x) >= '0' && (x) <= '9')
 
@@ -477,10 +475,8 @@ int checkasm_run(const CheckasmConfig *config)
             fprintf(stderr, "checkasm: all %d tests passed\n", state.num_checked);
         else
             fprintf(stderr, "checkasm: no tests to perform\n");
-#ifdef PERF_START
         if (cfg.bench)
             print_benchs(state.funcs);
-#endif
     }
 
     destroy_func_tree(state.funcs);
