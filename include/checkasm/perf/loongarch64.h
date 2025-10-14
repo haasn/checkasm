@@ -42,5 +42,6 @@ static inline uint64_t readtime_rdtime(void) {
 #define PERF_SETUP()
 #define PERF_START(t) t = readtime_rdtime();
 #define PERF_STOP(t)  t = readtime_rdtime() - t
+#define PERF_NAME     "loongarch64 (rdtime)"
 
 #endif /* CHECKASM_PERF_LOONGARCH64_H */

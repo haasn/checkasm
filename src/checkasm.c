@@ -422,8 +422,11 @@ int checkasm_run(const CheckasmConfig *config)
     if (!cfg.bench_runs)
         cfg.bench_runs = 1 << 12;
 
-    if (cfg.bench && checkasm_perf_init())
-        return 1;
+    if (cfg.bench) {
+        if (checkasm_perf_init())
+            return 1;
+        state.nop_time = checkasm_measure_nop_time();
+    }
 
 #if ARCH_ARM
     const unsigned cpu_flags = checkasm_get_cpu_flags_arm();
@@ -451,8 +454,12 @@ int checkasm_run(const CheckasmConfig *config)
     if (sve_len)
         fprintf(stderr, " - SVE: %d bits\n", sve_len);
 #endif
-    if (cfg.bench)
+    if (cfg.bench) {
+        fprintf(stderr, " - Timing source: %s\n", PERF_NAME);
+        if (cfg.verbose)
+            fprintf(stderr, " - Timing overhead: %.1f\n", state.nop_time);
         fprintf(stderr, " - Bench runs: %d\n", cfg.bench_runs);
+    }
     fprintf(stderr, " - Random seed: %u\n", cfg.seed);
 
     check_cpu_flag(NULL);
@@ -471,7 +478,6 @@ int checkasm_run(const CheckasmConfig *config)
             fprintf(stderr, "checkasm: no tests to perform\n");
 #ifdef PERF_START
         if (cfg.bench && state.max_function_name_length) {
-            state.nop_time = checkasm_measure_nop_time();
             if (cfg.verbose) {
                 if (cfg.separator)
                     printf("nop%c%c%.1f\n", cfg.separator, cfg.separator, state.nop_time);

@@ -52,4 +52,6 @@ CHECKASM_API int checkasm_get_perf_sysfd(void);
     (void)_ret;\
 } while (0)
 
+#define PERF_NAME "linux (perf)"
+
 #endif /* CHECKASM_PERF_LINUX_H */

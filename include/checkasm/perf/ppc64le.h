@@ -51,5 +51,6 @@ static inline uint64_t readtime_mfspr(void) {
 #define PERF_SETUP()
 #define PERF_START(t) t = readtime_mfspr();
 #define PERF_STOP(t)  t = readtime_mfspr() - t
+#define PERF_NAME     "ppc64le (mfspr)"
 
 #endif /* CHECKASM_PERF_PPC64LE_H */

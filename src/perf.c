@@ -59,7 +59,6 @@ COLD int checkasm_perf_init(void)
 #endif
     };
 
-    fprintf(stderr, "benchmarking with Linux Perf Monitoring API\n");
     perf_sysfd = syscall(SYS_perf_event_open, &attr, 0, -1, -1, 0);
     if (perf_sysfd == -1) {
         perror("perf_event_open");
@@ -136,7 +135,6 @@ COLD int checkasm_perf_init(void)
         return 1;
     }
 
-    fprintf(stderr, "benchmarking with macOS kperf API\n");
     return 0;
 }
 

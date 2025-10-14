@@ -45,5 +45,6 @@
 #define PERF_SETUP()
 #define PERF_START(t) t = readtime_tsc();
 #define PERF_STOP(t)  t = readtime_tsc() - t
+#define PERF_NAME     "x86 (rdtsc)"
 
 #endif /* CHECKASM_PERF_X86_H */

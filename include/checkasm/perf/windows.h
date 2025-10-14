@@ -35,5 +35,6 @@
 #define PERF_SETUP()
 #define PERF_START(t) t = readtime_sync();
 #define PERF_STOP(t)  t = readtime_sync() - t
+#define PERF_NAME     "windows (ReadTimeStampCounter)"
 
 #endif /* CHECKASM_PERF_WINDOWS_H */
