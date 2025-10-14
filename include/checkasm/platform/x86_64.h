@@ -41,6 +41,13 @@
  * those registers to keep them powered on. */
 CHECKASM_API void checkasm_simd_warmup(void);
 
+/* MMX code normally needs to call emms before any floating-point code can be
+ * executed. Since this instruction can be very slow, many MMX kernels (used
+ * inside loops) are designed to omit emms and instead expect the caller to run
+ * emms manually after the loop. This function should be used to call such
+ * kernels. It will omit the emms check and instead explicitly run emms. */
+CHECKASM_API void checkasm_checked_call_emms(void *func, ...);
+
 /* The upper 32 bits of 32-bit data types are undefined when passed as function
  * parameters. In practice those bits usually end up being zero which may hide
  * certain bugs, such as using a register containing undefined bits as a pointer
@@ -95,6 +102,14 @@ CHECKASM_API void checkasm_simd_warmup(void);
      checked_call(__VA_ARGS__, 16, 15, 14, 13, 12, 11, 10, 9, 8,\
                   7, 6, 5, 4, 3, 2, 1, func_new, clobber_mask));\
     checkasm_set_signal_handler_state(0)
+
+#define declare_func_emms(cpu_flags, ret, ...)\
+    declare_func(ret, __VA_ARGS__);\
+    if (checkasm_get_cpu_flags() & (cpu_flags)) {\
+        checked_call = (ret (*)(__VA_ARGS__, int, int, int, int, int, int, int,\
+                        int, int, int, int, int, int, int, int, int,\
+                        void *, unsigned)) (void *) checkasm_checked_call_emms;\
+    }
 
 /* x86-64 needs 32- and 64-byte alignment for AVX2 and AVX-512. */
 #define ALIGN_64_VAL 64

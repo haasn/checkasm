@@ -220,7 +220,8 @@ cglobal cpu_cpuid, 0, 5, 0, regs, leaf, subleaf
     mov           rdx, r11
 %endmacro
 
-cvisible checked_call, 2, 15, 16, max_args*8+64+8
+%macro checked_call_fn 0-1
+cvisible checked_call%1, 2, 15, 16, max_args*8+64+8
     mov          r10d, [num_fn_args]
     mov            r8, 0xdeadbeef00000000
     mov           r9d, [num_fn_args+r10*8+8] ; clobber_mask
@@ -374,6 +375,7 @@ cvisible checked_call, 2, 15, 16, max_args*8+64+8
     mov     byte [r0], 0
     REPORT_FAILURE errmsg_register
 .gpr_xmm_ok:
+%ifnidn %1, _emms
     fstenv             [stack_param]
     mov           r0d, [stack_param + 8]
     add           r0d, 1
@@ -381,6 +383,9 @@ cvisible checked_call, 2, 15, 16, max_args*8+64+8
     emms
     REPORT_FAILURE errmsg_emms
 .emms_ok:
+%else ; _emms
+    emms
+%endif
     ; Check for dirty YMM state, i.e. missing vzeroupper
     mov           ecx, [check_vzeroupper]
     test          ecx, ecx
@@ -396,6 +401,10 @@ cvisible checked_call, 2, 15, 16, max_args*8+64+8
     REPORT_FAILURE errmsg_vzeroupper
 .ok:
     RET
+%endmacro
+
+checked_call_fn
+checked_call_fn _emms
 
 ; trigger a warmup of vector units
 %macro WARMUP 0
@@ -431,7 +440,8 @@ WARMUP
 ;-----------------------------------------------------------------------------
 ; void checkasm_checked_call(void *func, ...)
 ;-----------------------------------------------------------------------------
-cvisible checked_call, 1, 7
+%macro checked_call_fn 0-1
+cvisible checked_call%1, 1, 7
     mov            r3, [esp+stack_offset]      ; return address
     mov            r1, [esp+stack_offset+17*4] ; num_stack_params
     mov            r2, 27
@@ -493,6 +503,7 @@ cvisible checked_call, 1, 7
     jz .stack_ok
     REPORT_FAILURE errmsg_stack
 .stack_ok:
+%ifnidn %1, _emms
     fstenv        [esp]
     mov            r0, [esp + 8]
     add            r0, 1
@@ -500,6 +511,9 @@ cvisible checked_call, 1, 7
     emms
     REPORT_FAILURE errmsg_emms
 .emms_ok:
+%else ; _emms
+    emms
+%endif
     ; check for dirty YMM state, i.e. missing vzeroupper
     LEA           ecx, check_vzeroupper
     mov           ecx, [ecx]
@@ -517,5 +531,9 @@ cvisible checked_call, 1, 7
 .ok:
     add           esp, 27*4
     RET
+%endmacro
+
+checked_call_fn
+checked_call_fn _emms
 
 %endif ; ARCH_X86_32
