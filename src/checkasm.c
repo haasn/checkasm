@@ -448,11 +448,11 @@ int checkasm_run(const CheckasmConfig *config)
 #elif ARCH_RV64
     const unsigned vlenb = checkasm_init_riscv();
     if (vlenb)
-        fprintf(stderr, " - VLEN: %d bits\n", vlenb * 8);
+        fprintf(stderr, " - CPU: VLEN = %d bits\n", vlenb * 8);
 #elif ARCH_AARCH64 && HAVE_SVE
     const unsigned sve_len = checkasm_sve_length();
     if (sve_len)
-        fprintf(stderr, " - SVE: %d bits\n", sve_len);
+        fprintf(stderr, " - CPU: SVE = %d bits\n", sve_len);
 #endif
     if (cfg.bench) {
         fprintf(stderr, " - Timing source: %s\n", PERF_NAME);
