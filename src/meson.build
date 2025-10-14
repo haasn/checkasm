@@ -90,7 +90,7 @@ checkasm_sources = files(
   'cpu.c',
   'perf.c',
   'signal.c',
-  'util.c',
+  'utils.c',
 )
 
 if arch_aarch64
