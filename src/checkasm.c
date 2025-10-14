@@ -276,6 +276,7 @@ static void check_cpu_flag(const CheckasmCpuInfo *cpu)
                 continue;
             checkasm_srand(cfg.seed);
             state.current_test_name = cfg.tests[i].name;
+            state.should_fail = 0; // reset between tests
             cfg.tests[i].func();
         }
     }

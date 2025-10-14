@@ -49,8 +49,13 @@ CHECKASM_API void checkasm_update_bench(int iterations, uint64_t cycles);
 CHECKASM_API void checkasm_report(const char *name, ...) ATTR_FORMAT_PRINTF(1, 2);
 CHECKASM_API void checkasm_set_signal_handler_state(int enabled);
 CHECKASM_API void checkasm_handle_signal(void);
-CHECKASM_API void checkasm_should_fail(int);
 CHECKASM_API extern checkasm_jmp_buf checkasm_context;
+
+/* Mark a block of tests as expected to fail. If this is set, at least
+ * one failure must be detected in between each report() call, otherwise
+ * the whole test will be marked as failed. This state does not persist
+ * between tests. */
+CHECKASM_API void checkasm_should_fail(int);
 
 /* Decide whether or not the specified function needs to be tested */
 #define check_func(func, ...)\
