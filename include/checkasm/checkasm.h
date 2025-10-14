@@ -79,7 +79,7 @@ typedef struct CheckasmConfig {
     char separator;
 
     /* If nonzero, enable benchmarking, with the specified number of
-     * iterations, defaulting to 1024 if left unset. */
+     * iterations, defaulting to 4096 (1 << 12) if left unset. */
     int bench;
     unsigned bench_runs;
 

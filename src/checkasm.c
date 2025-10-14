@@ -581,7 +581,7 @@ int checkasm_fail_internal(const char *msg, ...) ATTR_FORMAT_PRINTF(1, 2);
 
 unsigned checkasm_bench_runs(void)
 {
-    return cfg.bench_runs ? cfg.bench_runs : (1 << 10);
+    return cfg.bench_runs ? cfg.bench_runs : (1 << 12);
 }
 
 /* Update benchmark results of the current function */
