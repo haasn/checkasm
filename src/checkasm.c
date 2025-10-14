@@ -477,15 +477,8 @@ int checkasm_run(const CheckasmConfig *config)
         else
             fprintf(stderr, "checkasm: no tests to perform\n");
 #ifdef PERF_START
-        if (cfg.bench && state.max_function_name_length) {
-            if (cfg.verbose) {
-                if (cfg.separator)
-                    printf("nop%c%c%.1f\n", cfg.separator, cfg.separator, state.nop_time);
-                else
-                    printf("nop:%*.1f\n", state.max_function_name_length + 6, state.nop_time);
-            }
+        if (cfg.bench && state.max_function_name_length)
             print_benchs(state.funcs);
-        }
 #endif
     }
 
