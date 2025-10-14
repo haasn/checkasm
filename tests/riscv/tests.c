@@ -15,7 +15,8 @@ uint64_t checkasm_get_cpu_flags_riscv(void)
 DEF_COPY_FUNC(copy_rvv);
 DEF_COPY_GETTER(CHECKASM_CPU_FLAG_RVV, copy_rvv)
 
-DEF_NOOP_FUNC(clobber_ra);  DEF_NOOP_FUNC(clobber_t0);
+DEF_NOOP_FUNC(clobber_ra);  DEF_NOOP_FUNC(clobber_sp);
+DEF_NOOP_FUNC(clobber_gp);  DEF_NOOP_FUNC(clobber_t0);
 DEF_NOOP_FUNC(clobber_t1);  DEF_NOOP_FUNC(clobber_t2);
 DEF_NOOP_FUNC(clobber_s0);  DEF_NOOP_FUNC(clobber_s1);
 DEF_NOOP_FUNC(clobber_a0);  DEF_NOOP_FUNC(clobber_a1);
@@ -59,6 +60,8 @@ static const RiscvRegister registers_unsafe[] = {
     { "s6",  checkasm_clobber_s6  }, { "s7",  checkasm_clobber_s7  },
     { "s8",  checkasm_clobber_s8  }, { "s9",  checkasm_clobber_s9  },
     { "s10", checkasm_clobber_s10 }, { "s11", checkasm_clobber_s11 },
+    { "sp",  checkasm_clobber_sp  }, { "gp",  checkasm_clobber_gp  },
+    /* Can't clobber tp because checkasm.S saves registers in TLS */
     {0}
 };
 
