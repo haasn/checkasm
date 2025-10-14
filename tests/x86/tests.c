@@ -159,5 +159,4 @@ void checkasm_check_x86(void)
     checkasm_test_copy(get_copy_noemms_mmx(),           "noemms");
     checkasm_test_copy(get_copy_novzeroupper_avx2(),    "novzeroupper");
     check_clobber(NUM_SAFE, NUM_REGS);
-    checkasm_should_fail(0);
 }

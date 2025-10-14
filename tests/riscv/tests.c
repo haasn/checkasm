@@ -87,6 +87,5 @@ void checkasm_check_riscv(void)
     checkasm_test_noop(get_sigill_riscv(),          "sigill");
     checkasm_test_noop(get_corrupt_stack_riscv(),   "corrupt_stack");
     check_clobber(registers_unsafe);
-    checkasm_should_fail(0);
 #endif
 }

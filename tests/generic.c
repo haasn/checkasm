@@ -125,5 +125,4 @@ void checkasm_check_generic(void)
     checkasm_test_copy(get_overwrite_right(),   "overwrite_right");
     checkasm_test_copy(get_underwrite(),        "underwrite");
     checkasm_test_noop(get_segfault(),          "segfault");
-    checkasm_should_fail(0);
 }
