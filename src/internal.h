@@ -59,7 +59,8 @@ void checkasm_set_signal_handlers(void);
 
 /* Platform specific timing code */
 int checkasm_perf_init(void);
-double checkasm_measure_nop_time(void);
+double checkasm_measure_nop_time(void); /* cycles per iter */
+double checkasm_measure_perf_scale(void); /* ns per cycle */
 uint64_t checkasm_gettime_nsec(void);
 void checkasm_noop(void *);
 

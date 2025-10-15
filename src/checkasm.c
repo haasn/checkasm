@@ -78,6 +78,7 @@ static struct {
     int num_checked;
     int num_failed;
     double nop_time;
+    double perf_scale;
     CheckasmCpu cpu_flags;
     const CheckasmCpuInfo *cpu;
     int cpu_name_printed;
@@ -425,6 +426,7 @@ int checkasm_run(const CheckasmConfig *config)
         if (checkasm_perf_init())
             return 1;
         state.nop_time = checkasm_measure_nop_time();
+        state.perf_scale = checkasm_measure_perf_scale();
     }
 
 #if ARCH_ARM

@@ -173,9 +173,14 @@ COLD int checkasm_perf_init(void)
 #endif
 
 #ifdef PERF_START
-static int cmp_nop(const void *a, const void *b)
+static int cmp_u16(const void *a, const void *b)
 {
     return *(const uint16_t*)a - *(const uint16_t*)b;
+}
+
+static int cmp_dbl(const void *a, const void *b)
+{
+    return *(const double*)a - *(const double*)b;
 }
 
 /* Measure the overhead of the timing code (in decicycles) */
@@ -198,13 +203,60 @@ COLD double checkasm_measure_nop_time(void)
         nops[i] = (uint16_t) t;
     }
 
-    qsort(nops, SAMPLES, sizeof(uint16_t), cmp_nop);
+    qsort(nops, SAMPLES, sizeof(uint16_t), cmp_u16);
     for (int i = SAMPLES/4; i < SAMPLES*3/4; i++) /* ignore outliers */
         nop_sum += nops[i];
 
     return nop_sum / (SAMPLES / 2.0);
     #undef SAMPLES
 }
+
+COLD double checkasm_measure_perf_scale(void)
+{
+    #define SAMPLES 200
+    double samples[SAMPLES];
+    uint64_t nsec;
+
+    PERF_SETUP();
+
+    /* We don't necessarily know the underlying clock rate, so run a busy loop
+     * until the observed wall clock time passes the 20 us threshold, to figure
+     * out how many loop iterations we should target. This should make the
+     * measurement as a whole take only around 10 ms */
+    const int target = 20000 / 2;
+    int iters = 1000;
+    do {
+        nsec = checkasm_gettime_nsec();
+        for (int i = 0; i < iters; i++)
+            checkasm_noop(NULL);
+        nsec = checkasm_gettime_nsec() - nsec;
+        iters <<= 1;
+    } while (nsec < target);
+
+    for (int i = 0; i < SAMPLES; i++) {
+        uint64_t cycles;
+        PERF_START(cycles);
+        for (int i = 0; i < iters; i++)
+            checkasm_noop(NULL);
+        PERF_STOP(cycles);
+        /* Measure the same loop with wallclock time instead of cycles */
+        nsec = checkasm_gettime_nsec();
+        for (int i = 0; i < iters; i++)
+            checkasm_noop(NULL);
+        nsec = checkasm_gettime_nsec() - nsec;
+
+        samples[i] = (double) nsec / cycles;
+    }
+
+    double sum = 0.0;
+    qsort(samples, SAMPLES, sizeof(double), cmp_dbl);
+    for (int i = SAMPLES/4; i < SAMPLES*3/4; i++) /* ignore outliers */
+        sum += samples[i];
+
+    return sum / (SAMPLES / 2.0);
+    #undef SAMPLES
+}
 #else
 COLD double checkasm_measure_nop_time(void) { return 0.0; }
+COLD double checkasm_measure_perf_scale(void) { return 0.0; }
 #endif
