@@ -31,6 +31,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 
 #include "config.h"
 
@@ -39,6 +40,7 @@
 #endif
 
 #ifdef _WIN32
+    #include <windows.h>
     #ifndef ENABLE_VIRTUAL_TERMINAL_PROCESSING
         #define ENABLE_VIRTUAL_TERMINAL_PROCESSING 0x04
     #endif
@@ -49,6 +51,25 @@
 
 void checkasm_noop(void *ptr) {
     (void) ptr;
+}
+
+uint64_t checkasm_gettime_nsec(void)
+{
+#ifdef _WIN32
+    static LARGE_INTEGER freq;
+    if (!freq.QuadPart)
+        QueryPerformanceFrequency(&freq);
+    QueryPerformanceCounter(&i);
+    return UINT64_C(1000000000) * i.QuadPart / freq.QuadPart;
+#else
+    struct timespec ts;
+  #ifdef CLOCK_MONOTONIC_RAW
+    clock_gettime(CLOCK_MONOTONIC_RAW, &ts);
+  #else
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+  #endif
+    return UINT64_C(1000000000) * ts.tv_sec + ts.tv_nsec;
+#endif
 }
 
 // xor128 from Marsaglia, George (July 2003). "Xorshift RNGs".

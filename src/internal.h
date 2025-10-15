@@ -30,6 +30,7 @@
 #define CHECKASM_INTERNAL_H
 
 #include <stdio.h>
+#include <stdint.h>
 
 #include "checkasm/attributes.h"
 
@@ -59,6 +60,7 @@ void checkasm_set_signal_handlers(void);
 /* Platform specific timing code */
 int checkasm_perf_init(void);
 double checkasm_measure_nop_time(void);
+uint64_t checkasm_gettime_nsec(void);
 void checkasm_noop(void *);
 
 /* Miscellaneous helpers */
