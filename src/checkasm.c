@@ -151,15 +151,19 @@ static void print_benchs(const CheckasmFunc *const f)
         do {
             if (v->iterations) {
                 const double cycles = avg_cycles_per_call(v);
+                const double cycles_ns = cycles * state.perf_scale;
                 const double ratio = cycles ? baseline / cycles : 0.0;
                 if (cfg.separator) {
-                    printf("%s%c%s%c%.1f\n", f->name, cfg.separator,
-                           cpu_suffix(v->cpu), cfg.separator, cycles);
+                    printf("%s%c%s%c%.1f%c%.2f\n", f->name, cfg.separator,
+                           cpu_suffix(v->cpu), cfg.separator, cycles,
+                           cfg.separator, cycles_ns);
                 } else {
                     assert(state.max_function_name_length);
                     const int pad = 12 + state.max_function_name_length -
                         printf("  %s_%s:", f->name, cpu_suffix(v->cpu));
                     printf("%*.1f", imax(pad, 0), cycles);
+                    if (cfg.verbose)
+                        printf("%11.2f ns", cycles_ns);
                     if (v != ref) {
                         const int color = ratio >= 10.0 ? COLOR_GREEN   :
                                           ratio >= 1.1  ? COLOR_DEFAULT :
@@ -494,11 +498,15 @@ int checkasm_run(const CheckasmConfig *config)
 
         if (cfg.bench) {
             if (cfg.separator && cfg.verbose) {
-                printf("name%csuffix%c%ss\n", cfg.separator, cfg.separator, PERF_UNIT);
+                printf("name%csuffix%c%ss%cnanoseconds\n",
+                       cfg.separator, cfg.separator, PERF_UNIT, cfg.separator);
             } else if (!cfg.separator) {
                 checkasm_fprintf(stdout, COLOR_YELLOW, "Benchmark results:\n");
-                checkasm_fprintf(stdout, COLOR_GREEN, "  name%*ss (vs ref)\n",
+                checkasm_fprintf(stdout, COLOR_GREEN, "  name%*ss",
                                  5 + state.max_function_name_length, PERF_UNIT);
+                if (cfg.verbose)
+                    checkasm_fprintf(stdout, COLOR_GREEN, " %*s", 13, "time");
+                checkasm_fprintf(stdout, COLOR_GREEN, " (vs ref)\n");
             }
             print_benchs(state.funcs);
         }
@@ -688,7 +696,7 @@ static void print_usage(const char *const progname)
             "    --list-tests               List available tests\n"
             "    --runs=<shift>             Number of benchmark iterations to run (log 2)\n"
             "    --test=<pattern> -t        Test only <pattern>\n"
-            "    --verbose -v               Print verbose output on failure\n",
+            "    --verbose -v               Print verbose timing info and failure data\n",
             progname);
 }
 
