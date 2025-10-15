@@ -43,5 +43,6 @@ static inline uint64_t readtime_rdtimel(void) {
 #define PERF_START(t) t = readtime_rdtimel();
 #define PERF_STOP(t)  t = readtime_rdtimel() - t
 #define PERF_NAME     "loongarch32 (rdtimel)"
+#define PERF_UNIT     "tick"
 
 #endif /* CHECKASM_PERF_LOONGARCH32_H */

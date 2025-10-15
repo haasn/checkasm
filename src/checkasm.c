@@ -457,8 +457,10 @@ int checkasm_run(const CheckasmConfig *config)
 #endif
     if (cfg.bench) {
         fprintf(stderr, " - Timing source: %s\n", PERF_NAME);
-        if (cfg.verbose)
-            fprintf(stderr, " - Timing overhead: %.1f\n", state.nop_time);
+        if (cfg.verbose) {
+            fprintf(stderr, " - Timing overhead: %.1f %ss\n", state.nop_time, PERF_UNIT);
+            fprintf(stderr, " - Timing resolution: ~%.4f ns/%s\n", state.perf_scale, PERF_UNIT);
+        }
         fprintf(stderr, " - Bench runs: %d\n", cfg.bench_runs);
     }
     fprintf(stderr, " - Random seed: %u\n", cfg.seed);

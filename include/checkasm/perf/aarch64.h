@@ -48,5 +48,6 @@ static inline uint64_t readtime_pmccntr(void) {
 #define PERF_START(t) t = readtime_pmccntr();
 #define PERF_STOP(t)  t = readtime_pmccntr() - t
 #define PERF_NAME     "aarch64 (pmccntr)"
+#define PERF_UNIT     "cycle"
 
 #endif /* CHECKASM_PERF_AARCH64_H */

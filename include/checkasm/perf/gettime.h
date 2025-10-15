@@ -46,5 +46,6 @@ static inline uint64_t clock_gettime_nsec(void) {
 #define PERF_START(t) t = clock_gettime_nsec();
 #define PERF_STOP(t)  t = clock_gettime_nsec() - t
 #define PERF_NAME     "clock_gettime"
+#define PERF_UNIT     "nsec"
 
 #endif /* CHECKASM_PERF_GETTIME_H */

@@ -33,5 +33,6 @@
 #undef PERF_START
 #undef PERF_STOP
 #define PERF_NAME "none"
+#define PERF_UNIT "n/a"
 
 #endif /* CHECKASM_PERF_DUMMY_H */

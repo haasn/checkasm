@@ -35,5 +35,6 @@
 #define PERF_START(t) t = mach_absolute_time();
 #define PERF_STOP(t)  t = mach_absolute_time() - t
 #define PERF_NAME     "mach_absolute_time"
+#define PERF_TICK     "tick"
 
 #endif /* CHECKASM_PERF_MACH_H */

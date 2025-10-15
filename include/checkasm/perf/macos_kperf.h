@@ -39,5 +39,6 @@ CHECKASM_API uint64_t checkasm_kperf_cycles(void);
 #define PERF_START(t) t = checkasm_kperf_cycles();
 #define PERF_STOP(t)  t = checkasm_kperf_cycles() - t
 #define PERF_NAME     "macOS (kperf)"
+#define PERF_UNIT     "cycle"
 
 #endif /* CHECKASM_PERF_MACOS_KPERF_H */

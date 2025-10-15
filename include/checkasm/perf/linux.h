@@ -53,5 +53,6 @@ CHECKASM_API int checkasm_get_perf_sysfd(void);
 } while (0)
 
 #define PERF_NAME "linux (perf)"
+#define PERF_UNIT "tick"
 
 #endif /* CHECKASM_PERF_LINUX_H */

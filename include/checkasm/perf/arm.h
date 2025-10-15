@@ -47,6 +47,7 @@ static inline uint64_t readtime_counter(void) {
 #define PERF_START(t) t = readtime_counter();
 #define PERF_STOP(t)  t = readtime_counter() - t
 #define PERF_NAME     "arm (ccnt)"
+#define PERF_UNIT     "cycle"
 
 #endif /* !defined(_MSC_VER) && __ARM_ARCH >= 7 */
 #endif /* CHECKASM_PERF_ARM_H */
