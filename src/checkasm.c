@@ -144,8 +144,10 @@ static void print_benchs(const CheckasmFunc *const f)
     if (f) {
         print_benchs(f->child[0]);
 
-        const CheckasmFuncVersion *v = &f->versions;
-        const double baseline = avg_cycles_per_call(v);
+        const CheckasmFuncVersion *ref = &f->versions;
+        const CheckasmFuncVersion *v   = ref;
+        const double baseline = avg_cycles_per_call(ref);
+
         do {
             if (v->iterations) {
                 const double cycles = avg_cycles_per_call(v);
@@ -157,7 +159,10 @@ static void print_benchs(const CheckasmFunc *const f)
                     assert(state.max_function_name_length);
                     const int pad = 12 + state.max_function_name_length -
                         printf("  %s_%s:", f->name, cpu_suffix(v->cpu));
-                    printf("%*.1f (%5.2fx)\n", imax(pad, 0), cycles, ratio);
+                    printf("%*.1f", imax(pad, 0), cycles);
+                    if (v != ref)
+                        printf(" (%5.2fx)", ratio);
+                    printf("\n");
                 }
             }
         } while ((v = v->next));
