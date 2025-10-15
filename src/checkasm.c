@@ -601,11 +601,11 @@ unsigned checkasm_bench_runs(void)
     if (v->cycles > state.target_cycles)
         return 0;
 
-    /* Increase number of runs exponentially */
     if (!v->iters) {
         v->iters = 1;
     } else if (v->iters < UINT_MAX >> 1) {
-        v->iters <<= 1;
+        /* Increase number of runs exponentially, with ~12% growth */
+        v->iters = ((v->iters << 3) + v->iters + 7) >> 3;
     }
 
     return v->iters;
