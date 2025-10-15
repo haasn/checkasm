@@ -42,10 +42,10 @@
     }
 #endif
 
-#define PERF_SETUP()
-#define PERF_START(t) t = readtime_tsc();
-#define PERF_STOP(t)  t = readtime_tsc() - t
-#define PERF_NAME     "x86 (rdtsc)"
-#define PERF_UNIT     "cycle"
+#define CHECKASM_PERF_SETUP()
+#define CHECKASM_PERF_START(t) t = readtime_tsc();
+#define CHECKASM_PERF_STOP(t)  t = readtime_tsc() - t
+#define CHECKASM_PERF_NAME     "x86 (rdtsc)"
+#define CHECKASM_PERF_UNIT     "cycle"
 
 #endif /* CHECKASM_PERF_X86_H */

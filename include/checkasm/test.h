@@ -107,23 +107,23 @@ CHECKASM_API void checkasm_checked_call(void *func, ...);
     } while (0)
 
 /* Benchmark the function */
-#ifdef PERF_START
+#ifdef CHECKASM_PERF_START
 #define bench_new(...)\
     do {\
         if (checkasm_bench_func()) {\
             func_type *const tfunc = (func_type *) func_new;\
             checkasm_set_signal_handler_state(1);\
-            PERF_SETUP();\
+            CHECKASM_PERF_SETUP();\
             for (unsigned truns; (truns = checkasm_bench_runs()); ) {\
                 uint64_t tsum = 0;\
                 int tcount = 0;\
                 for (unsigned ti = 0; ti < truns; ti++) {\
                     uint64_t t;\
                     int talt; (void)talt;\
-                    PERF_START(t);\
+                    CHECKASM_PERF_START(t);\
                     CALL16(__VA_ARGS__);\
                     CALL16(__VA_ARGS__);\
-                    PERF_STOP(t);\
+                    CHECKASM_PERF_STOP(t);\
                     if (t*tcount <= tsum*4 && ti > 0) {\
                         tsum += t;\
                         tcount++;\

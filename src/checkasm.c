@@ -460,14 +460,14 @@ int checkasm_run(const CheckasmConfig *config)
         fprintf(stderr, " - CPU: SVE = %d bits\n", sve_len);
 #endif
     if (cfg.bench) {
-        fprintf(stderr, " - Timing source: %s\n", PERF_NAME);
+        fprintf(stderr, " - Timing source: %s\n", CHECKASM_PERF_NAME);
         if (cfg.verbose) {
-            fprintf(stderr, " - Timing overhead: %.1f %ss\n", state.nop_time, PERF_UNIT);
+            fprintf(stderr, " - Timing overhead: %.1f %ss\n", state.nop_time, CHECKASM_PERF_UNIT);
             fprintf(stderr, " - Timing resolution: ~%.4f ns/%s (%.0f MHz)\n",
-                    state.perf_scale, PERF_UNIT, 1e3 / state.perf_scale);
+                    state.perf_scale, CHECKASM_PERF_UNIT, 1e3 / state.perf_scale);
         }
         fprintf(stderr, " - Bench duration: %d µs per function (%"PRIu64" %ss)\n",
-                cfg.bench_usec, state.target_cycles, PERF_UNIT);
+                cfg.bench_usec, state.target_cycles, CHECKASM_PERF_UNIT);
     }
     fprintf(stderr, " - Random seed: %u\n", cfg.seed);
 
@@ -489,11 +489,11 @@ int checkasm_run(const CheckasmConfig *config)
         if (cfg.bench) {
             if (cfg.separator && cfg.verbose) {
                 printf("name%csuffix%c%ss%cnanoseconds\n",
-                       cfg.separator, cfg.separator, PERF_UNIT, cfg.separator);
+                       cfg.separator, cfg.separator, CHECKASM_PERF_UNIT, cfg.separator);
             } else if (!cfg.separator) {
                 checkasm_fprintf(stdout, COLOR_YELLOW, "Benchmark results:\n");
                 checkasm_fprintf(stdout, COLOR_GREEN, "  name%*ss",
-                                 5 + state.max_function_name_length, PERF_UNIT);
+                                 5 + state.max_function_name_length, CHECKASM_PERF_UNIT);
                 if (cfg.verbose)
                     checkasm_fprintf(stdout, COLOR_GREEN, " %*s", 13, "time");
                 checkasm_fprintf(stdout, COLOR_GREEN, " (vs ref)\n");

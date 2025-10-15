@@ -146,14 +146,14 @@ uint64_t checkasm_kperf_cycles(void) {
     return counters[0];
 }
 
-#elif defined(PERF_START)
+#elif defined(CHECKASM_PERF_START)
 
 COLD int checkasm_perf_init(void)
 {
     if (!checkasm_save_context(checkasm_context)) {
         uint64_t t; (void) t;
         checkasm_set_signal_handler_state(1);
-        PERF_START(t);
+        CHECKASM_PERF_START(t);
         checkasm_set_signal_handler_state(0);
         return 0;
     } else {
@@ -172,7 +172,7 @@ COLD int checkasm_perf_init(void)
 
 #endif
 
-#ifdef PERF_START
+#ifdef CHECKASM_PERF_START
 static int cmp_u16(const void *a, const void *b)
 {
     return *(const uint16_t*)a - *(const uint16_t*)b;
@@ -192,14 +192,14 @@ COLD double checkasm_measure_nop_time(void)
     uint16_t nops[SAMPLES];
     int nop_sum = 0;
 
-    PERF_SETUP();
+    CHECKASM_PERF_SETUP();
     for (int i = 0; i < SAMPLES; i++) {
         uint64_t t;
         int talt; (void) talt;
-        PERF_START(t);
+        CHECKASM_PERF_START(t);
         CALL16(alternate(ptr0, ptr1));
         CALL16(alternate(ptr0, ptr1));
-        PERF_STOP(t);
+        CHECKASM_PERF_STOP(t);
         nops[i] = (uint16_t) t;
     }
 
@@ -217,7 +217,7 @@ COLD double checkasm_measure_perf_scale(void)
     double samples[SAMPLES];
     uint64_t nsec;
 
-    PERF_SETUP();
+    CHECKASM_PERF_SETUP();
 
     /* We don't necessarily know the underlying clock rate, so run a busy loop
      * until the observed wall clock time passes the 20 us threshold, to figure
@@ -235,10 +235,10 @@ COLD double checkasm_measure_perf_scale(void)
 
     for (int i = 0; i < SAMPLES; i++) {
         uint64_t cycles;
-        PERF_START(cycles);
+        CHECKASM_PERF_START(cycles);
         for (int i = 0; i < iters; i++)
             checkasm_noop(NULL);
-        PERF_STOP(cycles);
+        CHECKASM_PERF_STOP(cycles);
         /* Measure the same loop with wallclock time instead of cycles */
         nsec = checkasm_gettime_nsec();
         for (int i = 0; i < iters; i++)

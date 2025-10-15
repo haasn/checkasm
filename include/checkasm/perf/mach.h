@@ -31,10 +31,10 @@
 
 #include <mach/mach_time.h>
 
-#define PERF_SETUP()
-#define PERF_START(t) t = mach_absolute_time();
-#define PERF_STOP(t)  t = mach_absolute_time() - t
-#define PERF_NAME     "mach_absolute_time"
-#define PERF_TICK     "tick"
+#define CHECKASM_PERF_SETUP()
+#define CHECKASM_PERF_START(t) t = mach_absolute_time();
+#define CHECKASM_PERF_STOP(t)  t = mach_absolute_time() - t
+#define CHECKASM_PERF_NAME     "mach_absolute_time"
+#define CHECKASM_PERF_TICK     "tick"
 
 #endif /* CHECKASM_PERF_MACH_H */

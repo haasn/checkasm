@@ -42,10 +42,10 @@ static inline uint64_t clock_gettime_nsec(void) {
     return ((uint64_t)ts.tv_sec*1000000000u) + (uint64_t)ts.tv_nsec;
 }
 
-#define PERF_SETUP()
-#define PERF_START(t) t = clock_gettime_nsec();
-#define PERF_STOP(t)  t = clock_gettime_nsec() - t
-#define PERF_NAME     "clock_gettime"
-#define PERF_UNIT     "nsec"
+#define CHECKASM_PERF_SETUP()
+#define CHECKASM_PERF_START(t) t = clock_gettime_nsec();
+#define CHECKASM_PERF_STOP(t)  t = clock_gettime_nsec() - t
+#define CHECKASM_PERF_NAME     "clock_gettime"
+#define CHECKASM_PERF_UNIT     "nsec"
 
 #endif /* CHECKASM_PERF_GETTIME_H */

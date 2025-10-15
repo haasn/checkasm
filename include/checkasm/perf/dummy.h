@@ -29,10 +29,10 @@
 #ifndef CHECKASM_PERF_DUMMY_H
 #define CHECKASM_PERF_DUMMY_H
 
-#undef PERF_SETUP
-#undef PERF_START
-#undef PERF_STOP
-#define PERF_NAME "none"
-#define PERF_UNIT "n/a"
+#undef CHECKASM_PERF_SETUP
+#undef CHECKASM_PERF_START
+#undef CHECKASM_PERF_STOP
+#define CHECKASM_PERF_NAME "none"
+#define CHECKASM_PERF_UNIT "n/a"
 
 #endif /* CHECKASM_PERF_DUMMY_H */

@@ -32,10 +32,10 @@
 #include <windows.h>
 
 #define readtime_sync() (_InstructionSynchronizationBarrier(), ReadTimeStampCounter())
-#define PERF_SETUP()
-#define PERF_START(t) t = readtime_sync();
-#define PERF_STOP(t)  t = readtime_sync() - t
-#define PERF_NAME     "windows (ReadTimeStampCounter)"
-#define PERF_UNIT     "cycle"
+#define CHECKASM_PERF_SETUP()
+#define CHECKASM_PERF_START(t) t = readtime_sync();
+#define CHECKASM_PERF_STOP(t)  t = readtime_sync() - t
+#define CHECKASM_PERF_NAME     "windows (ReadTimeStampCounter)"
+#define CHECKASM_PERF_UNIT     "cycle"
 
 #endif /* CHECKASM_PERF_WINDOWS_H */

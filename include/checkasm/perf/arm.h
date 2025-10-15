@@ -43,11 +43,11 @@ static inline uint64_t readtime_counter(void) {
     return cycle_counter;
 }
 
-#define PERF_SETUP()
-#define PERF_START(t) t = readtime_counter();
-#define PERF_STOP(t)  t = readtime_counter() - t
-#define PERF_NAME     "arm (ccnt)"
-#define PERF_UNIT     "cycle"
+#define CHECKASM_PERF_SETUP()
+#define CHECKASM_PERF_START(t) t = readtime_counter();
+#define CHECKASM_PERF_STOP(t)  t = readtime_counter() - t
+#define CHECKASM_PERF_NAME     "arm (ccnt)"
+#define CHECKASM_PERF_UNIT     "cycle"
 
 #endif /* !defined(_MSC_VER) && __ARM_ARCH >= 7 */
 #endif /* CHECKASM_PERF_ARM_H */

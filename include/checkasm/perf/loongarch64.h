@@ -39,10 +39,10 @@ static inline uint64_t readtime_rdtime(void) {
     return a;
 }
 
-#define PERF_SETUP()
-#define PERF_START(t) t = readtime_rdtime();
-#define PERF_STOP(t)  t = readtime_rdtime() - t
-#define PERF_NAME     "loongarch64 (rdtime)"
-#define PERF_UNIT     "tick"
+#define CHECKASM_PERF_SETUP()
+#define CHECKASM_PERF_START(t) t = readtime_rdtime();
+#define CHECKASM_PERF_STOP(t)  t = readtime_rdtime() - t
+#define CHECKASM_PERF_NAME     "loongarch64 (rdtime)"
+#define CHECKASM_PERF_UNIT     "tick"
 
 #endif /* CHECKASM_PERF_LOONGARCH64_H */
