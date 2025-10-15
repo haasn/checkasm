@@ -160,8 +160,15 @@ static void print_benchs(const CheckasmFunc *const f)
                     const int pad = 12 + state.max_function_name_length -
                         printf("  %s_%s:", f->name, cpu_suffix(v->cpu));
                     printf("%*.1f", imax(pad, 0), cycles);
-                    if (v != ref)
-                        printf(" (%5.2fx)", ratio);
+                    if (v != ref) {
+                        const int color = ratio >= 10.0 ? COLOR_GREEN   :
+                                          ratio >= 1.1  ? COLOR_DEFAULT :
+                                          ratio >= 1.0  ? COLOR_YELLOW  :
+                                          COLOR_RED;
+                        printf(" (");
+                        checkasm_fprintf(stdout, color, "%5.2fx", ratio);
+                        printf(")");
+                    }
                     printf("\n");
                 }
             }
