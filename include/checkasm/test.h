@@ -113,26 +113,25 @@ CHECKASM_API void checkasm_checked_call(void *func, ...);
         if (checkasm_bench_func()) {\
             func_type *const tfunc = (func_type *) func_new;\
             checkasm_set_signal_handler_state(1);\
-            uint64_t tsum = 0;\
-            int tcount = 0;\
             PERF_SETUP();\
-            unsigned truns = checkasm_bench_runs() >> 3;\
-            if (!truns)\
-                truns = 1;\
-            for (unsigned ti = 0; ti < truns; ti++) {\
-                uint64_t t;\
-                int talt; (void)talt;\
-                PERF_START(t);\
-                CALL16(__VA_ARGS__);\
-                CALL16(__VA_ARGS__);\
-                PERF_STOP(t);\
-                if (t*tcount <= tsum*4 && ti > 0) {\
-                    tsum += t;\
-                    tcount++;\
+            for (unsigned truns; (truns = checkasm_bench_runs()); ) {\
+                uint64_t tsum = 0;\
+                int tcount = 0;\
+                for (unsigned ti = 0; ti < truns; ti++) {\
+                    uint64_t t;\
+                    int talt; (void)talt;\
+                    PERF_START(t);\
+                    CALL16(__VA_ARGS__);\
+                    CALL16(__VA_ARGS__);\
+                    PERF_STOP(t);\
+                    if (t*tcount <= tsum*4 && ti > 0) {\
+                        tsum += t;\
+                        tcount++;\
+                    }\
                 }\
+                checkasm_update_bench(tcount, tsum);\
             }\
             checkasm_set_signal_handler_state(0);\
-            checkasm_update_bench(tcount, tsum);\
         } else {\
             const int talt = 0; (void)talt;\
             call_new(__VA_ARGS__);\

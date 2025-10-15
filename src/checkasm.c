@@ -591,7 +591,8 @@ int checkasm_fail_internal(const char *msg, ...) ATTR_FORMAT_PRINTF(1, 2);
 
 unsigned checkasm_bench_runs(void)
 {
-    return cfg.bench_runs;
+    CheckasmFuncVersion *const v = state.current_func_ver;
+    return !v->cycles ? imax(cfg.bench_runs >> 3, 1) : 0; /* 32 calls per iter */
 }
 
 /* Update benchmark results of the current function */
