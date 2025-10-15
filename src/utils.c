@@ -140,14 +140,14 @@ void checkasm_fprintf(FILE *const f, const int color, const char *const fmt, ...
 {
     va_list arg;
 
-    if (use_printf_color)
+    if (color >= 0 && use_printf_color)
         fprintf(f, "\x1b[0;%dm", color);
 
     va_start(arg, fmt);
     vfprintf(f, fmt, arg);
     va_end(arg);
 
-    if (use_printf_color)
+    if (color >= 0 && use_printf_color)
         fprintf(f, "\x1b[0m");
 }
 

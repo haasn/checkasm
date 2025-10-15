@@ -45,9 +45,10 @@ void checkasm_srand(unsigned seed);
 /* Hidden alias without public visibility, for use in asm */
 int checkasm_fail_internal(const char *msg, ...) ATTR_FORMAT_PRINTF(1, 2);
 
-#define COLOR_RED    31
-#define COLOR_GREEN  32
-#define COLOR_YELLOW 33
+#define COLOR_DEFAULT   -1
+#define COLOR_RED       31
+#define COLOR_GREEN     32
+#define COLOR_YELLOW    33
 
 /* Colored variant of fprintf for terminals that support it */
 void checkasm_setup_fprintf(FILE *const f);
