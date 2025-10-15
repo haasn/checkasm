@@ -479,8 +479,17 @@ int checkasm_run(const CheckasmConfig *config)
             fprintf(stderr, "checkasm: all %d tests passed\n", state.num_checked);
         else
             fprintf(stderr, "checkasm: no tests to perform\n");
-        if (cfg.bench)
+
+        if (cfg.bench) {
+            if (cfg.separator && cfg.verbose) {
+                printf("name%csuffix%c%ss\n", cfg.separator, cfg.separator, PERF_UNIT);
+            } else if (!cfg.separator) {
+                checkasm_fprintf(stdout, COLOR_YELLOW, "Benchmark results:\n");
+                checkasm_fprintf(stdout, COLOR_GREEN, "name%*ss (vs ref)\n",
+                                 5 + state.max_function_name_length, PERF_UNIT);
+            }
             print_benchs(state.funcs);
+        }
     }
 
     destroy_func_tree(state.funcs);
