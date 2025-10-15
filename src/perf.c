@@ -181,13 +181,14 @@ static int cmp_nop(const void *a, const void *b)
 /* Measure the overhead of the timing code (in decicycles) */
 COLD double checkasm_measure_nop_time(void)
 {
+    #define SAMPLES 10000
     void (*const tfunc)(void *) = checkasm_noop;
     void *const ptr0 = (void *) 0x1000, *const ptr1 = (void *) 0x2000;
-    uint16_t nops[10000];
+    uint16_t nops[SAMPLES];
     int nop_sum = 0;
 
     PERF_SETUP();
-    for (int i = 0; i < 10000; i++) {
+    for (int i = 0; i < SAMPLES; i++) {
         uint64_t t;
         int talt; (void) talt;
         PERF_START(t);
@@ -197,11 +198,12 @@ COLD double checkasm_measure_nop_time(void)
         nops[i] = (uint16_t) t;
     }
 
-    qsort(nops, 10000, sizeof(uint16_t), cmp_nop);
-    for (int i = 2500; i < 7500; i++) /* ignore outliers */
+    qsort(nops, SAMPLES, sizeof(uint16_t), cmp_nop);
+    for (int i = SAMPLES/4; i < SAMPLES*3/4; i++) /* ignore outliers */
         nop_sum += nops[i];
 
-    return nop_sum / 5000.0;
+    return nop_sum / (SAMPLES / 2.0);
+    #undef SAMPLES
 }
 #else
 COLD double checkasm_measure_nop_time(void) { return 0.0; }
