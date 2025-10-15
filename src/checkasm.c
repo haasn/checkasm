@@ -263,6 +263,32 @@ static void benchmark_finalize(CheckasmFuncVersion *const v)
     }
 }
 
+/* Decide whether or not the current function needs to be benchmarked */
+int checkasm_bench_func(void)
+{
+    return !state.num_failed && cfg.bench;
+}
+
+int checkasm_bench_runs(void)
+{
+    if (state.cycles < state.target_cycles)
+        return state.bench_runs;
+    else
+        return 0;
+}
+
+/* Update benchmark results of the current function */
+void checkasm_update_bench(const int iterations, const uint64_t cycles)
+{
+    state.iters  += iterations;
+    state.cycles += cycles;
+
+    if (state.bench_runs < INT_MAX >> 1) {
+        /* Increase number of runs exponentially, with 1/8 = ~12% growth */
+        state.bench_runs = ((state.bench_runs << 3) + state.bench_runs + 7) >> 3;
+    }
+}
+
 /* Compares a string with a wildcard pattern. */
 static int wildstrcmp(const char *str, const char *pattern)
 {
@@ -577,12 +603,6 @@ void *checkasm_check_func(void *const func, const char *const name, ...)
     return ref;
 }
 
-/* Decide whether or not the current function needs to be benchmarked */
-int checkasm_bench_func(void)
-{
-    return !state.num_failed && cfg.bench;
-}
-
 /* Indicate that the current test has failed, return whether verbose printing
  * is requested. */
 int checkasm_fail_func(const char *const msg, ...)
@@ -606,26 +626,6 @@ int checkasm_fail_func(const char *const msg, ...)
 
 __attribute__((visibility("hidden"), alias("checkasm_fail_func")))
 int checkasm_fail_internal(const char *msg, ...) ATTR_FORMAT_PRINTF(1, 2);
-
-int checkasm_bench_runs(void)
-{
-    if (state.cycles < state.target_cycles)
-        return state.bench_runs;
-    else
-        return 0;
-}
-
-/* Update benchmark results of the current function */
-void checkasm_update_bench(const int iterations, const uint64_t cycles)
-{
-    state.iters  += iterations;
-    state.cycles += cycles;
-
-    if (state.bench_runs < INT_MAX >> 1) {
-        /* Increase number of runs exponentially, with 1/8 = ~12% growth */
-        state.bench_runs = ((state.bench_runs << 3) + state.bench_runs + 7) >> 3;
-    }
-}
 
 void checkasm_should_fail(int s)
 {
