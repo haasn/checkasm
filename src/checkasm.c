@@ -156,7 +156,6 @@ static void print_benchs(const CheckasmFunc *const f)
                            cpu_suffix(v->cpu), cfg.separator, v->cycles,
                            cfg.separator, time);
                 } else {
-                    assert(state.max_function_name_length);
                     const int pad = 12 + state.max_function_name_length -
                         printf("  %s_%s:", f->name, cpu_suffix(v->cpu));
                     printf("%*.1f", imax(pad, 0), v->cycles);
@@ -521,7 +520,7 @@ int checkasm_run(const CheckasmConfig *config)
         else
             fprintf(stderr, "checkasm: no tests to perform\n");
 
-        if (cfg.bench) {
+        if (cfg.bench && state.max_function_name_length) {
             benchmark_finalize(state.current_func_ver);
             if (cfg.separator && cfg.verbose) {
                 printf("name%csuffix%c%ss%cnanoseconds\n",
