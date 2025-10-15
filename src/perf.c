@@ -183,7 +183,7 @@ static int cmp_dbl(const void *a, const void *b)
     return *(const double*)a - *(const double*)b;
 }
 
-/* Measure the overhead of the timing code (in decicycles) */
+/* Measure the overhead of the timing code (in cycles) */
 COLD double checkasm_measure_nop_time(void)
 {
     #define SAMPLES 10000
