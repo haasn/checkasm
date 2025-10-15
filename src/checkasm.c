@@ -271,7 +271,9 @@ int checkasm_bench_func(void)
 
 int checkasm_bench_runs(void)
 {
-    if (state.cycles < state.target_cycles)
+    /* Set 8 as an absolute, hard minimum on the number of samples taken, to
+     * be able to estimate the stddev (of a mean of means) */
+    if (state.cycles < state.target_cycles || state.iters < 8)
         return state.bench_runs;
     else
         return 0;
@@ -283,9 +285,11 @@ void checkasm_update_bench(const int iterations, const uint64_t cycles)
     state.iters  += iterations;
     state.cycles += cycles;
 
-    if (state.bench_runs < INT_MAX >> 1) {
+    /* Try and record at least 10-20 data points for each function */
+    if (cycles < state.target_cycles >> 4) {
         /* Increase number of runs exponentially, with 1/8 = ~12% growth */
         state.bench_runs = ((state.bench_runs << 3) + state.bench_runs + 7) >> 3;
+        state.bench_runs = imin(state.bench_runs, 1 << 28);
     }
 }
 

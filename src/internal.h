@@ -71,4 +71,9 @@ static inline int imax(const int a, const int b)
     return a > b ? a : b;
 }
 
+static inline int imin(const int a, const int b)
+{
+    return a < b ? a : b;
+}
+
 #endif /* CHECKASM_INTERNAL_H */
