@@ -585,20 +585,18 @@ int checkasm_bench_func(void)
  * is requested. */
 int checkasm_fail_func(const char *const msg, ...)
 {
-    if (state.current_func_ver && state.current_func_ver->cpu &&
-        state.current_func_ver->ok)
-    {
+    CheckasmFuncVersion *const v = state.current_func_ver;
+    if (v && v->cpu && v->ok) {
         va_list arg;
 
         print_cpu_name();
-        fprintf(stderr, "   %s_%s (", state.current_func->name,
-                cpu_suffix(state.current_func_ver->cpu));
+        fprintf(stderr, "   %s_%s (", state.current_func->name, cpu_suffix(v->cpu));
         va_start(arg, msg);
         vfprintf(stderr, msg, arg);
         va_end(arg);
         fprintf(stderr, ")\n");
 
-        state.current_func_ver->ok = 0;
+        v->ok = 0;
         state.num_failed++;
     }
     return cfg.verbose;
@@ -615,8 +613,9 @@ unsigned checkasm_bench_runs(void)
 /* Update benchmark results of the current function */
 void checkasm_update_bench(const int iterations, const uint64_t cycles)
 {
-    state.current_func_ver->iterations += iterations;
-    state.current_func_ver->cycles += cycles;
+    CheckasmFuncVersion *const v = state.current_func_ver;
+    v->iterations += iterations;
+    v->cycles += cycles;
 }
 
 void checkasm_should_fail(int s)
