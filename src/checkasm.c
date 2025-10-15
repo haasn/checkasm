@@ -33,7 +33,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
 
 #include "config.h"
 
@@ -307,21 +306,6 @@ static void print_cpu_name(void)
     }
 }
 
-static unsigned get_seed(void)
-{
-#ifdef _WIN32
-    LARGE_INTEGER i;
-    QueryPerformanceCounter(&i);
-    return i.LowPart;
-#elif defined(__APPLE__)
-    return (unsigned) mach_absolute_time();
-#else
-    struct timespec ts;
-    clock_gettime(CLOCK_MONOTONIC, &ts);
-    return (unsigned) (1000000000ULL * ts.tv_sec + ts.tv_nsec);
-#endif
-}
-
 static int set_cpu_affinity(const uint64_t affinity)
 {
     int affinity_err;
@@ -434,7 +418,7 @@ int checkasm_run(const CheckasmConfig *config)
     checkasm_setup_fprintf(stderr);
 
     if (!cfg.seed)
-        cfg.seed = get_seed();
+        cfg.seed = (unsigned) checkasm_gettime_nsec();
     if (!cfg.bench_runs)
         cfg.bench_runs = 1 << 12;
 
