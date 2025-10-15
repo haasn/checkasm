@@ -86,6 +86,11 @@ CHECKASM_API void checkasm_should_fail(int);
  * are properly saved and restored */
 CHECKASM_API void checkasm_checked_call(void *func, ...);
 
+/* Clears any processor state possible left over after running a function */
+#ifndef checkasm_clear_cpu_state
+    #define checkasm_clear_cpu_state() do {} while (0)
+#endif
+
 #define CALL4(...)\
     do {\
         talt = 0;\
@@ -129,6 +134,7 @@ CHECKASM_API void checkasm_checked_call(void *func, ...);
                         tcount++;\
                     }\
                 }\
+                checkasm_clear_cpu_state();\
                 checkasm_update_bench(tcount, tsum);\
             }\
             checkasm_set_signal_handler_state(0);\

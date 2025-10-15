@@ -92,6 +92,7 @@ CHECKASM_API void checkasm_checked_call_emms(void *func, ...);
         (ret (*)(__VA_ARGS__, int, int, int, int, int, int, int,\
          int, int, int, int, int, int, int, int, int,\
          void *, unsigned)) (void *) checkasm_checked_call;\
+    int emms_needed = 0; (void) emms_needed;\
     init_clobber_mask(__VA_ARGS__, void*, void*, void*, void*,\
                       void*, void*, void*, void*, void*, void*,\
                       void*, void*, void*, void*, void*);
@@ -109,7 +110,13 @@ CHECKASM_API void checkasm_checked_call_emms(void *func, ...);
         checked_call = (ret (*)(__VA_ARGS__, int, int, int, int, int, int, int,\
                         int, int, int, int, int, int, int, int, int,\
                         void *, unsigned)) (void *) checkasm_checked_call_emms;\
+        emms_needed = 1;\
     }
+
+#define checkasm_clear_cpu_state() do {\
+    if (emms_needed)\
+        __asm__ volatile ("emms" ::: "memory");\
+} while (0)
 
 /* x86-64 needs 32- and 64-byte alignment for AVX2 and AVX-512. */
 #define ALIGN_64_VAL 64

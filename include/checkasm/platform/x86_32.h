@@ -38,7 +38,8 @@ CHECKASM_API void checkasm_checked_call_emms(void *func, ...);
                         int, int, int, int, int, int, int, int, int) =\
         (ret (*)(void *, __VA_ARGS__, int, int, int, int, int, int,\
                  int, int, int, int, int, int, int, int, int))\
-                 (void *) checkasm_checked_call;
+                 (void *) checkasm_checked_call;\
+    int emms_needed = 0; (void) emms_needed;
 
 #define call_new(...)\
     (checkasm_set_signal_handler_state(1),\
@@ -52,7 +53,13 @@ CHECKASM_API void checkasm_checked_call_emms(void *func, ...);
         checked_call = (ret (*)(void *, __VA_ARGS__, int, int, int, int, int, int,\
                         int, int, int, int, int, int, int, int, int))\
                         (void *) checkasm_checked_call_emms;\
+        emms_needed = 1;\
     }
+
+#define checkasm_clear_cpu_state() do {\
+    if (emms_needed)\
+        __asm__ volatile ("emms" ::: "memory");\
+} while (0)
 
 #define ALIGN_64_VAL 64
 #define ALIGN_32_VAL 32
