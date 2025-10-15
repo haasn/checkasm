@@ -55,9 +55,7 @@ typedef struct CheckasmFuncVersion {
     struct CheckasmFuncVersion *next;
     void *func;
     const CheckasmCpuInfo *cpu;
-    uint64_t cycles;
-    unsigned iters;
-    int iterations;
+    double cycles;
     int ok;
 } CheckasmFuncVersion;
 
@@ -72,22 +70,32 @@ typedef struct CheckasmFunc {
 /* Internal state */
 static CheckasmConfig cfg;
 static struct {
+    /* Current function/test state */
     CheckasmFunc *funcs;
     CheckasmFunc *current_func;
     CheckasmFuncVersion *current_func_ver;
+    const CheckasmCpuInfo *cpu;
+    CheckasmCpu cpu_flags;
     const char *current_test_name;
+
+    /* Miscellaneous state */
     int num_checked;
     int num_failed;
+    int suffix_length;
+    int cpu_name_printed;
+    int max_function_name_length;
+    int should_fail;
+
+    /* Runtime constants */
     double nop_time;
     double perf_scale;
     uint64_t target_cycles;
-    CheckasmCpu cpu_flags;
-    const CheckasmCpuInfo *cpu;
-    int cpu_name_printed;
-    int suffix_length;
-    int max_function_name_length;
     int skip_tests;
-    int should_fail;
+
+    /* Benchmarking state */
+    uint64_t cycles;
+    int bench_runs;
+    int iters;
 } state;
 
 CheckasmCpu checkasm_get_cpu_flags(void)
@@ -130,16 +138,6 @@ static const char *cpu_suffix(const CheckasmCpuInfo *cpu)
     return cpu ? cpu->suffix : "c";
 }
 
-static double avg_cycles_per_call(const CheckasmFuncVersion *const v)
-{
-    if (v->iterations) {
-        const double cycles = (double)v->cycles / v->iterations - state.nop_time;
-        if (cycles > 0.0)
-            return cycles / 32.0; /* 32 calls per iteration */
-    }
-    return 0.0;
-}
-
 /* Print benchmark results */
 static void print_benchs(const CheckasmFunc *const f)
 {
@@ -148,24 +146,22 @@ static void print_benchs(const CheckasmFunc *const f)
 
         const CheckasmFuncVersion *ref = &f->versions;
         const CheckasmFuncVersion *v   = ref;
-        const double baseline = avg_cycles_per_call(ref);
 
         do {
-            if (v->iterations) {
-                const double cycles = avg_cycles_per_call(v);
-                const double cycles_ns = cycles * state.perf_scale;
-                const double ratio = cycles ? baseline / cycles : 0.0;
+            if (v->cycles) {
+                const double time  = v->cycles * state.perf_scale;
+                const double ratio = v->cycles ? ref->cycles / v->cycles : 0.0;
                 if (cfg.separator) {
                     printf("%s%c%s%c%.1f%c%.2f\n", f->name, cfg.separator,
-                           cpu_suffix(v->cpu), cfg.separator, cycles,
-                           cfg.separator, cycles_ns);
+                           cpu_suffix(v->cpu), cfg.separator, v->cycles,
+                           cfg.separator, time);
                 } else {
                     assert(state.max_function_name_length);
                     const int pad = 12 + state.max_function_name_length -
                         printf("  %s_%s:", f->name, cpu_suffix(v->cpu));
-                    printf("%*.1f", imax(pad, 0), cycles);
+                    printf("%*.1f", imax(pad, 0), v->cycles);
                     if (cfg.verbose)
-                        printf("%11.2f ns", cycles_ns);
+                        printf("%11.2f ns", time);
                     if (v != ref) {
                         const int color = ratio >= 10.0 ? COLOR_GREEN   :
                                           ratio >= 1.1  ? COLOR_DEFAULT :
@@ -256,6 +252,15 @@ static CheckasmFunc *get_func(CheckasmFunc **const root, const char *const name)
     }
 
     return f;
+}
+
+static void benchmark_finalize(CheckasmFuncVersion *const v)
+{
+    if (v && state.iters) {
+        const double mean = (double) state.cycles / state.iters - state.nop_time;
+        if (mean > 0.0)
+            v->cycles = mean / 32.0; /* 32 calls per sample */
+    }
 }
 
 /* Compares a string with a wildcard pattern. */
@@ -487,6 +492,7 @@ int checkasm_run(const CheckasmConfig *config)
             fprintf(stderr, "checkasm: no tests to perform\n");
 
         if (cfg.bench) {
+            benchmark_finalize(state.current_func_ver);
             if (cfg.separator && cfg.verbose) {
                 printf("name%csuffix%c%ss%cnanoseconds\n",
                        cfg.separator, cfg.separator, CHECKASM_PERF_UNIT, cfg.separator);
@@ -553,6 +559,8 @@ void *checkasm_check_func(void *const func, const char *const name, ...)
     v->func = func;
     v->ok = 1;
     v->cpu = state.cpu;
+
+    benchmark_finalize(state.current_func_ver); /* finalize previous */
     state.current_func_ver = v;
     if (state.skip_tests)
         return NULL;
@@ -562,6 +570,10 @@ void *checkasm_check_func(void *const func, const char *const name, ...)
     if (state.cpu)
         state.num_checked++;
 
+    /* Reset benchmarking state */
+    state.iters = 0;
+    state.cycles = 0;
+    state.bench_runs = 1;
     return ref;
 }
 
@@ -597,26 +609,22 @@ int checkasm_fail_internal(const char *msg, ...) ATTR_FORMAT_PRINTF(1, 2);
 
 unsigned checkasm_bench_runs(void)
 {
-    CheckasmFuncVersion *const v = state.current_func_ver;
-    if (v->cycles > state.target_cycles)
+    if (state.cycles < state.target_cycles)
+        return state.bench_runs;
+    else
         return 0;
-
-    if (!v->iters) {
-        v->iters = 1;
-    } else if (v->iters < UINT_MAX >> 1) {
-        /* Increase number of runs exponentially, with ~12% growth */
-        v->iters = ((v->iters << 3) + v->iters + 7) >> 3;
-    }
-
-    return v->iters;
 }
 
 /* Update benchmark results of the current function */
 void checkasm_update_bench(const int iterations, const uint64_t cycles)
 {
-    CheckasmFuncVersion *const v = state.current_func_ver;
-    v->iterations += iterations;
-    v->cycles += cycles;
+    state.iters  += iterations;
+    state.cycles += cycles;
+
+    if (state.bench_runs < INT_MAX >> 1) {
+        /* Increase number of runs exponentially, with 1/8 = ~12% growth */
+        state.bench_runs = ((state.bench_runs << 3) + state.bench_runs + 7) >> 3;
+    }
 }
 
 void checkasm_should_fail(int s)
