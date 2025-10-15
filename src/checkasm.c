@@ -155,8 +155,8 @@ static void print_benchs(const CheckasmFunc *const f)
                            cpu_suffix(v->cpu), cfg.separator, cycles);
                 } else {
                     assert(state.max_function_name_length);
-                    const int pad = 10 + state.max_function_name_length -
-                        printf("%s_%s:", f->name, cpu_suffix(v->cpu));
+                    const int pad = 12 + state.max_function_name_length -
+                        printf("  %s_%s:", f->name, cpu_suffix(v->cpu));
                     printf("%*.1f (%5.2fx)\n", imax(pad, 0), cycles, ratio);
                 }
             }
@@ -485,7 +485,7 @@ int checkasm_run(const CheckasmConfig *config)
                 printf("name%csuffix%c%ss\n", cfg.separator, cfg.separator, PERF_UNIT);
             } else if (!cfg.separator) {
                 checkasm_fprintf(stdout, COLOR_YELLOW, "Benchmark results:\n");
-                checkasm_fprintf(stdout, COLOR_GREEN, "name%*ss (vs ref)\n",
+                checkasm_fprintf(stdout, COLOR_GREEN, "  name%*ss (vs ref)\n",
                                  5 + state.max_function_name_length, PERF_UNIT);
             }
             print_benchs(state.funcs);
