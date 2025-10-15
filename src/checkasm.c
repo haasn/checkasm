@@ -286,8 +286,8 @@ static void check_cpu_flag(const CheckasmCpuInfo *cpu)
         state.cpu = cpu;
         state.cpu_name_printed = 0;
         state.suffix_length = (int) strlen(cpu_suffix(cpu)) + 1;
-        if (cfg.cpu_flags_callback)
-            cfg.cpu_flags_callback(state.cpu_flags);
+        if (cfg.set_cpu_flags)
+            cfg.set_cpu_flags(state.cpu_flags);
 
         for (int i = 0; i < cfg.nb_tests; i++) {
             if (cfg.test_pattern && wildstrcmp(cfg.tests[i].name, cfg.test_pattern))
