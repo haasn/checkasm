@@ -607,7 +607,7 @@ int checkasm_fail_func(const char *const msg, ...)
 __attribute__((visibility("hidden"), alias("checkasm_fail_func")))
 int checkasm_fail_internal(const char *msg, ...) ATTR_FORMAT_PRINTF(1, 2);
 
-unsigned checkasm_bench_runs(void)
+int checkasm_bench_runs(void)
 {
     if (state.cycles < state.target_cycles)
         return state.bench_runs;

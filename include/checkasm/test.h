@@ -44,7 +44,7 @@
 CHECKASM_API void *checkasm_check_func(void *func, const char *name, ...) ATTR_FORMAT_PRINTF(2, 3);
 CHECKASM_API int checkasm_bench_func(void);
 CHECKASM_API int checkasm_fail_func(const char *msg, ...) ATTR_FORMAT_PRINTF(1, 2);
-CHECKASM_API unsigned checkasm_bench_runs(void);
+CHECKASM_API int checkasm_bench_runs(void);
 CHECKASM_API void checkasm_update_bench(int iterations, uint64_t cycles);
 CHECKASM_API void checkasm_report(const char *name, ...) ATTR_FORMAT_PRINTF(1, 2);
 CHECKASM_API void checkasm_set_signal_handler_state(int enabled);
@@ -119,10 +119,10 @@ CHECKASM_API void checkasm_checked_call(void *func, ...);
             func_type *const tfunc = (func_type *) func_new;\
             checkasm_set_signal_handler_state(1);\
             CHECKASM_PERF_SETUP();\
-            for (unsigned truns; (truns = checkasm_bench_runs()); ) {\
+            for (int truns; (truns = checkasm_bench_runs()); ) {\
                 uint64_t tsum = 0;\
                 int tcount = 0;\
-                for (unsigned ti = 0; ti < truns; ti++) {\
+                for (int ti = 0; ti < truns; ti++) {\
                     uint64_t t;\
                     int talt; (void)talt;\
                     CHECKASM_PERF_START(t);\
