@@ -463,7 +463,8 @@ int checkasm_run(const CheckasmConfig *config)
         fprintf(stderr, " - Timing source: %s\n", PERF_NAME);
         if (cfg.verbose) {
             fprintf(stderr, " - Timing overhead: %.1f %ss\n", state.nop_time, PERF_UNIT);
-            fprintf(stderr, " - Timing resolution: ~%.4f ns/%s\n", state.perf_scale, PERF_UNIT);
+            fprintf(stderr, " - Timing resolution: ~%.4f ns/%s (%.0f MHz)\n",
+                    state.perf_scale, PERF_UNIT, 1e3 / state.perf_scale);
         }
         fprintf(stderr, " - Bench duration: %d µs per function (%"PRIu64" %ss)\n",
                 cfg.bench_usec, state.target_cycles, PERF_UNIT);
