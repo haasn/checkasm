@@ -78,10 +78,10 @@ typedef struct CheckasmConfig {
     /* If set, outputs benchmark numbers separated by this character */
     char separator;
 
-    /* If nonzero, enable benchmarking, with the specified number of
-     * iterations, defaulting to 4096 (1 << 12) if left unset. */
+    /* If nonzero, enable benchmarking, with the specified target time (µs)
+     * per function tested, defaulting to 2000 µs if left unset. */
     int bench;
-    unsigned bench_runs;
+    unsigned bench_usec;
 
     /* If nonzero, use the specified seed for random number generation. */
     unsigned seed;

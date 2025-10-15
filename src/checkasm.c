@@ -29,6 +29,7 @@
 #include <assert.h>
 #include <errno.h>
 #include <inttypes.h>
+#include <limits.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -55,6 +56,7 @@ typedef struct CheckasmFuncVersion {
     void *func;
     const CheckasmCpuInfo *cpu;
     uint64_t cycles;
+    unsigned iters;
     int iterations;
     int ok;
 } CheckasmFuncVersion;
@@ -78,6 +80,7 @@ static struct {
     int num_failed;
     double nop_time;
     double perf_scale;
+    uint64_t target_cycles;
     CheckasmCpu cpu_flags;
     const CheckasmCpuInfo *cpu;
     int cpu_name_printed;
@@ -419,14 +422,15 @@ int checkasm_run(const CheckasmConfig *config)
 
     if (!cfg.seed)
         cfg.seed = (unsigned) checkasm_gettime_nsec();
-    if (!cfg.bench_runs)
-        cfg.bench_runs = 1 << 12;
+    if (!cfg.bench_usec)
+        cfg.bench_usec = 2000;
 
     if (cfg.bench) {
         if (checkasm_perf_init())
             return 1;
         state.nop_time = checkasm_measure_nop_time();
         state.perf_scale = checkasm_measure_perf_scale();
+        state.target_cycles = 1e3 * cfg.bench_usec / state.perf_scale;
     }
 
 #if ARCH_ARM
@@ -461,7 +465,8 @@ int checkasm_run(const CheckasmConfig *config)
             fprintf(stderr, " - Timing overhead: %.1f %ss\n", state.nop_time, PERF_UNIT);
             fprintf(stderr, " - Timing resolution: ~%.4f ns/%s\n", state.perf_scale, PERF_UNIT);
         }
-        fprintf(stderr, " - Bench runs: %d\n", cfg.bench_runs);
+        fprintf(stderr, " - Bench duration: %d µs per function (%"PRIu64" %ss)\n",
+                cfg.bench_usec, state.target_cycles, PERF_UNIT);
     }
     fprintf(stderr, " - Random seed: %u\n", cfg.seed);
 
@@ -592,7 +597,17 @@ int checkasm_fail_internal(const char *msg, ...) ATTR_FORMAT_PRINTF(1, 2);
 unsigned checkasm_bench_runs(void)
 {
     CheckasmFuncVersion *const v = state.current_func_ver;
-    return !v->cycles ? imax(cfg.bench_runs >> 3, 1) : 0; /* 32 calls per iter */
+    if (v->cycles > state.target_cycles)
+        return 0;
+
+    /* Increase number of runs exponentially */
+    if (!v->iters) {
+        v->iters = 1;
+    } else if (v->iters < UINT_MAX >> 1) {
+        v->iters <<= 1;
+    }
+
+    return v->iters;
 }
 
 /* Update benchmark results of the current function */
@@ -678,7 +693,7 @@ static void print_usage(const char *const progname)
             "    --list-cpu-flags           List available cpu flags\n"
             "    --list-functions           List available functions\n"
             "    --list-tests               List available tests\n"
-            "    --runs=<shift>             Number of benchmark iterations to run (log 2)\n"
+            "    --duration=<μs>            Benchmark duration (per function) in μs\n"
             "    --test=<pattern> -t        Test only <pattern>\n"
             "    --verbose -v               Print verbose timing info and failure data\n",
             progname);
@@ -717,15 +732,13 @@ int checkasm_main(CheckasmConfig *config, int argc, const char *argv[])
             config->separator = ',';
         } else if (!strcmp(argv[1], "--tsv")) {
             config->separator = '\t';
-        } else if (!strncmp(argv[1], "--runs=", 7)) {
-            const char *const s = argv[1] + 7;
-            unsigned runs_log2;
-            if (!parseu(&runs_log2, s, 10) || runs_log2 > 31) {
-                fprintf(stderr, "checkasm: invalid number of runs (1 << %s)\n", s);
+        } else if (!strncmp(argv[1], "--duration=", 11)) {
+            const char *const s = argv[1] + 11;
+            if (!parseu(&config->bench_usec, s, 10)) {
+                fprintf(stderr, "checkasm: invalid duration (%s)\n", s);
                 print_usage(argv[0]);
                 return 1;
             }
-            config->bench_runs = 1u << runs_log2;
         } else if (!strncmp(argv[1], "--test=", 7)) {
             config->test_pattern = argv[1] + 7;
         } else if (!strcmp(argv[1], "-t")) {
