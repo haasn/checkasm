@@ -129,7 +129,7 @@ CHECKASM_API void checkasm_checked_call(void *func, ...);
                     CALL16(__VA_ARGS__);\
                     CALL16(__VA_ARGS__);\
                     CHECKASM_PERF_STOP(t);\
-                    if (t*tcount <= tsum*4 && ti > 0) {\
+                    if (t*tcount <= tsum*4 && (ti > 0 || truns < 50)) {\
                         tsum += t;\
                         tcount++;\
                     }\
