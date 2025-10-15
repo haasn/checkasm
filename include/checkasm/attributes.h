@@ -45,18 +45,6 @@
     #endif
 #endif
 
-/*
- * API for variables, struct members (ALIGN_ARR()) like:
- *   uint8_t var[1][2][3][4]
- * becomes:
- *   ALIGN_ARR(uint8_t var[1][2][3][4], alignment).
- */
-#ifdef _MSC_VER
-    #define ALIGN_ARR(ll, a) __declspec(align(a)) ll
-#else
-    #define ALIGN_ARR(line, align) line __attribute__((aligned(align)))
-#endif
-
 #ifndef CHECKASM_API
     #ifdef _WIN32
       #ifdef CHECKASM_BUILDING_DLL
