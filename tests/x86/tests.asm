@@ -4,14 +4,12 @@
 %include "src/config.asm"
 %include "src/x86/x86inc.asm"
 
-extern memcpy
-
 SECTION .text
 
 %macro copy_mm 0-1 ; suffix
 cglobal copy%1, 3, 3, 1, dst, src, size
     cmp     sizeq, mmsize
-    jl memcpy
+    jl copy_x86
 
     add     dstq, sizeq
     add     srcq, sizeq
