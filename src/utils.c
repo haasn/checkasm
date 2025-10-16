@@ -57,10 +57,11 @@ uint64_t checkasm_gettime_nsec(void)
 {
 #ifdef _WIN32
     static LARGE_INTEGER freq;
+    LARGE_INTEGER ts;
     if (!freq.QuadPart)
         QueryPerformanceFrequency(&freq);
-    QueryPerformanceCounter(&i);
-    return UINT64_C(1000000000) * i.QuadPart / freq.QuadPart;
+    QueryPerformanceCounter(&ts);
+    return UINT64_C(1000000000) * ts.QuadPart / freq.QuadPart;
 #else
     struct timespec ts;
   #ifdef CLOCK_MONOTONIC_RAW
