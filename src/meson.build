@@ -55,6 +55,20 @@ if (host_machine.cpu_family() == 'aarch64' or
     have_elf_aux_info = cc.has_function('elf_aux_info', prefix : '#include <sys/auxv.h>', args : test_args)
 endif
 
+if host_machine.system() == 'windows'
+    if get_option('default_library') != 'static'
+        api_export_flags = ['-DCHECKASM_BUILDING_DLL']
+    endif
+
+    if (host_machine.cpu_family() == 'x86_64' and cc.get_id() == 'gcc')
+        # We don't expect to reference data members from other DLLs without
+        # dllimport attributes. Set the -mcmodel=small flag, which avoids
+        # generating indirection via .refptr.<symname> for all potentially
+        # dllimported variable references.
+        add_project_arguments('-mcmodel=small', language: 'c')
+    endif
+endif
+
 # Build configuration
 cdata = configuration_data()
 cdata.set('PREFIX',                         cc.symbols_have_underscore_prefix())
