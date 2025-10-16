@@ -54,4 +54,4 @@ checkasm_test = executable('checkasm',
 )
 
 test('checkasm',      checkasm_test, suite: 'checkasm')
-benchmark('checkasm', checkasm_test, suite: 'checkasm', args: '--bench')
+benchmark('checkasm', checkasm_test, suite: 'checkasm', args: ['--bench', '--verbose'])
