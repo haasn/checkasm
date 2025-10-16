@@ -276,7 +276,7 @@ int checkasm_bench_runs(void)
 }
 
 /* Update benchmark results of the current function */
-void checkasm_update_bench(const int iterations, const uint64_t cycles)
+void checkasm_bench_update(const int iterations, const uint64_t cycles)
 {
     checkasm_stats_add(&state.stats, (CheckasmSample) { cycles, iterations });
     state.total_cycles += cycles;

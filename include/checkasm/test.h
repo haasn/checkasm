@@ -42,11 +42,7 @@
  ********************************************/
 
 CHECKASM_API void *checkasm_check_func(void *func, const char *name, ...) ATTR_FORMAT_PRINTF(2, 3);
-CHECKASM_API int checkasm_bench_func(void);
 CHECKASM_API int checkasm_fail_func(const char *msg, ...) ATTR_FORMAT_PRINTF(1, 2);
-CHECKASM_API int checkasm_bench_runs(void);
-CHECKASM_API void checkasm_update_bench(int iterations, uint64_t cycles);
-CHECKASM_API void checkasm_bench_finish(void);
 CHECKASM_API void checkasm_report(const char *name, ...) ATTR_FORMAT_PRINTF(1, 2);
 CHECKASM_API void checkasm_set_signal_handler_state(int enabled);
 CHECKASM_API void checkasm_handle_signal(void);
@@ -114,6 +110,11 @@ CHECKASM_API void checkasm_checked_call(void *func, ...);
 
 /* Benchmark the function */
 #ifdef CHECKASM_PERF_START
+CHECKASM_API int checkasm_bench_func(void);
+CHECKASM_API int checkasm_bench_runs(void);
+CHECKASM_API void checkasm_bench_update(int iterations, uint64_t cycles);
+CHECKASM_API void checkasm_bench_finish(void);
+
 #define bench_new(...)\
     do {\
         if (checkasm_bench_func()) {\
@@ -136,7 +137,7 @@ CHECKASM_API void checkasm_checked_call(void *func, ...);
                     }\
                 }\
                 checkasm_clear_cpu_state();\
-                checkasm_update_bench(tcount, tsum);\
+                checkasm_bench_update(tcount, tsum);\
             }\
             checkasm_set_signal_handler_state(0);\
             checkasm_bench_finish();\
