@@ -467,7 +467,10 @@ int checkasm_run(const CheckasmConfig *config)
             return 1;
         state.nop_cycles = checkasm_measure_nop_cycles();
         state.perf_scale = checkasm_measure_perf_scale();
-        state.target_cycles = 1e3 * cfg.bench_usec / state.perf_scale.mean;
+        /* Compute weak lower bound on the perf scale, to get a consvervative
+         * estimate on the number of cycles required */
+        double scale_q1 = state.perf_scale.mean - rv_stddev(state.perf_scale);
+        state.target_cycles = 1e3 * cfg.bench_usec / scale_q1;
     }
 
 #if ARCH_ARM
