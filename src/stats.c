@@ -114,6 +114,13 @@ int checkasm_stats_count_total(const CheckasmStats *const stats)
     return total;
 }
 
+static RandomVar rv_est(uint64_t sum, double sum2, int count)
+{
+    const double mean = (double) sum / count;
+    const double  var = sum2 / count - mean * mean;
+    return (RandomVar) { mean, var };
+}
+
 RandomVar checkasm_stats_estimate(CheckasmStats *const stats,
                                   CheckasmOutliers *const outliers)
 {
@@ -142,13 +149,15 @@ RandomVar checkasm_stats_estimate(CheckasmStats *const stats,
     /* Classify and accumulate */
     int nb_lo_mild = 0, nb_lo_extreme = 0;
     int nb_hi_mild = 0, nb_hi_extreme = 0;
-    uint64_t sum = 0; double sum_var = 0.0;
-    int count = 0;
+    uint64_t sum_raw = 0, sum_trim = 0;
+    double sum2_raw = 0.0, sum2_trim = 0.0;
+    int nb_trim = 0;
 
     for (int i = 0; i < stats->nb_samples; i++) {
         const CheckasmSample s = stats->samples[i];
         const double x = sample_mean(s);
-        sum_var += s.sum * x;
+        sum_raw  += s.sum;
+        sum2_raw += s.sum * x;
 
         /* Reject outliers */
         if (x < lo_extreme) {
@@ -160,13 +169,15 @@ RandomVar checkasm_stats_estimate(CheckasmStats *const stats,
         } else if (x > hi_mild) {
             nb_hi_mild += s.count;
         } else {
-            sum   += s.sum;
-            count += s.count;
+            sum_trim  += s.sum;
+            sum2_trim += s.sum * x;
+            nb_trim   += s.count;
         }
     }
 
     if (outliers) {
         *outliers = (CheckasmOutliers) {
+            .outliers       = (double) (total_count - nb_trim) / total_count,
             .low_mild       = (double) nb_lo_mild    / total_count,
             .low_extreme    = (double) nb_lo_extreme / total_count,
             .high_mild      = (double) nb_hi_mild    / total_count,
@@ -174,8 +185,8 @@ RandomVar checkasm_stats_estimate(CheckasmStats *const stats,
         };
     }
 
-    assert(count > 0);
-    const double mean = (double) sum / count;
-    const double  var = sum_var / total_count - mean * mean;
-    return (RandomVar) { mean, var };
+    assert(nb_trim > 0);
+    const RandomVar raw  = rv_est(sum_raw, sum2_raw, total_count);
+    const RandomVar trim = rv_est(sum_trim, sum2_trim, nb_trim);
+    return (RandomVar) { trim.mean, raw.var };
 }

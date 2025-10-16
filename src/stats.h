@@ -90,7 +90,10 @@ static inline void checkasm_stats_count_grow(CheckasmStats *const stats)
 int checkasm_stats_count_total(const CheckasmStats *stats);
 
 typedef struct CheckasmOutliers {
-    /* Outliers analysis (as a fraction of the total) */
+    /* Total number of outliers (as a fraction of the total) */
+    double outliers;
+
+    /* Breakdown into categories */
     double low_mild, low_extreme;
     double high_mild, high_extreme;
 } CheckasmOutliers;
