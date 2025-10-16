@@ -253,15 +253,6 @@ static CheckasmFunc *get_func(CheckasmFunc **const root, const char *const name)
     return f;
 }
 
-static void benchmark_finalize(CheckasmFuncVersion *const v)
-{
-    if (v && state.iters) {
-        const double mean = (double) state.cycles / state.iters - state.nop_time;
-        if (mean > 0.0)
-            v->cycles = mean / 32.0; /* 32 calls per sample */
-    }
-}
-
 /* Decide whether or not the current function needs to be benchmarked */
 int checkasm_bench_func(void)
 {
@@ -289,6 +280,16 @@ void checkasm_update_bench(const int iterations, const uint64_t cycles)
         /* Increase number of runs exponentially, with 1/8 = ~12% growth */
         state.bench_runs = ((state.bench_runs << 3) + state.bench_runs + 7) >> 3;
         state.bench_runs = imin(state.bench_runs, 1 << 28);
+    }
+}
+
+void checkasm_bench_finish(void)
+{
+    CheckasmFuncVersion *const v = state.current_func_ver;
+    if (v && state.iters) {
+        const double mean = (double) state.cycles / state.iters - state.nop_time;
+        if (mean > 0.0)
+            v->cycles = mean / 32.0; /* 32 calls per sample */
     }
 }
 
@@ -521,7 +522,6 @@ int checkasm_run(const CheckasmConfig *config)
             fprintf(stderr, "checkasm: no tests to perform\n");
 
         if (cfg.bench && state.max_function_name_length) {
-            benchmark_finalize(state.current_func_ver);
             if (cfg.separator && cfg.verbose) {
                 printf("name%csuffix%c%ss%cnanoseconds\n",
                        cfg.separator, cfg.separator, CHECKASM_PERF_UNIT, cfg.separator);
@@ -589,7 +589,6 @@ void *checkasm_check_func(void *const func, const char *const name, ...)
     v->ok = 1;
     v->cpu = state.cpu;
 
-    benchmark_finalize(state.current_func_ver); /* finalize previous */
     state.current_func_ver = v;
     if (state.skip_tests)
         return NULL;
