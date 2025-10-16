@@ -40,6 +40,8 @@
     #define COLD
 #endif
 
+#define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
+
 void checkasm_srand(unsigned seed);
 
 /* Hidden alias without public visibility, for use in asm */
@@ -57,6 +59,10 @@ void checkasm_fprintf(FILE *const f, const int color, const char *const fmt, ...
 
 /* Platform specific signal handling */
 void checkasm_set_signal_handlers(void);
+
+typedef struct RandomVar {
+    double mean, var; /* (trimmed) mean and variance */
+} RandomVar;
 
 /* Platform specific timing code */
 int checkasm_perf_init(void);

@@ -90,6 +90,7 @@ checkasm_sources = files(
   'cpu.c',
   'perf.c',
   'signal.c',
+  'stats.c',
   'utils.c',
 )
 
