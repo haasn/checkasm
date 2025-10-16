@@ -234,6 +234,10 @@ COLD RandomVar checkasm_measure_perf_scale(void)
     while (stats_cycles.nb_samples < (int) ARRAY_SIZE(stats_cycles.samples)) {
         const int iters = stats_cycles.next_count;
 
+        /* Warm up the CPU a tiny bit */
+        for (int i = 0; i < 100; i++)
+            checkasm_noop(NULL);
+
         uint64_t cycles;
         CHECKASM_PERF_START(cycles);
         for (int i = 0; i < iters; i++)
