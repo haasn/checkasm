@@ -32,8 +32,6 @@
 
 #if ARCH_X86
 unsigned checkasm_init_x86(char *name); /* Returns cpuid */
-#elif ARCH_LOONGARCH
-#include "loongarch/cpu.h"
 #elif ARCH_RISCV
 int checkasm_init_riscv(void); /* Returns vlenb, or 0 if no RVV */
 #elif ARCH_AARCH64 && HAVE_SVE

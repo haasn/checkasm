@@ -100,6 +100,8 @@ elif arch_arm
   checkasm_sources += files('arm/checkasm_32.S')
 elif arch_rv64
   checkasm_sources += files('riscv/checkasm_64.S')
+elif arch_loongarch
+  checkasm_sources += files('loongarch/checkasm.S')
 elif arch_x86
   add_languages('nasm', native: false)
   checkasm_config += configure_file(
@@ -111,11 +113,6 @@ elif arch_x86
   checkasm_sources += files(
     'x86/checkasm.asm',
     'x86/cpu.c',
-  )
-elif arch_loongarch
-  checkasm_sources += files(
-    'loongarch/checkasm.S',
-    'loongarch/cpu.c',
   )
 endif
 
