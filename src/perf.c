@@ -34,6 +34,7 @@
 #include "checkasm/perf.h"
 #include "checkasm/test.h"
 #include "internal.h"
+#include "stats.h"
 
 #if CONFIG_LINUX_PERF
     #include <sys/syscall.h>
@@ -173,42 +174,52 @@ COLD int checkasm_perf_init(void)
 #endif
 
 #ifdef CHECKASM_PERF_START
-static int cmp_u16(const void *a, const void *b)
-{
-    return *(const uint16_t*)a - *(const uint16_t*)b;
-}
-
 static int cmp_dbl(const void *a, const void *b)
 {
     return *(const double*)a - *(const double*)b;
 }
 
-/* Measure the overhead of the timing code (in cycles) */
-COLD double checkasm_measure_nop_time(void)
+/* Measure the overhead of the timing code */
+COLD RandomVar checkasm_measure_nop_cycles(void)
 {
-    #define SAMPLES 10000
+    const uint64_t target_nsec = 10000000; /* 10 ms */
+
+    CheckasmStats stats;
+    checkasm_stats_reset(&stats);
+
     void (*const tfunc)(void *) = checkasm_noop;
     void *const ptr0 = (void *) 0x1000, *const ptr1 = (void *) 0x2000;
-    uint16_t nops[SAMPLES];
-    int nop_sum = 0;
 
     CHECKASM_PERF_SETUP();
-    for (int i = 0; i < SAMPLES; i++) {
-        uint64_t t;
-        int talt; (void) talt;
-        CHECKASM_PERF_START(t);
-        CALL16(alternate(ptr0, ptr1));
-        CALL16(alternate(ptr0, ptr1));
-        CHECKASM_PERF_STOP(t);
-        nops[i] = (uint16_t) t;
+
+    for (uint64_t total_nsec = 0; total_nsec < target_nsec; ) {
+        const int runs = stats.next_count;
+        uint64_t cycles = 0;
+        int count = 0;
+
+        /* Measure the overhead of the timing code (in cycles) */
+        uint64_t nsec = checkasm_gettime_nsec();
+        for (int i = 0; i < runs; i++) {
+            uint64_t t;
+            int talt; (void) talt;
+            CHECKASM_PERF_START(t);
+            CALL16(alternate(ptr0, ptr1));
+            CALL16(alternate(ptr0, ptr1));
+            CHECKASM_PERF_STOP(t);
+            if (t * count <= cycles * 4 && (i > 0 || runs < 50)) {
+                cycles += t;
+                count++;
+            }
+        }
+        nsec = checkasm_gettime_nsec() - nsec;
+        checkasm_stats_add(&stats, (CheckasmSample) { cycles, count });
+
+        total_nsec += nsec;
+        if (nsec < target_nsec >> 7)
+            checkasm_stats_count_grow(&stats);
     }
 
-    qsort(nops, SAMPLES, sizeof(uint16_t), cmp_u16);
-    for (int i = SAMPLES/4; i < SAMPLES*3/4; i++) /* ignore outliers */
-        nop_sum += nops[i];
-
-    return nop_sum / (SAMPLES / 2.0);
-    #undef SAMPLES
+    return checkasm_stats_estimate(&stats, NULL);
 }
 
 COLD double checkasm_measure_perf_scale(void)
@@ -257,6 +268,6 @@ COLD double checkasm_measure_perf_scale(void)
     #undef SAMPLES
 }
 #else
-COLD double checkasm_measure_nop_time(void) { return 0.0; }
+COLD RandomVar checkasm_measure_nop_cycles(void) { return (RandomVar) {0}; }
 COLD double checkasm_measure_perf_scale(void) { return 0.0; }
 #endif

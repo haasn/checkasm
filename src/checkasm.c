@@ -90,7 +90,7 @@ static struct {
     int should_fail;
 
     /* Runtime constants */
-    double nop_time;
+    RandomVar nop_cycles;
     double perf_scale;
     uint64_t target_cycles;
     int skip_tests;
@@ -286,13 +286,12 @@ void checkasm_bench_finish(void)
 {
     CheckasmFuncVersion *const v = state.current_func_ver;
     if (v && state.total_cycles) {
-        const RandomVar est = checkasm_stats_estimate(&state.stats, NULL);
-        const double cycles = est.mean - state.nop_time;
-        v->cycles = cycles > 0.0 ? cycles / 32.0 : 0.0; /* 32 calls per sample */
+        const RandomVar est_raw = checkasm_stats_estimate(&state.stats, NULL);
+        const RandomVar cycles = rv_sub(est_raw, state.nop_cycles);
 
-        /* We don't need to subtract the nop_time because it is modelled as a
-         * constant offset and thus doesn't affect the standard deviation */
-        v->stddev = rv_stddev(est) / 32.0;
+        /* 32 calls per sample */
+        v->cycles = fmax(cycles.mean, 0.0) / 32.0;
+        v->stddev = rv_stddev(cycles)      / 32.0;
     }
 }
 
@@ -466,7 +465,7 @@ int checkasm_run(const CheckasmConfig *config)
     if (cfg.bench) {
         if (checkasm_perf_init())
             return 1;
-        state.nop_time = checkasm_measure_nop_time();
+        state.nop_cycles = checkasm_measure_nop_cycles();
         state.perf_scale = checkasm_measure_perf_scale();
         state.target_cycles = 1e3 * cfg.bench_usec / state.perf_scale;
     }
@@ -500,7 +499,8 @@ int checkasm_run(const CheckasmConfig *config)
     if (cfg.bench) {
         fprintf(stderr, " - Timing source: %s\n", CHECKASM_PERF_NAME);
         if (cfg.verbose) {
-            fprintf(stderr, " - Timing overhead: %.1f %ss\n", state.nop_time, CHECKASM_PERF_UNIT);
+            fprintf(stderr, " - Timing overhead: %.1f +/- %.2f %ss\n",
+                    state.nop_cycles.mean, rv_stddev(state.nop_cycles), CHECKASM_PERF_UNIT);
             fprintf(stderr, " - Timing resolution: ~%.4f ns/%s (%.0f MHz)\n",
                     state.perf_scale, CHECKASM_PERF_UNIT, 1e3 / state.perf_scale);
         }
