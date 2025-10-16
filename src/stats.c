@@ -94,7 +94,7 @@ static CheckasmSample get_sample(const CheckasmStats *const stats, int position)
         seen += s.count;
     }
 
-    return (CheckasmSample) {0};
+    return (CheckasmSample) {0, 0};
 }
 
 /* Compare by mean value */
@@ -125,7 +125,7 @@ RandomVar checkasm_stats_estimate(CheckasmStats *const stats,
                                   CheckasmOutliers *const outliers)
 {
     if (!stats->nb_samples)
-        return (RandomVar) {0};
+        return (RandomVar) {0.0, 0.0};
 
     const int total_count = checkasm_stats_count_total(stats);
 
