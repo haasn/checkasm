@@ -219,7 +219,9 @@ COLD RandomVar checkasm_measure_nop_cycles(void)
 
 COLD RandomVar checkasm_measure_perf_scale(void)
 {
-    const uint64_t target_nsec = 10000000; /* 10 ms */
+    /* Try to make the loop long enough to be measurable, but not too long
+     * to avoid being affected by CPU frequency scaling or preemption */
+    const uint64_t target_nsec = 100000 / 2; /* 100 us */
 
     /* Estimate the time per loop iteration in two different ways */
     CheckasmStats stats_cycles;
@@ -229,7 +231,7 @@ COLD RandomVar checkasm_measure_perf_scale(void)
 
     CHECKASM_PERF_SETUP();
 
-    for (uint64_t total_nsec = 0; total_nsec < target_nsec; ) {
+    while (stats_cycles.nb_samples < (int) ARRAY_SIZE(stats_cycles.samples)) {
         const int iters = stats_cycles.next_count;
 
         uint64_t cycles;
@@ -247,8 +249,7 @@ COLD RandomVar checkasm_measure_perf_scale(void)
         checkasm_stats_add(&stats_cycles, (CheckasmSample) { cycles, iters });
         checkasm_stats_add(&stats_nsec,   (CheckasmSample) { nsec,   iters });
 
-        total_nsec += nsec;
-        if (nsec < target_nsec >> 7)
+        if (nsec < target_nsec)
             checkasm_stats_count_grow(&stats_cycles);
     }
 
