@@ -182,7 +182,7 @@ COLD RandomVar checkasm_measure_nop_cycles(void)
     CheckasmStats stats;
     checkasm_stats_reset(&stats);
 
-    void (*const tfunc)(void *) = checkasm_noop;
+    void (*const func_new)(void *) = checkasm_noop;
     void *const ptr0 = (void *) 0x1000, *const ptr1 = (void *) 0x2000;
 
     CHECKASM_PERF_SETUP();

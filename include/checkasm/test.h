@@ -56,15 +56,15 @@ CHECKASM_API void checkasm_should_fail(int);
 
 /* Decide whether or not the specified function needs to be tested */
 #define check_func(func, ...)\
-    (func_ref = checkasm_check_func((func_new = (void *) func), __VA_ARGS__))
+    (func_ref = (func_type *) checkasm_check_func((func_new = func), __VA_ARGS__))
 
 /* Declare the function prototype. The first argument is the return value,
  * the remaining arguments are the function parameters. Naming parameters
  * is optional. */
 #define declare_func(ret, ...)\
     declare_new(ret, __VA_ARGS__)\
-    void *func_ref, *func_new;\
     typedef ret func_type(__VA_ARGS__);\
+    func_type *func_ref, *func_new;\
     if (checkasm_save_context(checkasm_context)) checkasm_handle_signal()
 
 /* Indicate that the current test has failed */
@@ -76,7 +76,7 @@ CHECKASM_API void checkasm_should_fail(int);
 /* Call the reference function */
 #define call_ref(...)\
     (checkasm_set_signal_handler_state(1),\
-     ((func_type *)func_ref)(__VA_ARGS__));\
+     func_ref(__VA_ARGS__));\
     checkasm_set_signal_handler_state(0)
 
 /* Verifies that clobbered callee-saved registers
@@ -91,13 +91,13 @@ CHECKASM_API void checkasm_checked_call(void *func, ...);
 #define CALL4(...)\
     do {\
         talt = 0;\
-        tfunc(__VA_ARGS__); \
+        func_new(__VA_ARGS__); \
         talt = 1;\
-        tfunc(__VA_ARGS__); \
+        func_new(__VA_ARGS__); \
         talt = 0;\
-        tfunc(__VA_ARGS__); \
+        func_new(__VA_ARGS__); \
         talt = 1;\
-        tfunc(__VA_ARGS__); \
+        func_new(__VA_ARGS__); \
     } while (0)
 
 #define CALL16(...)\
@@ -118,7 +118,6 @@ CHECKASM_API void checkasm_bench_finish(void);
 #define bench_new(...)\
     do {\
         if (checkasm_bench_func()) {\
-            func_type *const tfunc = (func_type *) func_new;\
             checkasm_set_signal_handler_state(1);\
             CHECKASM_PERF_SETUP();\
             for (int truns; (truns = checkasm_bench_runs()); ) {\
