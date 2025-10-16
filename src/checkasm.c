@@ -91,7 +91,7 @@ static struct {
 
     /* Runtime constants */
     RandomVar nop_cycles;
-    double perf_scale;
+    RandomVar perf_scale;
     uint64_t target_cycles;
     int skip_tests;
 } state;
@@ -147,7 +147,7 @@ static void print_benchs(const CheckasmFunc *const f)
 
         do {
             if (v->cycles) {
-                const double time  = v->cycles * state.perf_scale;
+                const double time = v->cycles * state.perf_scale.mean;
                 const double ratio = v->cycles ? ref->cycles / v->cycles : 0.0;
                 if (cfg.separator) {
                     printf("%s%c%s%c%.1f%c%.1f%c%.2f\n", f->name, cfg.separator,
@@ -467,7 +467,7 @@ int checkasm_run(const CheckasmConfig *config)
             return 1;
         state.nop_cycles = checkasm_measure_nop_cycles();
         state.perf_scale = checkasm_measure_perf_scale();
-        state.target_cycles = 1e3 * cfg.bench_usec / state.perf_scale;
+        state.target_cycles = 1e3 * cfg.bench_usec / state.perf_scale.mean;
     }
 
 #if ARCH_ARM
@@ -501,8 +501,11 @@ int checkasm_run(const CheckasmConfig *config)
         if (cfg.verbose) {
             fprintf(stderr, " - Timing overhead: %.1f +/- %.2f %ss\n",
                     state.nop_cycles.mean, rv_stddev(state.nop_cycles), CHECKASM_PERF_UNIT);
-            fprintf(stderr, " - Timing resolution: ~%.4f ns/%s (%.0f MHz)\n",
-                    state.perf_scale, CHECKASM_PERF_UNIT, 1e3 / state.perf_scale);
+
+            const RandomVar mhz = rv_div(rv_const(1e3), state.perf_scale);
+            fprintf(stderr, " - Timing resolution: ~%.4f +/- %.3f ns/%s (%.0f +/- %.1f MHz)\n",
+                    state.perf_scale.mean, rv_stddev(state.perf_scale),
+                    CHECKASM_PERF_UNIT, mhz.mean, rv_stddev(mhz));
         }
         fprintf(stderr, " - Bench duration: %d µs per function (%"PRIu64" %ss)\n",
                 cfg.bench_usec, state.target_cycles, CHECKASM_PERF_UNIT);

@@ -174,11 +174,6 @@ COLD int checkasm_perf_init(void)
 #endif
 
 #ifdef CHECKASM_PERF_START
-static int cmp_dbl(const void *a, const void *b)
-{
-    return *(const double*)a - *(const double*)b;
-}
-
 /* Measure the overhead of the timing code */
 COLD RandomVar checkasm_measure_nop_cycles(void)
 {
@@ -222,52 +217,46 @@ COLD RandomVar checkasm_measure_nop_cycles(void)
     return checkasm_stats_estimate(&stats, NULL);
 }
 
-COLD double checkasm_measure_perf_scale(void)
+COLD RandomVar checkasm_measure_perf_scale(void)
 {
-    #define SAMPLES 200
-    double samples[SAMPLES];
-    uint64_t nsec;
+    const uint64_t target_nsec = 10000000; /* 10 ms */
+
+    /* Estimate the time per loop iteration in two different ways */
+    CheckasmStats stats_cycles;
+    CheckasmStats stats_nsec;
+    checkasm_stats_reset(&stats_cycles);
+    checkasm_stats_reset(&stats_nsec);
 
     CHECKASM_PERF_SETUP();
 
-    /* We don't necessarily know the underlying clock rate, so run a busy loop
-     * until the observed wall clock time passes the 20 us threshold, to figure
-     * out how many loop iterations we should target. This should make the
-     * measurement as a whole take only around 10 ms */
-    const int target = 20000 / 2;
-    int iters = 1000;
-    do {
-        nsec = checkasm_gettime_nsec();
-        for (int i = 0; i < iters; i++)
-            checkasm_noop(NULL);
-        nsec = checkasm_gettime_nsec() - nsec;
-        iters <<= 1;
-    } while (nsec < target);
+    for (uint64_t total_nsec = 0; total_nsec < target_nsec; ) {
+        const int iters = stats_cycles.next_count;
 
-    for (int i = 0; i < SAMPLES; i++) {
         uint64_t cycles;
         CHECKASM_PERF_START(cycles);
         for (int i = 0; i < iters; i++)
             checkasm_noop(NULL);
         CHECKASM_PERF_STOP(cycles);
+
         /* Measure the same loop with wallclock time instead of cycles */
-        nsec = checkasm_gettime_nsec();
+        uint64_t nsec = checkasm_gettime_nsec();
         for (int i = 0; i < iters; i++)
             checkasm_noop(NULL);
         nsec = checkasm_gettime_nsec() - nsec;
 
-        samples[i] = (double) nsec / cycles;
+        checkasm_stats_add(&stats_cycles, (CheckasmSample) { cycles, iters });
+        checkasm_stats_add(&stats_nsec,   (CheckasmSample) { nsec,   iters });
+
+        total_nsec += nsec;
+        if (nsec < target_nsec >> 7)
+            checkasm_stats_count_grow(&stats_cycles);
     }
 
-    double sum = 0.0;
-    qsort(samples, SAMPLES, sizeof(double), cmp_dbl);
-    for (int i = SAMPLES/4; i < SAMPLES*3/4; i++) /* ignore outliers */
-        sum += samples[i];
-
-    return sum / (SAMPLES / 2.0);
-    #undef SAMPLES
+    RandomVar est_cycles = checkasm_stats_estimate(&stats_cycles, NULL);
+    RandomVar est_nsec   = checkasm_stats_estimate(&stats_nsec, NULL);
+    return rv_div(est_nsec, est_cycles);
 }
 #else
 COLD RandomVar checkasm_measure_nop_cycles(void) { return (RandomVar) {0}; }
-COLD double checkasm_measure_perf_scale(void) { return 0.0; }
+COLD RandomVar checkasm_measure_perf_scale(void) { return (RandomVar) {0}; }
 #endif
