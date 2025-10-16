@@ -41,13 +41,13 @@ CHECKASM_API int checkasm_get_perf_sysfd(void);
     int sysfd = checkasm_get_perf_sysfd()
 
 #define CHECKASM_PERF_START(t) do {\
-    ioctl(sysfd, CHECKASM_PERF_EVENT_IOC_RESET, 0);\
-    ioctl(sysfd, CHECKASM_PERF_EVENT_IOC_ENABLE, 0);\
+    ioctl(sysfd, PERF_EVENT_IOC_RESET, 0);\
+    ioctl(sysfd, PERF_EVENT_IOC_ENABLE, 0);\
 } while (0)
 
 #define CHECKASM_PERF_STOP(t) do {\
     int _ret;\
-    ioctl(sysfd, CHECKASM_PERF_EVENT_IOC_DISABLE, 0);\
+    ioctl(sysfd, PERF_EVENT_IOC_DISABLE, 0);\
     _ret = read(sysfd, &t, sizeof(t));\
     (void)_ret;\
 } while (0)
