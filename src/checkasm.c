@@ -56,7 +56,7 @@ typedef struct CheckasmFuncVersion {
     struct CheckasmFuncVersion *next;
     void *func;
     const CheckasmCpuInfo *cpu;
-    double cycles;
+    double cycles, stddev;
     int ok;
 } CheckasmFuncVersion;
 
@@ -150,15 +150,15 @@ static void print_benchs(const CheckasmFunc *const f)
                 const double time  = v->cycles * state.perf_scale;
                 const double ratio = v->cycles ? ref->cycles / v->cycles : 0.0;
                 if (cfg.separator) {
-                    printf("%s%c%s%c%.1f%c%.2f\n", f->name, cfg.separator,
+                    printf("%s%c%s%c%.1f%c%.1f%c%.2f\n", f->name, cfg.separator,
                            cpu_suffix(v->cpu), cfg.separator, v->cycles,
-                           cfg.separator, time);
+                           cfg.separator, v->stddev, cfg.separator, time);
                 } else {
                     const int pad = 12 + state.max_function_name_length -
                         printf("  %s_%s:", f->name, cpu_suffix(v->cpu));
                     printf("%*.1f", imax(pad, 0), v->cycles);
                     if (cfg.verbose)
-                        printf("%11.2f ns", time);
+                        printf(" +/- %-7.1f %11.2f ns", v->stddev, time);
                     if (v != ref) {
                         const int color = ratio >= 10.0 ? COLOR_GREEN   :
                                           ratio >= 1.1  ? COLOR_DEFAULT :
@@ -289,6 +289,10 @@ void checkasm_bench_finish(void)
         const RandomVar est = checkasm_stats_estimate(&state.stats, NULL);
         const double cycles = est.mean - state.nop_time;
         v->cycles = cycles > 0.0 ? cycles / 32.0 : 0.0; /* 32 calls per sample */
+
+        /* We don't need to subtract the nop_time because it is modelled as a
+         * constant offset and thus doesn't affect the standard deviation */
+        v->stddev = rv_stddev(est) / 32.0;
     }
 }
 
@@ -522,14 +526,15 @@ int checkasm_run(const CheckasmConfig *config)
 
         if (cfg.bench && state.max_function_name_length) {
             if (cfg.separator && cfg.verbose) {
-                printf("name%csuffix%c%ss%cnanoseconds\n",
-                       cfg.separator, cfg.separator, CHECKASM_PERF_UNIT, cfg.separator);
+                printf("name%csuffix%c%ss%cstddev%cnanoseconds\n",
+                       cfg.separator, cfg.separator, CHECKASM_PERF_UNIT,
+                       cfg.separator, cfg.separator);
             } else if (!cfg.separator) {
                 checkasm_fprintf(stdout, COLOR_YELLOW, "Benchmark results:\n");
                 checkasm_fprintf(stdout, COLOR_GREEN, "  name%*ss",
                                  5 + state.max_function_name_length, CHECKASM_PERF_UNIT);
                 if (cfg.verbose)
-                    checkasm_fprintf(stdout, COLOR_GREEN, " %*s", 13, "time");
+                    checkasm_fprintf(stdout, COLOR_GREEN, " +/- stddev  %*s", 14, "time");
                 checkasm_fprintf(stdout, COLOR_GREEN, " (vs ref)\n");
             }
             print_benchs(state.funcs);
