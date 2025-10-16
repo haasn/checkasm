@@ -29,11 +29,17 @@ libdl_dependency    = cc.find_library('dl', required: false)
 thread_dependency   = dependency('threads')
 
 have_pthread_np = cc.check_header('pthread_np.h')
+if have_pthread_np
+  test_args += '-DHAVE_PTHREAD_NP_H'
+endif
+
 have_pthread_setaffinity_np = cc.has_function('pthread_setaffinity_np',
-  prefix: [
-    '#include <pthread.h>',
-    have_pthread_np ? '#include <pthread_np.h>' : ''
-  ],
+  prefix: '''
+    #include <pthread.h>
+    #ifdef HAVE_PTHREAD_NP_H
+    #include <pthread_np.h>
+    #endif
+  ''',
   args: test_args,
   dependencies: thread_dependency,
 )

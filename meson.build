@@ -29,7 +29,7 @@ project('checkasm', 'c',
                     'buildtype=debugoptimized',
                     'b_ndebug=if-release',
                     'warning_level=2'],
-  meson_version : '>=1.0.0')
+  meson_version : '>=0.64.0')
 
 # Project arguments and basic checks
 cc = meson.get_compiler('c')
