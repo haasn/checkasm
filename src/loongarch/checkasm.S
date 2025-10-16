@@ -27,7 +27,7 @@
 
 #define PRIVATE_PREFIX checkasm_
 
-#include "src/loongarch/loongson_asm.S"
+#include "loongarch/loongson_asm.S"
 
 const register_init, align=4
 .quad 0x21f86d66c8ca00ce
