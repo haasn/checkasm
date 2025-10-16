@@ -40,6 +40,7 @@
 #include "checkasm.h"
 #include "cpu.h"
 #include "internal.h"
+#include "stats.h"
 #include "test.h"
 
 #ifndef _WIN32
@@ -77,6 +78,8 @@ static struct {
     const CheckasmCpuInfo *cpu;
     CheckasmCpu cpu_flags;
     const char *current_test_name;
+    CheckasmStats stats;
+    uint64_t total_cycles;
 
     /* Miscellaneous state */
     int num_checked;
@@ -91,11 +94,6 @@ static struct {
     double perf_scale;
     uint64_t target_cycles;
     int skip_tests;
-
-    /* Benchmarking state */
-    uint64_t cycles;
-    int bench_runs;
-    int iters;
 } state;
 
 CheckasmCpu checkasm_get_cpu_flags(void)
@@ -261,10 +259,14 @@ int checkasm_bench_func(void)
 
 int checkasm_bench_runs(void)
 {
-    /* Set 8 as an absolute, hard minimum on the number of samples taken, to
-     * be able to estimate the stddev (of a mean of means) */
-    if (state.cycles < state.target_cycles || state.iters < 8)
-        return state.bench_runs;
+    /* This limit should be impossible to hit in practice */
+    if (state.stats.nb_samples == ARRAY_SIZE(state.stats.samples))
+        return 0;
+
+    /* Try and gather at least 30 samples for statistical validity, even if
+     * it means exceeding the time budget */
+    if (state.total_cycles < state.target_cycles || state.stats.nb_samples < 30)
+        return state.stats.next_count;
     else
         return 0;
 }
@@ -272,24 +274,21 @@ int checkasm_bench_runs(void)
 /* Update benchmark results of the current function */
 void checkasm_update_bench(const int iterations, const uint64_t cycles)
 {
-    state.iters  += iterations;
-    state.cycles += cycles;
+    checkasm_stats_add(&state.stats, (CheckasmSample) { cycles, iterations });
+    state.total_cycles += cycles;
 
-    /* Try and record at least 10-20 data points for each function */
-    if (cycles < state.target_cycles >> 4) {
-        /* Increase number of runs exponentially, with 1/8 = ~12% growth */
-        state.bench_runs = ((state.bench_runs << 3) + state.bench_runs + 7) >> 3;
-        state.bench_runs = imin(state.bench_runs, 1 << 28);
-    }
+    /* Try and record at least 100 data points for each function */
+    if (cycles < state.target_cycles >> 7)
+        checkasm_stats_count_grow(&state.stats);
 }
 
 void checkasm_bench_finish(void)
 {
     CheckasmFuncVersion *const v = state.current_func_ver;
-    if (v && state.iters) {
-        const double mean = (double) state.cycles / state.iters - state.nop_time;
-        if (mean > 0.0)
-            v->cycles = mean / 32.0; /* 32 calls per sample */
+    if (v && state.total_cycles) {
+        const RandomVar est = checkasm_stats_estimate(&state.stats, NULL);
+        const double cycles = est.mean - state.nop_time;
+        v->cycles = cycles > 0.0 ? cycles / 32.0 : 0.0; /* 32 calls per sample */
     }
 }
 
@@ -598,10 +597,9 @@ void *checkasm_check_func(void *const func, const char *const name, ...)
     if (state.cpu)
         state.num_checked++;
 
-    /* Reset benchmarking state */
-    state.iters = 0;
-    state.cycles = 0;
-    state.bench_runs = 1;
+    /* Reset benchmark state */
+    checkasm_stats_reset(&state.stats);
+    state.total_cycles = 0;
     return ref;
 }
 
