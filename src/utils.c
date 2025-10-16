@@ -49,7 +49,7 @@
 #include "checkasm/test.h"
 #include "internal.h"
 
-void checkasm_noop(void *ptr) {
+NOINLINE void checkasm_noop(void *ptr) {
     (void) ptr;
 }
 

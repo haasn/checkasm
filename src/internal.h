@@ -40,6 +40,14 @@
     #define COLD
 #endif
 
+#ifdef _MSC_VER
+    #define NOINLINE __declspec(noinline)
+#elif __has_attribute(noclone)
+    #define NOINLINE __attribute__((noinline, noclone))
+#else
+    #define NOINLINE __attribute__((noinline))
+#endif
+
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
 
 void checkasm_srand(unsigned seed);
