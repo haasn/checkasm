@@ -31,10 +31,20 @@
 #include "config.h"
 
 #if ARCH_X86
-unsigned checkasm_init_x86(char *name); /* Returns cpuid */
+
+/* Initializes internal state for checkasm_checked_call().
+ * Returns cpuid and model name. */
+unsigned checkasm_init_x86(char *name);
+
 #elif ARCH_RISCV
-int checkasm_init_riscv(void); /* Returns vlenb, or 0 if no RVV */
+
+/* Initializes internal state for checkasm_checked_call().
+ * Returns the vector length in bytes, or 0 if no RVV */
+int checkasm_init_riscv(void);
+
 #elif ARCH_AARCH64 && HAVE_SVE
+
+/* Returns the SVE vector length in bytes, or 0 if no SVE */
 int checkasm_sve_length(void);
 
 #elif ARCH_ARM
