@@ -36,6 +36,15 @@ unsigned checkasm_init_x86(char *name); /* Returns cpuid */
 int checkasm_init_riscv(void); /* Returns vlenb, or 0 if no RVV */
 #elif ARCH_AARCH64 && HAVE_SVE
 int checkasm_sve_length(void);
+
+#elif ARCH_ARM
+
+void checkasm_checked_call_vfp(void *func, int dummy, ...);
+void checkasm_checked_call_novfp(void *func, int dummy, ...);
+
+/* Returns a nonzero value if NEON is available, 0 otherwise */
+int checkasm_has_neon(void);
+
 #endif
 
 unsigned long checkasm_getauxval(unsigned long);

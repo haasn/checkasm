@@ -244,3 +244,18 @@ endfunc
 
 clobbercheck novfp
 clobbercheck vfp
+
+/**
+ * int checkasm_has_neon(void);
+ */
+function has_neon, export=1
+        push            {lr}
+        mov             r0, #16 /* AT_HWCAP */
+#ifdef PREFIX
+        bl              _checkasm_getauxval
+#else
+        bl              checkasm_getauxval
+#endif
+        and             r0, #(1 << 12) /* HWCAP_NEON */
+        pop             {pc}
+endfunc

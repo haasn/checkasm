@@ -475,10 +475,7 @@ int checkasm_run(const CheckasmConfig *config)
     }
 
 #if ARCH_ARM
-    const unsigned cpu_flags = checkasm_get_cpu_flags_arm();
-    void checkasm_checked_call_vfp(void *func, int dummy, ...);
-    void checkasm_checked_call_novfp(void *func, int dummy, ...);
-    if (cpu_flags & CHECKASM_ARM_CPU_FLAG_NEON)
+    if (checkasm_has_neon())
         checkasm_checked_call_ptr = checkasm_checked_call_vfp;
     else
         checkasm_checked_call_ptr = checkasm_checked_call_novfp;
