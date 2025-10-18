@@ -49,6 +49,18 @@
   #define NOINLINE __attribute__((noinline))
 #endif
 
+#if defined(_WIN32) || defined(__CYGWIN__)
+  #define HIDDEN
+#else
+  #define HIDDEN __attribute__((visibility("hidden")))
+#endif
+
+#if __has_attribute(alias)
+  #define ALIAS(symbol) __attribute__((alias(#symbol)))
+#else
+  #error Symbol aliasing is not supported, please open an issue!
+#endif
+
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
 
 void checkasm_srand(unsigned seed);

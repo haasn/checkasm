@@ -641,8 +641,7 @@ int checkasm_fail_func(const char *const msg, ...)
     return cfg.verbose;
 }
 
-__attribute__((visibility("hidden"), alias("checkasm_fail_func"))) int
-checkasm_fail_internal(const char *msg, ...) ATTR_FORMAT_PRINTF(1, 2);
+HIDDEN int checkasm_fail_internal(const char *msg, ...) ALIAS(checkasm_fail_func);
 
 void checkasm_should_fail(int s)
 {
