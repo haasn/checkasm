@@ -68,14 +68,14 @@ void checkasm_fprintf(FILE *const f, const int color, const char *const fmt, ...
 /* Platform specific signal handling */
 void checkasm_set_signal_handlers(void);
 
-typedef struct RandomVar {
+typedef struct CheckasmVar {
     double mean, var; /* (trimmed) mean and variance */
-} RandomVar;
+} CheckasmVar;
 
 /* Platform specific timing code */
 int checkasm_perf_init(void);
-RandomVar checkasm_measure_nop_cycles(void); /* cycles per iter */
-RandomVar checkasm_measure_perf_scale(double *low_estimate); /* ns per cycle */
+CheckasmVar checkasm_measure_nop_cycles(void); /* cycles per iter */
+CheckasmVar checkasm_measure_perf_scale(double *low_estimate); /* ns per cycle */
 uint64_t checkasm_gettime_nsec(void);
 void checkasm_noop(void *);
 

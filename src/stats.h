@@ -33,23 +33,23 @@
 
 #include "internal.h"
 
-static inline double rv_stddev(const RandomVar rv)
+static inline double checkasm_stddev(const CheckasmVar x)
 {
-    return rv.var > 0.0 ? sqrt(rv.var) : 0.0;
+    return x.var > 0.0 ? sqrt(x.var) : 0.0;
 }
 
-static inline RandomVar rv_const(double x)
+static inline CheckasmVar checkasm_var_const(double x)
 {
-    return (RandomVar){ x, 0.0 };
+    return (CheckasmVar){ x, 0.0 };
 }
 
 /* Assumes independent random variables */
-RandomVar rv_scale(RandomVar a, double s);
-RandomVar rv_add(RandomVar a, RandomVar b);
-RandomVar rv_sub(RandomVar a, RandomVar b);
-RandomVar rv_mul(RandomVar a, RandomVar b);
-RandomVar rv_div(RandomVar a, RandomVar b); /* approximation, use with caution */
-RandomVar rv_inv(RandomVar a);
+CheckasmVar checkasm_var_scale(CheckasmVar a, double s);
+CheckasmVar checkasm_var_add(CheckasmVar a, CheckasmVar b);
+CheckasmVar checkasm_var_sub(CheckasmVar a, CheckasmVar b);
+CheckasmVar checkasm_var_mul(CheckasmVar a, CheckasmVar b);
+CheckasmVar checkasm_var_div(CheckasmVar a, CheckasmVar b); /* approximation, use with caution */
+CheckasmVar checkasm_var_inv(CheckasmVar a);
 
 /* Statistical analysis helpers */
 typedef struct CheckasmSample {
@@ -103,7 +103,7 @@ typedef struct CheckasmDistribution {
 } CheckasmDistribution;
 
 /* `distribution` is optional and gives more detail */
-RandomVar checkasm_stats_estimate(CheckasmStats *stats,
-                                  CheckasmDistribution *distribution);
+CheckasmVar checkasm_stats_estimate(CheckasmStats *stats,
+                                    CheckasmDistribution *distribution);
 
 #endif /* CHECKASM_STATS_H */

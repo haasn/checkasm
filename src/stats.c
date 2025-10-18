@@ -29,53 +29,53 @@
 
 #include "stats.h"
 
-RandomVar rv_scale(RandomVar a, double s)
+CheckasmVar checkasm_var_scale(CheckasmVar a, double s)
 {
-    /* = rv_mul(a, rv_const(b)) */
-    return (RandomVar) {
+    /* = checkasm_var_mul(a, checkasm_var_const(b)) */
+    return (CheckasmVar) {
         .mean = a.mean * s,
         .var  = a.var  * s * s,
     };
 }
 
-RandomVar rv_add(const RandomVar a, const RandomVar b)
+CheckasmVar checkasm_var_add(const CheckasmVar a, const CheckasmVar b)
 {
-    return (RandomVar) {
+    return (CheckasmVar) {
         .mean = a.mean + b.mean,
         .var  = a.var  + b.var,
     };
 }
 
-RandomVar rv_sub(RandomVar a, RandomVar b)
+CheckasmVar checkasm_var_sub(CheckasmVar a, CheckasmVar b)
 {
-    return (RandomVar) {
+    return (CheckasmVar) {
         .mean = a.mean - b.mean,
         .var  = a.var + b.var,
     };
 }
 
-RandomVar rv_mul(RandomVar a, RandomVar b)
+CheckasmVar checkasm_var_mul(CheckasmVar a, CheckasmVar b)
 {
-    return (RandomVar) {
+    return (CheckasmVar) {
         .mean = a.mean * b.mean,
         .var  = a.var * b.var + a.var * b.mean * b.mean + b.var * a.mean * a.mean,
     };
 }
 
-RandomVar rv_inv(RandomVar a)
+CheckasmVar checkasm_var_inv(CheckasmVar a)
 {
     /* Approximate using first-order Taylor expansion */
     const double inv_mean = 1.0 / a.mean;
     const double inv_mean2 = inv_mean * inv_mean;
-    return (RandomVar) {
+    return (CheckasmVar) {
         .mean = inv_mean,
         .var  = a.var * inv_mean2 * inv_mean2,
     };
 }
 
-RandomVar rv_div(RandomVar a, RandomVar b)
+CheckasmVar checkasm_var_div(CheckasmVar a, CheckasmVar b)
 {
-    return rv_mul(a, rv_inv(b));
+    return checkasm_var_mul(a, checkasm_var_inv(b));
 }
 
 static double sample_mean(const CheckasmSample s)
@@ -114,18 +114,18 @@ int checkasm_stats_count_total(const CheckasmStats *const stats)
     return total;
 }
 
-static RandomVar rv_est(uint64_t sum, double sum2, int count)
+static CheckasmVar var_est(uint64_t sum, double sum2, int count)
 {
     const double mean = (double) sum / count;
     const double  var = sum2 / count - mean * mean;
-    return (RandomVar) { mean, var };
+    return (CheckasmVar) { mean, var };
 }
 
-RandomVar checkasm_stats_estimate(CheckasmStats *const stats,
+CheckasmVar checkasm_stats_estimate(CheckasmStats *const stats,
                                   CheckasmDistribution *const distribution)
 {
     if (!stats->nb_samples)
-        return (RandomVar) {0.0, 0.0};
+        return (CheckasmVar) {0.0, 0.0};
 
     const int total_count = checkasm_stats_count_total(stats);
 
@@ -195,7 +195,7 @@ RandomVar checkasm_stats_estimate(CheckasmStats *const stats,
     }
 
     assert(nb_trim > 0);
-    const RandomVar raw  = rv_est(sum_raw, sum2_raw, total_count);
-    const RandomVar trim = rv_est(sum_trim, sum2_trim, nb_trim);
-    return (RandomVar) { trim.mean, raw.var };
+    const CheckasmVar raw  = var_est(sum_raw, sum2_raw, total_count);
+    const CheckasmVar trim = var_est(sum_trim, sum2_trim, nb_trim);
+    return (CheckasmVar) { trim.mean, raw.var };
 }

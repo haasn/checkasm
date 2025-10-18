@@ -175,7 +175,7 @@ COLD int checkasm_perf_init(void)
 
 #ifdef CHECKASM_PERF_START
 /* Measure the overhead of the timing code */
-COLD RandomVar checkasm_measure_nop_cycles(void)
+COLD CheckasmVar checkasm_measure_nop_cycles(void)
 {
     const uint64_t target_nsec = 10000000; /* 10 ms */
 
@@ -217,7 +217,7 @@ COLD RandomVar checkasm_measure_nop_cycles(void)
     return checkasm_stats_estimate(&stats, NULL);
 }
 
-COLD RandomVar checkasm_measure_perf_scale(double *low_estimate)
+COLD CheckasmVar checkasm_measure_perf_scale(double *low_estimate)
 {
     /* Try to make the loop long enough to be measurable, but not too long
      * to avoid being affected by CPU frequency scaling or preemption */
@@ -258,16 +258,16 @@ COLD RandomVar checkasm_measure_perf_scale(double *low_estimate)
     }
 
     CheckasmDistribution dist_cycles, dist_nsec;
-    RandomVar est_cycles = checkasm_stats_estimate(&stats_cycles, &dist_cycles);
-    RandomVar est_nsec   = checkasm_stats_estimate(&stats_nsec,   &dist_nsec);
+    CheckasmVar est_cycles = checkasm_stats_estimate(&stats_cycles, &dist_cycles);
+    CheckasmVar est_nsec   = checkasm_stats_estimate(&stats_nsec,   &dist_nsec);
     *low_estimate = dist_nsec.q1 / dist_cycles.q3;
-    return rv_div(est_nsec, est_cycles);
+    return checkasm_var_div(est_nsec, est_cycles);
 }
 #else
-COLD RandomVar checkasm_measure_nop_cycles(void) { return (RandomVar) {0}; }
-COLD RandomVar checkasm_measure_perf_scale(double *low_estimate)
+COLD CheckasmVar checkasm_measure_nop_cycles(void) { return (CheckasmVar) {0}; }
+COLD CheckasmVar checkasm_measure_perf_scale(double *low_estimate)
 {
     (void) low_estimate;
-    return (RandomVar) {0};
+    return (CheckasmVar) {0};
 }
 #endif
