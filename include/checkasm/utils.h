@@ -48,20 +48,29 @@ CHECKASM_API void checkasm_clear16(uint16_t *buf, int width, uint16_t val);
 #define RANDOMIZE_BUF(buf) checkasm_randomize(buf, sizeof(buf))
 
 /* float compare utilities */
-CHECKASM_API int float_near_ulp(float a, float b, unsigned max_ulp);
-CHECKASM_API int float_near_abs_eps(float a, float b, float eps);
-CHECKASM_API int float_near_abs_eps_ulp(float a, float b, float eps,
-                                        unsigned max_ulp);
-CHECKASM_API int float_near_ulp_array(const float *a, const float *b,
-                                      unsigned max_ulp, int len);
-CHECKASM_API int float_near_abs_eps_array(const float *a, const float *b,
-                                          float eps, int len);
-CHECKASM_API int float_near_abs_eps_array_ulp(const float *a, const float *b,
-                                              float eps, unsigned max_ulp,
-                                              int len);
-CHECKASM_API int double_near_abs_eps(double a, double b, double eps);
-CHECKASM_API int double_near_abs_eps_array(const double *a, const double *b,
-                                           double eps, unsigned len);
+CHECKASM_API int checkasm_float_near_ulp(float a, float b, unsigned max_ulp);
+CHECKASM_API int checkasm_float_near_abs_eps(float a, float b, float eps);
+CHECKASM_API int checkasm_float_near_abs_eps_ulp(float a, float b, float eps,
+                                                 unsigned max_ulp);
+CHECKASM_API int checkasm_float_near_ulp_array(const float *a, const float *b,
+                                               unsigned max_ulp, int len);
+CHECKASM_API int checkasm_float_near_abs_eps_array(const float *a, const float *b,
+                                                   float eps, int len);
+CHECKASM_API int checkasm_float_near_abs_eps_array_ulp(const float *a, const float *b,
+                                                       float eps, unsigned max_ulp, int len);
+CHECKASM_API int checkasm_double_near_abs_eps(double a, double b, double eps);
+CHECKASM_API int checkasm_double_near_abs_eps_array(const double *a, const double *b,
+                                                    double eps, unsigned len);
+
+/* Defined for backwards compatibility */
+#define float_near_ulp               checkasm_float_near_ulp
+#define float_near_abs_eps           checkasm_float_near_abs_eps
+#define float_near_abs_eps_ulp       checkasm_float_near_abs_eps_ulp
+#define float_near_ulp_array         checkasm_float_near_ulp_array
+#define float_near_abs_eps_array     checkasm_float_near_abs_eps_array
+#define float_near_abs_eps_array_ulp checkasm_float_near_abs_eps_array_ulp
+#define double_near_abs_eps          checkasm_double_near_abs_eps
+#define double_near_abs_eps_array    checkasm_double_near_abs_eps_array
 
 /*
  * API for variables, struct members (ALIGN_ARR()) like:

@@ -181,7 +181,7 @@ static int is_negative(const intfloat u)
     return u.i >> 31;
 }
 
-int float_near_ulp(const float a, const float b, const unsigned max_ulp)
+int checkasm_float_near_ulp(const float a, const float b, const unsigned max_ulp)
 {
     intfloat x, y;
 
@@ -199,8 +199,8 @@ int float_near_ulp(const float a, const float b, const unsigned max_ulp)
     return 0;
 }
 
-int float_near_ulp_array(const float *const a, const float *const b,
-                         const unsigned max_ulp, const int len)
+int checkasm_float_near_ulp_array(const float *const a, const float *const b,
+                                  const unsigned max_ulp, const int len)
 {
     for (int i = 0; i < len; i++)
         if (!float_near_ulp(a[i], b[i], max_ulp))
@@ -209,13 +209,13 @@ int float_near_ulp_array(const float *const a, const float *const b,
     return 1;
 }
 
-int float_near_abs_eps(const float a, const float b, const float eps)
+int checkasm_float_near_abs_eps(const float a, const float b, const float eps)
 {
     return fabsf(a - b) < eps;
 }
 
-int float_near_abs_eps_array(const float *const a, const float *const b,
-                             const float eps, const int len)
+int checkasm_float_near_abs_eps_array(const float *const a, const float *const b,
+                                      const float eps, const int len)
 {
     for (int i = 0; i < len; i++)
         if (!float_near_abs_eps(a[i], b[i], eps))
@@ -224,15 +224,15 @@ int float_near_abs_eps_array(const float *const a, const float *const b,
     return 1;
 }
 
-int float_near_abs_eps_ulp(const float a, const float b, const float eps,
-                           const unsigned max_ulp)
+int checkasm_float_near_abs_eps_ulp(const float a, const float b, const float eps,
+                                    const unsigned max_ulp)
 {
     return float_near_ulp(a, b, max_ulp) || float_near_abs_eps(a, b, eps);
 }
 
-int float_near_abs_eps_array_ulp(const float *const a, const float *const b,
-                                 const float eps, const unsigned max_ulp,
-                                 const int len)
+int checkasm_float_near_abs_eps_array_ulp(const float *const a, const float *const b,
+                                          const float eps, const unsigned max_ulp,
+                                          const int len)
 {
     for (int i = 0; i < len; i++)
         if (!float_near_abs_eps_ulp(a[i], b[i], eps, max_ulp))
@@ -241,13 +241,13 @@ int float_near_abs_eps_array_ulp(const float *const a, const float *const b,
     return 1;
 }
 
-int double_near_abs_eps(const double a, const double b, const double eps)
+int checkasm_double_near_abs_eps(const double a, const double b, const double eps)
 {
     return fabs(a - b) < eps;
 }
 
-int double_near_abs_eps_array(const double *const a, const double *const b,
-                              const double eps, const unsigned len)
+int checkasm_double_near_abs_eps_array(const double *const a, const double *const b,
+                                       const double eps, const unsigned len)
 {
     for (unsigned i = 0; i < len; i++)
         if (!double_near_abs_eps(a[i], b[i], eps))
