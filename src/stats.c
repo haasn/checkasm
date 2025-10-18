@@ -122,7 +122,7 @@ static RandomVar rv_est(uint64_t sum, double sum2, int count)
 }
 
 RandomVar checkasm_stats_estimate(CheckasmStats *const stats,
-                                  CheckasmOutliers *const outliers)
+                                  CheckasmDistribution *const distribution)
 {
     if (!stats->nb_samples)
         return (RandomVar) {0.0, 0.0};
@@ -132,11 +132,14 @@ RandomVar checkasm_stats_estimate(CheckasmStats *const stats,
     /* Sort all samples and get the Q1 and Q3 values */
     qsort(stats->samples, stats->nb_samples, sizeof(CheckasmSample), cmp_samples);
     const int idx_q1 = ((total_count - 1) * 1) / 4;
+    const int idx_q2 = ((total_count - 1) * 2) / 4;
     const int idx_q3 = ((total_count - 1) * 3) / 4;
-    assert(idx_q3 > idx_q1);
 
+    const double q0 = sample_mean(get_sample(stats, 0));
     const double q1 = sample_mean(get_sample(stats, idx_q1));
+    const double q2 = sample_mean(get_sample(stats, idx_q2));
     const double q3 = sample_mean(get_sample(stats, idx_q3));
+    const double q4 = sample_mean(get_sample(stats, total_count - 1));
     const double iqr = q3 - q1;
     assert(iqr >= 0.0);
 
@@ -175,8 +178,14 @@ RandomVar checkasm_stats_estimate(CheckasmStats *const stats,
         }
     }
 
-    if (outliers) {
-        *outliers = (CheckasmOutliers) {
+    if (distribution) {
+        *distribution = (CheckasmDistribution) {
+            .min            = q0,
+            .q1             = q1,
+            .median         = q2,
+            .q3             = q3,
+            .max            = q4,
+
             .outliers       = (double) (total_count - nb_trim) / total_count,
             .low_mild       = (double) nb_lo_mild    / total_count,
             .low_extreme    = (double) nb_lo_extreme / total_count,
