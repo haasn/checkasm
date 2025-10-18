@@ -30,18 +30,19 @@
 #include <errno.h>
 
 #if HAVE_GETAUXVAL || HAVE_ELF_AUX_INFO
-#include <sys/auxv.h>
+  #include <sys/auxv.h>
 #endif
 
-#include "internal.h"
 #include "cpu.h"
+#include "internal.h"
 
-COLD unsigned long checkasm_getauxval(unsigned long type) {
+COLD unsigned long checkasm_getauxval(unsigned long type)
+{
 #if HAVE_GETAUXVAL
     return getauxval(type);
 #elif HAVE_ELF_AUX_INFO
     unsigned long aux = 0;
-    int ret = elf_aux_info(type, &aux, sizeof(aux));
+    int           ret = elf_aux_info(type, &aux, sizeof(aux));
     if (ret != 0)
         errno = ret;
     return aux;

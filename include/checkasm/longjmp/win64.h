@@ -33,24 +33,21 @@
 
 #if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
 
-    /* setjmp/longjmp on Windows on architectures using SEH (all except
-    * x86_32) will try to use SEH to unwind the stack, which doesn't work
-    * for assembly functions without unwind information. */
-    typedef struct { CONTEXT c; int status; } checkasm_jmp_buf;
+/* setjmp/longjmp on Windows on architectures using SEH (all except
+ * x86_32) will try to use SEH to unwind the stack, which doesn't work
+ * for assembly functions without unwind information. */
+typedef struct {
+    CONTEXT c;
+    int     status;
+} checkasm_jmp_buf;
 
-    #define checkasm_save_context(ctx) \
-        (ctx.status = 0, \
-        RtlCaptureContext(&ctx.c), \
-        ctx.status)
-
-    #define checkasm_load_context(ctx) \
-        (ctx.status = 1, \
-        RtlRestoreContext(&ctx.c, NULL))
+  #define checkasm_save_context(ctx) (ctx.status = 0, RtlCaptureContext(&ctx.c), ctx.status)
+  #define checkasm_load_context(ctx) (ctx.status = 1, RtlRestoreContext(&ctx.c, NULL))
 
 #else /* !WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP) */
-    typedef int checkasm_jmp_buf;
-    #define checkasm_save_context(ctx) 0
-    #define checkasm_load_context(ctx) do {} while (0)
+typedef int checkasm_jmp_buf;
+  #define checkasm_save_context(ctx) 0
+  #define checkasm_load_context(ctx)
 #endif
 
 #endif /* CHECKASM_SIGNAL_WIN64_H */

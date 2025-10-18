@@ -37,13 +37,14 @@
 #include "test.h"
 
 #ifdef _WIN32
-    #ifndef SIGBUS
-        /* non-standard, use the same value as mingw-w64 */
-        #define SIGBUS 10
-    #endif
+  #ifndef SIGBUS
+    /* non-standard, use the same value as mingw-w64 */
+    #define SIGBUS 10
+  #endif
 #endif
 
 checkasm_jmp_buf checkasm_context;
+
 static volatile sig_atomic_t sig; // SIG_ATOMIC_MAX = signal handling enabled
 
 void checkasm_set_signal_handler_state(const int enabled)
@@ -53,38 +54,29 @@ void checkasm_set_signal_handler_state(const int enabled)
 
 #ifdef _WIN32
 
-#if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
+  #if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
 static LONG NTAPI signal_handler(EXCEPTION_POINTERS *const e)
 {
     if (sig == SIG_ATOMIC_MAX) {
         int s;
         switch (e->ExceptionRecord->ExceptionCode) {
         case EXCEPTION_FLT_DIVIDE_BY_ZERO:
-        case EXCEPTION_INT_DIVIDE_BY_ZERO:
-            s = SIGFPE;
-            break;
+        case EXCEPTION_INT_DIVIDE_BY_ZERO:    s = SIGFPE; break;
         case EXCEPTION_ILLEGAL_INSTRUCTION:
-        case EXCEPTION_PRIV_INSTRUCTION:
-            s = SIGILL;
-            break;
+        case EXCEPTION_PRIV_INSTRUCTION:      s = SIGILL; break;
         case EXCEPTION_ACCESS_VIOLATION:
         case EXCEPTION_ARRAY_BOUNDS_EXCEEDED:
         case EXCEPTION_DATATYPE_MISALIGNMENT:
-        case EXCEPTION_STACK_OVERFLOW:
-            s = SIGSEGV;
-            break;
-        case EXCEPTION_IN_PAGE_ERROR:
-            s = SIGBUS;
-            break;
-        default:
-            return EXCEPTION_CONTINUE_SEARCH;
+        case EXCEPTION_STACK_OVERFLOW:        s = SIGSEGV; break;
+        case EXCEPTION_IN_PAGE_ERROR:         s = SIGBUS; break;
+        default:                              return EXCEPTION_CONTINUE_SEARCH;
         }
         sig = s;
         checkasm_load_context(checkasm_context);
     }
     return EXCEPTION_CONTINUE_SEARCH;
 }
-#endif
+  #endif
 
 #else // !_WIN32
 
@@ -92,7 +84,7 @@ static void signal_handler(int s);
 
 static const struct sigaction signal_handler_act = {
     .sa_handler = signal_handler,
-    .sa_flags = SA_RESETHAND,
+    .sa_flags   = SA_RESETHAND,
 };
 
 static void signal_handler(const int s)
@@ -112,13 +104,13 @@ COLD void checkasm_set_signal_handlers(void)
         return;
 
 #ifdef _WIN32
-    #if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
-        AddVectoredExceptionHandler(0, signal_handler);
-    #endif
+  #if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
+    AddVectoredExceptionHandler(0, signal_handler);
+  #endif
 #else // !_WIN32
-    sigaction(SIGBUS,  &signal_handler_act, NULL);
-    sigaction(SIGFPE,  &signal_handler_act, NULL);
-    sigaction(SIGILL,  &signal_handler_act, NULL);
+    sigaction(SIGBUS, &signal_handler_act, NULL);
+    sigaction(SIGFPE, &signal_handler_act, NULL);
+    sigaction(SIGILL, &signal_handler_act, NULL);
     sigaction(SIGSEGV, &signal_handler_act, NULL);
 #endif
 
@@ -128,8 +120,8 @@ COLD void checkasm_set_signal_handlers(void)
 void checkasm_handle_signal(void)
 {
     const int s = sig;
-    checkasm_fail_func(s == SIGFPE ? "fatal arithmetic error" :
-                       s == SIGILL ? "illegal instruction" :
-                       s == SIGBUS ? "bus error" :
-                                     "segmentation fault");
+    checkasm_fail_func(s == SIGFPE   ? "fatal arithmetic error"
+                       : s == SIGILL ? "illegal instruction"
+                       : s == SIGBUS ? "bus error"
+                                     : "segmentation fault");
 }

@@ -51,11 +51,11 @@ typedef struct CheckasmConfig {
      * in incremental order, each test run inheriting any active flags from
      * previously tested CPUs. */
     const CheckasmCpuInfo *cpu_flags;
-    int nb_cpu_flags;
+    int                    nb_cpu_flags;
 
     /* List of tests */
     const CheckasmTest *tests;
-    int nb_tests;
+    int                 nb_tests;
 
     /* Detected CPU flags. Note: Any extra flags not included in `cpu_flags`
      * will also be transparently included in checkasm_get_cpu_flags(), and
@@ -80,7 +80,7 @@ typedef struct CheckasmConfig {
 
     /* If nonzero, enable benchmarking, with the specified target time (µs)
      * per function tested, defaulting to 2000 µs if left unset. */
-    int bench;
+    int      bench;
     unsigned bench_usec;
 
     /* If nonzero, use the specified seed for random number generation. */

@@ -31,12 +31,11 @@
 
 #include <stdint.h>
 
-static inline uint64_t readtime_rdtimel(void) {
+static inline uint64_t readtime_rdtimel(void)
+{
     uint32_t a, id;
-    __asm__ __volatile__("rdtimel.w  %0, %1"
-                        : "=r"(a), "=r"(id)
-                        :: );
-    return (uint64_t)a;
+    __asm__ __volatile__("rdtimel.w  %0, %1" : "=r"(a), "=r"(id)::);
+    return (uint64_t) a;
 }
 
 #define CHECKASM_PERF_SETUP()

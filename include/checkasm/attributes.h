@@ -32,33 +32,31 @@
 #include <stddef.h>
 
 #ifndef ATTR_FORMAT_PRINTF
-    #ifdef __GNUC__
-        #if defined(__MINGW32__) && !defined(__clang__)
-            #define ATTR_FORMAT_PRINTF(fmt, attr)\
-                __attribute__((__format__(__gnu_printf__, fmt, attr)))
-        #else
-            #define ATTR_FORMAT_PRINTF(fmt, attr)\
-                __attribute__((__format__(__printf__, fmt, attr)))
-        #endif
+  #ifdef __GNUC__
+    #if defined(__MINGW32__) && !defined(__clang__)
+      #define ATTR_FORMAT_PRINTF(fmt, attr) __attribute__((__format__(__gnu_printf__, fmt, attr)))
     #else
-        #define ATTR_FORMAT_PRINTF(fmt, attr)
+      #define ATTR_FORMAT_PRINTF(fmt, attr) __attribute__((__format__(__printf__, fmt, attr)))
     #endif
+  #else
+    #define ATTR_FORMAT_PRINTF(fmt, attr)
+  #endif
 #endif
 
 #ifndef CHECKASM_API
-    #ifdef _WIN32
-      #ifdef CHECKASM_BUILDING_DLL
-        #define CHECKASM_API __declspec(dllexport)
-      #else
-        #define CHECKASM_API
-      #endif
+  #ifdef _WIN32
+    #ifdef CHECKASM_BUILDING_DLL
+      #define CHECKASM_API __declspec(dllexport)
     #else
-      #if __GNUC__ >= 4
-        #define CHECKASM_API __attribute__ ((visibility ("default")))
-      #else
-        #define CHECKASM_API
-      #endif
+      #define CHECKASM_API
     #endif
+  #else
+    #if __GNUC__ >= 4
+      #define CHECKASM_API __attribute__((visibility("default")))
+    #else
+      #define CHECKASM_API
+    #endif
+  #endif
 #endif
 
 #endif /* CHECKASM_ATTRIBUTES_H */

@@ -31,23 +31,22 @@
 
 #if !defined(_MSC_VER) && __ARM_ARCH >= 7
 
-#include <stdint.h>
+  #include <stdint.h>
 
-static inline uint64_t readtime_counter(void) {
+static inline uint64_t readtime_counter(void)
+{
     uint32_t cycle_counter;
     /* This requires enabling user mode access to the cycle counter (which
      * can only be done from kernel space). */
-    __asm__ __volatile__("isb\nmrc p15, 0, %0, c9, c13, 0"
-                        : "=r"(cycle_counter)
-                        :: "memory");
+    __asm__ __volatile__("isb\nmrc p15, 0, %0, c9, c13, 0" : "=r"(cycle_counter)::"memory");
     return cycle_counter;
 }
 
-#define CHECKASM_PERF_SETUP()
-#define CHECKASM_PERF_START(t) t = readtime_counter();
-#define CHECKASM_PERF_STOP(t)  t = readtime_counter() - t
-#define CHECKASM_PERF_NAME     "arm (ccnt)"
-#define CHECKASM_PERF_UNIT     "cycle"
+  #define CHECKASM_PERF_SETUP()
+  #define CHECKASM_PERF_START(t) t = readtime_counter();
+  #define CHECKASM_PERF_STOP(t)  t = readtime_counter() - t
+  #define CHECKASM_PERF_NAME     "arm (ccnt)"
+  #define CHECKASM_PERF_UNIT     "cycle"
 
 #endif /* !defined(_MSC_VER) && __ARM_ARCH >= 7 */
 #endif /* CHECKASM_PERF_ARM_H */

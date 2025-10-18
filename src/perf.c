@@ -37,9 +37,9 @@
 #include "stats.h"
 
 #if CONFIG_LINUX_PERF
-    #include <sys/syscall.h>
+  #include <sys/syscall.h>
 #elif CONFIG_MACOS_KPERF
-    #include <dlfcn.h>
+  #include <dlfcn.h>
 #endif
 
 #if CONFIG_LINUX_PERF
@@ -55,9 +55,9 @@ COLD int checkasm_perf_init(void)
         .disabled       = 1, // start counting only on demand
         .exclude_kernel = 1,
         .exclude_hv     = 1,
-#if !ARCH_X86
-        .exclude_guest  = 1,
-#endif
+  #if !ARCH_X86
+        .exclude_guest = 1,
+  #endif
     };
 
     perf_sysfd = syscall(SYS_perf_event_open, &attr, 0, -1, -1, 0);
@@ -77,13 +77,13 @@ int checkasm_get_perf_sysfd(void)
 
 static int (*kpc_get_thread_counters)(int, unsigned int, void *);
 
-#define CFGWORD_EL0A64EN_MASK (0x20000)
-#define CPMU_CORE_CYCLE 0x02
-#define KPC_CLASS_FIXED_MASK        (1 << 0)
-#define KPC_CLASS_CONFIGURABLE_MASK (1 << 1)
-#define COUNTERS_COUNT 10
-#define CONFIG_COUNT 8
-#define KPC_MASK (KPC_CLASS_CONFIGURABLE_MASK | KPC_CLASS_FIXED_MASK)
+  #define CFGWORD_EL0A64EN_MASK       (0x20000)
+  #define CPMU_CORE_CYCLE             0x02
+  #define KPC_CLASS_FIXED_MASK        (1 << 0)
+  #define KPC_CLASS_CONFIGURABLE_MASK (1 << 1)
+  #define COUNTERS_COUNT              10
+  #define CONFIG_COUNT                8
+  #define KPC_MASK                    (KPC_CLASS_CONFIGURABLE_MASK | KPC_CLASS_FIXED_MASK)
 
 COLD int checkasm_perf_init(void)
 {
@@ -95,13 +95,13 @@ COLD int checkasm_perf_init(void)
         return 1;
     }
 
-    int (*kpc_force_all_ctrs_set)(int) = dlsym(kperf, "kpc_force_all_ctrs_set");
-    int (*kpc_set_counting)(uint32_t) = dlsym(kperf, "kpc_set_counting");
-    int (*kpc_set_thread_counting)(uint32_t) = dlsym(kperf, "kpc_set_thread_counting");
-    int (*kpc_set_config)(uint32_t, void *) = dlsym(kperf, "kpc_set_config");
+    int (*kpc_force_all_ctrs_set)(int)          = dlsym(kperf, "kpc_force_all_ctrs_set");
+    int (*kpc_set_counting)(uint32_t)           = dlsym(kperf, "kpc_set_counting");
+    int (*kpc_set_thread_counting)(uint32_t)    = dlsym(kperf, "kpc_set_thread_counting");
+    int (*kpc_set_config)(uint32_t, void *)     = dlsym(kperf, "kpc_set_config");
     uint32_t (*kpc_get_counter_count)(uint32_t) = dlsym(kperf, "kpc_get_counter_count");
-    uint32_t (*kpc_get_config_count)(uint32_t) = dlsym(kperf, "kpc_get_config_count");
-    kpc_get_thread_counters = dlsym(kperf, "kpc_get_thread_counters");
+    uint32_t (*kpc_get_config_count)(uint32_t)  = dlsym(kperf, "kpc_get_config_count");
+    kpc_get_thread_counters                     = dlsym(kperf, "kpc_get_thread_counters");
 
     if (!kpc_get_thread_counters) {
         fprintf(stderr, "checkasm: Unable to load kpc_get_thread_counters\n");
@@ -139,7 +139,8 @@ COLD int checkasm_perf_init(void)
     return 0;
 }
 
-uint64_t checkasm_kperf_cycles(void) {
+uint64_t checkasm_kperf_cycles(void)
+{
     uint64_t counters[COUNTERS_COUNT];
     if (kpc_get_thread_counters(0, COUNTERS_COUNT, counters))
         return -1;
@@ -152,7 +153,8 @@ uint64_t checkasm_kperf_cycles(void) {
 COLD int checkasm_perf_init(void)
 {
     if (!checkasm_save_context(checkasm_context)) {
-        uint64_t t; (void) t;
+        uint64_t t;
+        (void) t;
         checkasm_set_signal_handler_state(1);
         CHECKASM_PERF_START(t);
         checkasm_set_signal_handler_state(0);
@@ -187,16 +189,17 @@ COLD CheckasmVar checkasm_measure_nop_cycles(void)
 
     CHECKASM_PERF_SETUP();
 
-    for (uint64_t total_nsec = 0; total_nsec < target_nsec; ) {
-        const int runs = stats.next_count;
-        uint64_t cycles = 0;
-        int count = 0;
+    for (uint64_t total_nsec = 0; total_nsec < target_nsec;) {
+        const int runs   = stats.next_count;
+        uint64_t  cycles = 0;
+        int       count  = 0;
 
         /* Measure the overhead of the timing code (in cycles) */
         uint64_t nsec = checkasm_gettime_nsec();
         for (int i = 0; i < runs; i++) {
             uint64_t t;
-            int talt; (void) talt;
+            int      talt;
+            (void) talt;
             CHECKASM_PERF_START(t);
             CALL16(alternate(ptr0, ptr1));
             CALL16(alternate(ptr0, ptr1));
@@ -251,23 +254,26 @@ COLD CheckasmVar checkasm_measure_perf_scale(double *low_estimate)
         nsec = checkasm_gettime_nsec() - nsec;
 
         checkasm_stats_add(&stats_cycles, (CheckasmSample) { cycles, iters });
-        checkasm_stats_add(&stats_nsec,   (CheckasmSample) { nsec,   iters });
+        checkasm_stats_add(&stats_nsec, (CheckasmSample) { nsec, iters });
 
         if (nsec < target_nsec)
             checkasm_stats_count_grow(&stats_cycles);
     }
 
     CheckasmDistribution dist_cycles, dist_nsec;
-    CheckasmVar est_cycles = checkasm_stats_estimate(&stats_cycles, &dist_cycles);
-    CheckasmVar est_nsec   = checkasm_stats_estimate(&stats_nsec,   &dist_nsec);
-    *low_estimate = dist_nsec.q1 / dist_cycles.q3;
+    CheckasmVar          est_cycles = checkasm_stats_estimate(&stats_cycles, &dist_cycles);
+    CheckasmVar          est_nsec   = checkasm_stats_estimate(&stats_nsec, &dist_nsec);
+    *low_estimate                   = dist_nsec.q1 / dist_cycles.q3;
     return checkasm_var_div(est_nsec, est_cycles);
 }
 #else
-COLD CheckasmVar checkasm_measure_nop_cycles(void) { return (CheckasmVar) {0}; }
+COLD CheckasmVar checkasm_measure_nop_cycles(void)
+{
+    return (CheckasmVar) { 0 };
+}
 COLD CheckasmVar checkasm_measure_perf_scale(double *low_estimate)
 {
     (void) low_estimate;
-    return (CheckasmVar) {0};
+    return (CheckasmVar) { 0 };
 }
 #endif

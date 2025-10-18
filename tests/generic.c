@@ -30,15 +30,15 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <checkasm/test.h>
 #include "tests.h"
+#include <checkasm/test.h>
 
 typedef uint8_t pixel;
 #define PIXEL_TYPE uint8_t
 
 void checkasm_test_copy(copy_func fun, const char *name)
 {
-    #define WIDTH 256
+#define WIDTH 256
     PIXEL_RECT(c_dst, WIDTH, 1);
     PIXEL_RECT(a_dst, WIDTH, 1);
 
@@ -54,9 +54,7 @@ void checkasm_test_copy(copy_func fun, const char *name)
 
             call_ref(c_dst, src, w);
             call_new(a_dst, src, w);
-            checkasm_check_pixel_padded(c_dst, c_dst_stride,
-                                        a_dst, a_dst_stride,
-                                        w, 1, "dst data");
+            checkasm_check_pixel_padded(c_dst, c_dst_stride, a_dst, a_dst_stride, w, 1, "dst data");
 
             bench_new(a_dst, src, w);
         }
@@ -104,7 +102,7 @@ static DEF_COPY_FUNC(underwrite)
 static DEF_NOOP_FUNC(segfault)
 {
     volatile int *bad = NULL;
-    *bad = 0;
+    *bad              = 0;
 }
 
 DEF_COPY_GETTER(CHECKASM_CPU_FLAG_BAD_C, memset)
@@ -115,12 +113,12 @@ DEF_NOOP_GETTER(CHECKASM_CPU_FLAG_BAD_C, segfault)
 
 void checkasm_check_generic(void)
 {
-    checkasm_test_copy(checkasm_copy_c,         "copy");
+    checkasm_test_copy(checkasm_copy_c, "copy");
 
     checkasm_should_fail(1);
-    checkasm_test_copy(get_memset(),            "memset");
-    checkasm_test_copy(get_overwrite_left(),    "overwrite_left");
-    checkasm_test_copy(get_overwrite_right(),   "overwrite_right");
-    checkasm_test_copy(get_underwrite(),        "underwrite");
-    checkasm_test_noop(get_segfault(),          "segfault");
+    checkasm_test_copy(get_memset(), "memset");
+    checkasm_test_copy(get_overwrite_left(), "overwrite_left");
+    checkasm_test_copy(get_overwrite_right(), "overwrite_right");
+    checkasm_test_copy(get_underwrite(), "underwrite");
+    checkasm_test_noop(get_segfault(), "segfault");
 }

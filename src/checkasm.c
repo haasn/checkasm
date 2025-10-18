@@ -7,23 +7,24 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
+ * 1. Redistributions of source code must retain the above copyright notice,
+ * this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
  */
 
 #include <assert.h>
@@ -44,42 +45,43 @@
 #include "test.h"
 
 #ifndef _WIN32
-    #if HAVE_PTHREAD_SETAFFINITY_NP
-        #include <pthread.h>
-        #if HAVE_PTHREAD_NP_H
-            #include <pthread_np.h>
-        #endif
+  #if HAVE_PTHREAD_SETAFFINITY_NP
+    #include <pthread.h>
+    #if HAVE_PTHREAD_NP_H
+      #include <pthread_np.h>
     #endif
+  #endif
 #endif
 
 typedef struct CheckasmFuncVersion {
     struct CheckasmFuncVersion *next;
-    void *func;
-    const CheckasmCpuInfo *cpu;
+    const CheckasmCpuInfo      *cpu;
+
+    void       *func;
     CheckasmVar cycles;
-    int ok;
+    int         ok;
 } CheckasmFuncVersion;
 
 /* Binary search tree node */
 typedef struct CheckasmFunc {
     struct CheckasmFunc *child[2];
-    CheckasmFuncVersion versions;
-    uint8_t color; /* 0 = red, 1 = black */
-    char name[];
+    CheckasmFuncVersion  versions;
+    uint8_t              color; /* 0 = red, 1 = black */
+    char                 name[];
 } CheckasmFunc;
 
 /* Internal state */
 static CheckasmConfig cfg;
 static struct {
     /* Current function/test state */
-    CheckasmFunc *funcs;
-    CheckasmFunc *current_func;
-    CheckasmFuncVersion *current_func_ver;
+    CheckasmFunc          *funcs;
+    CheckasmFunc          *current_func;
+    CheckasmFuncVersion   *current_func_ver;
     const CheckasmCpuInfo *cpu;
-    CheckasmCpu cpu_flags;
-    const char *current_test_name;
-    CheckasmStats stats;
-    uint64_t total_cycles;
+    CheckasmCpu            cpu_flags;
+    const char            *current_test_name;
+    CheckasmStats          stats;
+    uint64_t               total_cycles;
 
     /* Miscellaneous state */
     int num_checked;
@@ -92,8 +94,8 @@ static struct {
     /* Runtime constants */
     CheckasmVar nop_cycles;
     CheckasmVar perf_scale;
-    uint64_t target_cycles;
-    int skip_tests;
+    uint64_t    target_cycles;
+    int         skip_tests;
 } state;
 
 CheckasmCpu checkasm_get_cpu_flags(void)
@@ -150,24 +152,24 @@ static void print_benchs(const CheckasmFunc *const f)
                 const CheckasmVar time  = checkasm_var_mul(v->cycles, state.perf_scale);
                 const CheckasmVar ratio = checkasm_var_div(ref->cycles, v->cycles);
                 if (cfg.separator) {
-                    printf("%s%c%s%c%.1f%c%.1f%c%.2f\n", f->name, cfg.separator,
-                           cpu_suffix(v->cpu), cfg.separator, v->cycles.mean,
-                           cfg.separator, checkasm_stddev(v->cycles), cfg.separator, time.mean);
+                    printf("%s%c%s%c%.1f%c%.1f%c%.2f\n", f->name, cfg.separator, cpu_suffix(v->cpu),
+                           cfg.separator, v->cycles.mean, cfg.separator, checkasm_stddev(v->cycles),
+                           cfg.separator, time.mean);
                 } else {
-                    const int pad = 12 + state.max_function_name_length -
-                        printf("  %s_%s:", f->name, cpu_suffix(v->cpu));
+                    const int pad = 12 + state.max_function_name_length
+                                  - printf("  %s_%s:", f->name, cpu_suffix(v->cpu));
                     printf("%*.1f", imax(pad, 0), v->cycles.mean);
                     if (cfg.verbose) {
-                        printf(" +/- %-7.1f %11.0f ns +/- %-6.0f",
-                               checkasm_stddev(v->cycles), time.mean, checkasm_stddev(time));
+                        printf(" +/- %-7.1f %11.0f ns +/- %-6.0f", checkasm_stddev(v->cycles),
+                               time.mean, checkasm_stddev(time));
                     }
                     if (v != ref) {
                         const double ratio_lo = ratio.mean - checkasm_stddev(ratio);
                         const double ratio_hi = ratio.mean + checkasm_stddev(ratio);
-                        const int color = ratio_lo >= 10.0 ? COLOR_GREEN :
-                                          ratio_hi >= 1.1 && ratio_lo >= 1.0 ? COLOR_DEFAULT :
-                                          ratio_hi >= 1.0 ? COLOR_YELLOW :
-                                          COLOR_RED;
+                        const int    color    = ratio_lo >= 10.0                   ? COLOR_GREEN
+                                              : ratio_hi >= 1.1 && ratio_lo >= 1.0 ? COLOR_DEFAULT
+                                              : ratio_hi >= 1.0                    ? COLOR_YELLOW
+                                                                                   : COLOR_RED;
                         printf(" (");
                         checkasm_fprintf(stdout, color, "%5.2fx", ratio.mean);
                         printf(")");
@@ -187,17 +189,15 @@ static void print_benchs(const CheckasmFunc *const f)
 static int cmp_func_names(const char *a, const char *b)
 {
     const char *const start = a;
+
     int ascii_diff, digit_diff;
+    for (; !(ascii_diff = *(const unsigned char *) a - *(const unsigned char *) b) && *a; a++, b++)
+        ;
+    for (; is_digit(*a) && is_digit(*b); a++, b++)
+        ;
 
-    for (; !(ascii_diff = *(const unsigned char*)a -
-                          *(const unsigned char*)b) && *a; a++, b++);
-    for (; is_digit(*a) && is_digit(*b); a++, b++);
-
-    if (a > start && is_digit(a[-1]) &&
-        (digit_diff = is_digit(*a) - is_digit(*b)))
-    {
+    if (a > start && is_digit(a[-1]) && (digit_diff = is_digit(*a) - is_digit(*b)))
         return digit_diff;
-    }
 
     return ascii_diff;
 }
@@ -205,11 +205,12 @@ static int cmp_func_names(const char *a, const char *b)
 /* Perform a tree rotation in the specified direction and return the new root */
 static CheckasmFunc *rotate_tree(CheckasmFunc *const f, const int dir)
 {
-    CheckasmFunc *const r = f->child[dir^1];
-    f->child[dir^1] = r->child[dir];
-    r->child[dir] = f;
-    r->color = f->color;
-    f->color = 0;
+    CheckasmFunc *const r = f->child[dir ^ 1];
+
+    f->child[dir ^ 1] = r->child[dir];
+    r->child[dir]     = f;
+    r->color          = f->color;
+    f->color          = 0;
     return r;
 }
 
@@ -223,8 +224,7 @@ static void balance_tree(CheckasmFunc **const root)
     if (is_red(f->child[0]) && is_red(f->child[1])) {
         f->color ^= 1;
         f->child[0]->color = f->child[1]->color = 1;
-    }
-    else if (!is_red(f->child[0]) && is_red(f->child[1]))
+    } else if (!is_red(f->child[0]) && is_red(f->child[1]))
         *root = rotate_tree(f, 0); /* Rotate left */
     else if (is_red(f->child[0]) && is_red(f->child[0]->child[0]))
         *root = rotate_tree(f, 1); /* Rotate right */
@@ -291,7 +291,7 @@ void checkasm_bench_finish(void)
     CheckasmFuncVersion *const v = state.current_func_ver;
     if (v && state.total_cycles) {
         const CheckasmVar est_raw = checkasm_stats_estimate(&state.stats, NULL);
-        const CheckasmVar cycles = checkasm_var_sub(est_raw, state.nop_cycles);
+        const CheckasmVar cycles  = checkasm_var_sub(est_raw, state.nop_cycles);
         v->cycles = checkasm_var_scale(cycles, 1.0 / 32.0); /* 32 calls per sample */
     }
 }
@@ -302,11 +302,15 @@ static int wildstrcmp(const char *str, const char *pattern)
     const char *wild = strchr(pattern, '*');
     if (wild) {
         const size_t len = wild - pattern;
-        if (strncmp(str, pattern, len)) return 1;
-        while (*++wild == '*');
-        if (!*wild) return 0;
+        if (strncmp(str, pattern, len))
+            return 1;
+        while (*++wild == '*')
+            ;
+        if (!*wild)
+            return 0;
         str += len;
-        while (*str && wildstrcmp(str, wild)) str++;
+        while (*str && wildstrcmp(str, wild))
+            str++;
         return !*str;
     }
     return strcmp(str, pattern);
@@ -321,9 +325,9 @@ static void check_cpu_flag(const CheckasmCpuInfo *cpu)
         state.cpu_flags |= cpu->flag & cfg.cpu;
 
     if (!cpu || state.cpu_flags != prev_cpu_flags) {
-        state.cpu = cpu;
+        state.cpu              = cpu;
         state.cpu_name_printed = 0;
-        state.suffix_length = (int) strlen(cpu_suffix(cpu)) + 1;
+        state.suffix_length    = (int) strlen(cpu_suffix(cpu)) + 1;
         if (cfg.set_cpu_flags)
             cfg.set_cpu_flags(state.cpu_flags);
 
@@ -332,7 +336,7 @@ static void check_cpu_flag(const CheckasmCpuInfo *cpu)
                 continue;
             checkasm_srand(cfg.seed);
             state.current_test_name = cfg.tests[i].name;
-            state.should_fail = 0; // reset between tests
+            state.should_fail       = 0; // reset between tests
             cfg.tests[i].func();
         }
     }
@@ -356,15 +360,15 @@ static int set_cpu_affinity(const uint64_t affinity)
 #ifdef _WIN32
     HANDLE process = GetCurrentProcess();
   #if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
-    BOOL (WINAPI *spdcs)(HANDLE, const ULONG*, ULONG) =
-        (void*)GetProcAddress(GetModuleHandleW(L"kernel32.dll"), "SetProcessDefaultCpuSets");
+    BOOL(WINAPI * spdcs)(HANDLE, const ULONG *, ULONG)
+        = (void *) GetProcAddress(GetModuleHandleW(L"kernel32.dll"), "SetProcessDefaultCpuSets");
     if (spdcs)
-        affinity_err = !spdcs(process, (ULONG[]){ affinity + 256 }, 1);
+        affinity_err = !spdcs(process, (ULONG[]) { affinity + 256 }, 1);
     else
   #endif
     {
         if (affinity < sizeof(DWORD_PTR) * 8)
-            affinity_err = !SetProcessAffinityMask(process, (DWORD_PTR)1 << affinity);
+            affinity_err = !SetProcessAffinityMask(process, (DWORD_PTR) 1 << affinity);
         else
             affinity_err = 1;
     }
@@ -376,16 +380,15 @@ static int set_cpu_affinity(const uint64_t affinity)
 #else
     (void) affinity;
     (void) affinity_err;
-    fprintf(stderr,
-            "checkasm: --affinity is not supported on your system\n");
+    fprintf(stderr, "checkasm: --affinity is not supported on your system\n");
     return 1;
 #endif
 
     if (affinity_err) {
-        fprintf(stderr, "checkasm: invalid cpu affinity (%"PRIx64")\n", affinity);
+        fprintf(stderr, "checkasm: invalid cpu affinity (%" PRIx64 ")\n", affinity);
         return 1;
     } else {
-        fprintf(stderr, "checkasm: running on cpu %"PRIx64"\n", affinity);
+        fprintf(stderr, "checkasm: running on cpu %" PRIx64 "\n", affinity);
         return 0;
     }
 }
@@ -438,7 +441,7 @@ void checkasm_list_functions(const CheckasmConfig *config)
     memset(&state, 0, sizeof(state));
     state.cpu_flags  = initial_cpu_flags(config);
     state.skip_tests = 1;
-    cfg = *config;
+    cfg              = *config;
 
     check_cpu_flag(NULL);
     for (int i = 0; i < cfg.nb_cpu_flags; i++)
@@ -452,7 +455,7 @@ int checkasm_run(const CheckasmConfig *config)
 {
     memset(&state, 0, sizeof(state));
     state.cpu_flags = initial_cpu_flags(config);
-    cfg = *config;
+    cfg             = *config;
 
     checkasm_set_signal_handlers();
     set_cpu_affinity(cfg.cpu_affinity);
@@ -483,10 +486,10 @@ int checkasm_run(const CheckasmConfig *config)
 
     checkasm_fprintf(stderr, COLOR_YELLOW, "checkasm:\n");
 #if ARCH_X86
-    char name[48];
+    char           name[48];
     const unsigned cpuid = checkasm_init_x86(name);
-    for (size_t len = strlen(name); len && name[len-1] == ' '; len--)
-        name[len-1] = '\0'; /* trim trailing whitespace */
+    for (size_t len = strlen(name); len && name[len - 1] == ' '; len--)
+        name[len - 1] = '\0'; /* trim trailing whitespace */
     fprintf(stderr, " - CPU: %s (%08X)\n", name, cpuid);
 #elif ARCH_RV64
     const unsigned vlenb = checkasm_init_riscv();
@@ -501,16 +504,17 @@ int checkasm_run(const CheckasmConfig *config)
         fprintf(stderr, " - Timing source: %s\n", CHECKASM_PERF_NAME);
         if (cfg.verbose) {
             fprintf(stderr, " - Timing overhead: %.1f +/- %.2f %ss per iteration\n",
-                    state.nop_cycles.mean, checkasm_stddev(state.nop_cycles),
-                    CHECKASM_PERF_UNIT);
+                    state.nop_cycles.mean, checkasm_stddev(state.nop_cycles), CHECKASM_PERF_UNIT);
 
             const CheckasmVar mhz = checkasm_var_div(checkasm_var_const(1e3), state.perf_scale);
-            fprintf(stderr, " - Timing resolution: %.4f +/- %.3f ns/%s (%.0f +/- %.1f MHz)\n",
-                    state.perf_scale.mean, checkasm_stddev(state.perf_scale),
-                    CHECKASM_PERF_UNIT, mhz.mean, checkasm_stddev(mhz));
+            fprintf(stderr,
+                    " - Timing resolution: %.4f +/- %.3f ns/%s (%.0f +/- %.1f "
+                    "MHz)\n",
+                    state.perf_scale.mean, checkasm_stddev(state.perf_scale), CHECKASM_PERF_UNIT,
+                    mhz.mean, checkasm_stddev(mhz));
         }
-        fprintf(stderr, " - Bench duration: %d µs per function (%"PRIu64" %ss)\n",
-                cfg.bench_usec, state.target_cycles, CHECKASM_PERF_UNIT);
+        fprintf(stderr, " - Bench duration: %d µs per function (%" PRIu64 " %ss)\n", cfg.bench_usec,
+                state.target_cycles, CHECKASM_PERF_UNIT);
     }
     fprintf(stderr, " - Random seed: %u\n", cfg.seed);
 
@@ -520,8 +524,7 @@ int checkasm_run(const CheckasmConfig *config)
 
     int ret = 0;
     if (state.num_failed) {
-        fprintf(stderr, "checkasm: %d of %d tests failed\n",
-                state.num_failed, state.num_checked);
+        fprintf(stderr, "checkasm: %d of %d tests failed\n", state.num_failed, state.num_checked);
         ret = 1;
     } else {
         if (state.num_checked)
@@ -531,16 +534,15 @@ int checkasm_run(const CheckasmConfig *config)
 
         if (cfg.bench && state.max_function_name_length) {
             if (cfg.separator && cfg.verbose) {
-                printf("name%csuffix%c%ss%cstddev%cnanoseconds\n",
-                       cfg.separator, cfg.separator, CHECKASM_PERF_UNIT,
-                       cfg.separator, cfg.separator);
+                printf("name%csuffix%c%ss%cstddev%cnanoseconds\n", cfg.separator, cfg.separator,
+                       CHECKASM_PERF_UNIT, cfg.separator, cfg.separator);
             } else if (!cfg.separator) {
                 checkasm_fprintf(stdout, COLOR_YELLOW, "Benchmark results:\n");
                 checkasm_fprintf(stdout, COLOR_GREEN, "  name%*ss",
                                  5 + state.max_function_name_length, CHECKASM_PERF_UNIT);
                 if (cfg.verbose) {
-                    checkasm_fprintf(stdout, COLOR_GREEN, " +/- stddev %*s",
-                                     26, "time (nanoseconds)");
+                    checkasm_fprintf(stdout, COLOR_GREEN, " +/- stddev %*s", 26,
+                                     "time (nanoseconds)");
                 }
                 checkasm_fprintf(stdout, COLOR_GREEN, " (vs ref)\n");
             }
@@ -557,24 +559,23 @@ int checkasm_run(const CheckasmConfig *config)
  * reference function if the function should be tested, otherwise NULL */
 void *checkasm_check_func(void *const func, const char *const name, ...)
 {
-    char name_buf[256];
+    char    name_buf[256];
     va_list arg;
 
     va_start(arg, name);
     int name_length = vsnprintf(name_buf, sizeof(name_buf), name, arg);
     va_end(arg);
 
-    if (!func || name_length <= 0 || (size_t)name_length >= sizeof(name_buf) ||
-        (cfg.function_pattern && wildstrcmp(name_buf, cfg.function_pattern)))
-    {
+    if (!func || name_length <= 0 || (size_t) name_length >= sizeof(name_buf)
+        || (cfg.function_pattern && wildstrcmp(name_buf, cfg.function_pattern))) {
         return NULL;
     }
 
     state.current_func = get_func(&state.funcs, name_buf);
 
-    state.funcs->color = 1;
-    CheckasmFuncVersion *v = &state.current_func->versions;
-    void *ref = func;
+    state.funcs->color       = 1;
+    CheckasmFuncVersion *v   = &state.current_func->versions;
+    void                *ref = func;
 
     if (v->func) {
         CheckasmFuncVersion *prev;
@@ -597,8 +598,8 @@ void *checkasm_check_func(void *const func, const char *const name, ...)
         state.max_function_name_length = name_length;
 
     v->func = func;
-    v->ok = 1;
-    v->cpu = state.cpu;
+    v->ok   = 1;
+    v->cpu  = state.cpu;
 
     state.current_func_ver = v;
     if (state.skip_tests)
@@ -636,8 +637,8 @@ int checkasm_fail_func(const char *const msg, ...)
     return cfg.verbose;
 }
 
-__attribute__((visibility("hidden"), alias("checkasm_fail_func")))
-int checkasm_fail_internal(const char *msg, ...) ATTR_FORMAT_PRINTF(1, 2);
+__attribute__((visibility("hidden"), alias("checkasm_fail_func"))) int
+checkasm_fail_internal(const char *msg, ...) ATTR_FORMAT_PRINTF(1, 2);
 
 void checkasm_should_fail(int s)
 {
@@ -648,12 +649,12 @@ void checkasm_should_fail(int s)
  * the last time this function was called */
 void checkasm_report(const char *const name, ...)
 {
-    static int prev_checked, prev_failed;
+    static int    prev_checked, prev_failed;
     static size_t max_length;
 
     const int new_checked = state.num_checked - prev_checked;
     if (new_checked) {
-        int pad_length = (int) max_length + 4;
+        int     pad_length = (int) max_length + 4;
         va_list arg;
         assert(!state.skip_tests);
 
@@ -684,7 +685,7 @@ void checkasm_report(const char *const name, ...)
     } else if (!state.cpu) {
         /* Calculate the amount of padding required
          * to make the output vertically aligned */
-        size_t length = strlen(state.current_test_name);
+        size_t  length = strlen(state.current_test_name);
         va_list arg;
 
         va_start(arg, name);
@@ -708,24 +709,28 @@ static void print_usage(const char *const progname)
             "Options:\n"
             "    --affinity=<cpu>           Run the process on CPU <cpu>\n"
             "    --bench -b                 Benchmark the tested functions\n"
-            "    --csv, --tsv               Output results in rows of comma or tab separated values.\n"
-            "    --function=<pattern> -f    Test only the functions matching <pattern>\n"
+            "    --csv, --tsv               Output results in rows of comma or tab "
+            "separated values.\n"
+            "    --function=<pattern> -f    Test only the functions matching "
+            "<pattern>\n"
             "    --help -h                  Print this usage info\n"
             "    --list-cpu-flags           List available cpu flags\n"
             "    --list-functions           List available functions\n"
             "    --list-tests               List available tests\n"
-            "    --duration=<μs>            Benchmark duration (per function) in μs\n"
+            "    --duration=<μs>            Benchmark duration (per function) in "
+            "μs\n"
             "    --test=<pattern> -t        Test only <pattern>\n"
-            "    --verbose -v               Print verbose timing info and failure data\n",
+            "    --verbose -v               Print verbose timing info and failure "
+            "data\n",
             progname);
 }
 
 static int parseu(unsigned *const dst, const char *const str, const int base)
 {
     unsigned long val;
-    char *end;
+    char         *end;
     errno = 0;
-    val = strtoul(str, &end, base);
+    val   = strtoul(str, &end, base);
     if (errno || end == str || *end || val > (unsigned) -1)
         return 0;
     *dst = val;

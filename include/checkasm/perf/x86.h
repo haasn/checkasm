@@ -32,14 +32,15 @@
 #include <stdint.h>
 
 #if defined(_MSC_VER) && !defined(__clang__)
-    #include <intrin.h>
-    #define readtime_tsc() (_mm_lfence(), __rdtsc())
+  #include <intrin.h>
+  #define readtime_tsc() (_mm_lfence(), __rdtsc())
 #else
-    static inline uint64_t readtime_tsc(void) {
-        uint32_t eax, edx;
-        __asm__ __volatile__("lfence\nrdtsc" : "=a"(eax), "=d"(edx));
-        return (((uint64_t)edx) << 32) | eax;
-    }
+static inline uint64_t readtime_tsc(void)
+{
+    uint32_t eax, edx;
+    __asm__ __volatile__("lfence\nrdtsc" : "=a"(eax), "=d"(edx));
+    return (((uint64_t) edx) << 32) | eax;
+}
 #endif
 
 #define CHECKASM_PERF_SETUP()

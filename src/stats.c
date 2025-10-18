@@ -34,7 +34,7 @@ CheckasmVar checkasm_var_scale(CheckasmVar a, double s)
     /* = checkasm_var_mul(a, checkasm_var_const(b)) */
     return (CheckasmVar) {
         .mean = a.mean * s,
-        .var  = a.var  * s * s,
+        .var  = a.var * s * s,
     };
 }
 
@@ -42,7 +42,7 @@ CheckasmVar checkasm_var_add(const CheckasmVar a, const CheckasmVar b)
 {
     return (CheckasmVar) {
         .mean = a.mean + b.mean,
-        .var  = a.var  + b.var,
+        .var  = a.var + b.var,
     };
 }
 
@@ -65,7 +65,7 @@ CheckasmVar checkasm_var_mul(CheckasmVar a, CheckasmVar b)
 CheckasmVar checkasm_var_inv(CheckasmVar a)
 {
     /* Approximate using first-order Taylor expansion */
-    const double inv_mean = 1.0 / a.mean;
+    const double inv_mean  = 1.0 / a.mean;
     const double inv_mean2 = inv_mean * inv_mean;
     return (CheckasmVar) {
         .mean = inv_mean,
@@ -94,7 +94,7 @@ static CheckasmSample get_sample(const CheckasmStats *const stats, int position)
         seen += s.count;
     }
 
-    return (CheckasmSample) {0, 0};
+    return (CheckasmSample) { 0, 0 };
 }
 
 /* Compare by mean value */
@@ -102,7 +102,7 @@ static int cmp_samples(const void *a, const void *b)
 {
     const CheckasmSample sa = *(const CheckasmSample *) a;
     const CheckasmSample sb = *(const CheckasmSample *) b;
-    const uint64_t xa = sa.sum * sb.count, xb = sb.sum * sa.count;
+    const uint64_t       xa = sa.sum * sb.count, xb = sb.sum * sa.count;
     return (xa < xb) ? -1 : (xa > xb);
 }
 
@@ -117,15 +117,15 @@ int checkasm_stats_count_total(const CheckasmStats *const stats)
 static CheckasmVar var_est(uint64_t sum, double sum2, int count)
 {
     const double mean = (double) sum / count;
-    const double  var = sum2 / count - mean * mean;
+    const double var  = sum2 / count - mean * mean;
     return (CheckasmVar) { mean, var };
 }
 
-CheckasmVar checkasm_stats_estimate(CheckasmStats *const stats,
-                                  CheckasmDistribution *const distribution)
+CheckasmVar checkasm_stats_estimate(CheckasmStats *const        stats,
+                                    CheckasmDistribution *const distribution)
 {
     if (!stats->nb_samples)
-        return (CheckasmVar) {0.0, 0.0};
+        return (CheckasmVar) { 0.0, 0.0 };
 
     const int total_count = checkasm_stats_count_total(stats);
 
@@ -135,31 +135,31 @@ CheckasmVar checkasm_stats_estimate(CheckasmStats *const stats,
     const int idx_q2 = ((total_count - 1) * 2) / 4;
     const int idx_q3 = ((total_count - 1) * 3) / 4;
 
-    const double q0 = sample_mean(get_sample(stats, 0));
-    const double q1 = sample_mean(get_sample(stats, idx_q1));
-    const double q2 = sample_mean(get_sample(stats, idx_q2));
-    const double q3 = sample_mean(get_sample(stats, idx_q3));
-    const double q4 = sample_mean(get_sample(stats, total_count - 1));
+    const double q0  = sample_mean(get_sample(stats, 0));
+    const double q1  = sample_mean(get_sample(stats, idx_q1));
+    const double q2  = sample_mean(get_sample(stats, idx_q2));
+    const double q3  = sample_mean(get_sample(stats, idx_q3));
+    const double q4  = sample_mean(get_sample(stats, total_count - 1));
     const double iqr = q3 - q1;
     assert(iqr >= 0.0);
 
     /* Define boxplot thresholds */
-    const double lo_mild = q1 - 1.5 * iqr;
-    const double hi_mild = q3 + 1.5 * iqr;
+    const double lo_mild    = q1 - 1.5 * iqr;
+    const double hi_mild    = q3 + 1.5 * iqr;
     const double lo_extreme = q1 - 3.0 * iqr;
     const double hi_extreme = q3 + 3.0 * iqr;
 
     /* Classify and accumulate */
-    int nb_lo_mild = 0, nb_lo_extreme = 0;
-    int nb_hi_mild = 0, nb_hi_extreme = 0;
+    int      nb_lo_mild = 0, nb_lo_extreme = 0;
+    int      nb_hi_mild = 0, nb_hi_extreme = 0;
     uint64_t sum_raw = 0, sum_trim = 0;
-    double sum2_raw = 0.0, sum2_trim = 0.0;
-    int nb_trim = 0;
+    double   sum2_raw = 0.0, sum2_trim = 0.0;
+    int      nb_trim = 0;
 
     for (int i = 0; i < stats->nb_samples; i++) {
         const CheckasmSample s = stats->samples[i];
-        const double x = sample_mean(s);
-        sum_raw  += s.sum;
+        const double         x = sample_mean(s);
+        sum_raw += s.sum;
         sum2_raw += s.sum * x;
 
         /* Reject outliers */
@@ -172,25 +172,25 @@ CheckasmVar checkasm_stats_estimate(CheckasmStats *const stats,
         } else if (x > hi_mild) {
             nb_hi_mild += s.count;
         } else {
-            sum_trim  += s.sum;
+            sum_trim += s.sum;
             sum2_trim += s.sum * x;
-            nb_trim   += s.count;
+            nb_trim += s.count;
         }
     }
 
     if (distribution) {
         *distribution = (CheckasmDistribution) {
-            .min            = q0,
-            .q1             = q1,
-            .median         = q2,
-            .q3             = q3,
-            .max            = q4,
+            .min    = q0,
+            .q1     = q1,
+            .median = q2,
+            .q3     = q3,
+            .max    = q4,
 
-            .outliers       = (double) (total_count - nb_trim) / total_count,
-            .low_mild       = (double) nb_lo_mild    / total_count,
-            .low_extreme    = (double) nb_lo_extreme / total_count,
-            .high_mild      = (double) nb_hi_mild    / total_count,
-            .high_extreme   = (double) nb_hi_extreme / total_count,
+            .outliers     = (double) (total_count - nb_trim) / total_count,
+            .low_mild     = (double) nb_lo_mild / total_count,
+            .low_extreme  = (double) nb_lo_extreme / total_count,
+            .high_mild    = (double) nb_hi_mild / total_count,
+            .high_extreme = (double) nb_hi_extreme / total_count,
         };
     }
 

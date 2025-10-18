@@ -1,0 +1,25 @@
+---
+BasedOnStyle: WebKit
+IndentWidth: 4
+IndentPPDirectives: BeforeHash
+PPIndentWidth: 2
+ColumnLimit: 100
+AllowShortFunctionsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+AllowShortCaseLabelsOnASingleLine: true
+AlignConsecutiveDeclarations: true
+AlignConsecutiveAssignments: true
+AlignConsecutiveMacros: true
+AlignOperands: AlignAfterOperator
+AlignEscapedNewlines: LeftWithLastLine
+AlignAfterOpenBracket: Align
+AlignArrayOfStructures: Left
+---
+Language: C
+PointerAlignment: Right
+SpaceAfterCStyleCast: true
+AlignConsecutiveShortCaseStatements:
+    Enabled: true
+AlignConsecutiveBitFields: true
+QualifierAlignment: Left
+---

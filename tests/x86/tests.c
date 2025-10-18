@@ -7,12 +7,12 @@ typedef struct {
     uint32_t eax, ebx, edx, ecx;
 } CpuidRegisters;
 
-void checkasm_cpu_cpuid(CpuidRegisters *regs, unsigned leaf, unsigned subleaf);
+void     checkasm_cpu_cpuid(CpuidRegisters *regs, unsigned leaf, unsigned subleaf);
 uint64_t checkasm_cpu_xgetbv(unsigned xcr);
 
 uint64_t checkasm_get_cpu_flags_x86(void)
 {
-    uint64_t flags = CHECKASM_CPU_FLAG_X86;
+    uint64_t       flags = CHECKASM_CPU_FLAG_X86;
     CpuidRegisters r;
     checkasm_cpu_cpuid(&r, 0, 0);
     const uint32_t max_leaf = r.eax;
@@ -77,25 +77,30 @@ static copy_func *get_copy_x86(void)
 {
     const unsigned flags = checkasm_get_cpu_flags();
 #if ARCH_X86
-    if (flags & CHECKASM_CPU_FLAG_AVX512) return checkasm_copy_avx512;
-    if (flags & CHECKASM_CPU_FLAG_AVX2)   return checkasm_copy_avx2;
-    if (flags & CHECKASM_CPU_FLAG_SSE2)   return checkasm_copy_sse2;
-    if (flags & CHECKASM_CPU_FLAG_MMX)    return checkasm_copy_mmx;
-    if (flags & CHECKASM_CPU_FLAG_X86)    return checkasm_copy_x86;
+    if (flags & CHECKASM_CPU_FLAG_AVX512)
+        return checkasm_copy_avx512;
+    if (flags & CHECKASM_CPU_FLAG_AVX2)
+        return checkasm_copy_avx2;
+    if (flags & CHECKASM_CPU_FLAG_SSE2)
+        return checkasm_copy_sse2;
+    if (flags & CHECKASM_CPU_FLAG_MMX)
+        return checkasm_copy_mmx;
+    if (flags & CHECKASM_CPU_FLAG_X86)
+        return checkasm_copy_x86;
 #endif
     return checkasm_copy_c;
 }
 
 #if ARCH_X86_64
-    #if _WIN32
-        #define NUM_SAFE 7
-    #else
-        #define NUM_SAFE 9
-    #endif
-    #define NUM_REGS 15
+  #if _WIN32
+    #define NUM_SAFE 7
+  #else
+    #define NUM_SAFE 9
+  #endif
+  #define NUM_REGS 15
 #else
-    #define NUM_SAFE 3
-    #define NUM_REGS 7
+  #define NUM_SAFE 3
+  #define NUM_REGS 7
 #endif
 
 static noop_func *get_clobber(int reg)
@@ -104,13 +109,13 @@ static noop_func *get_clobber(int reg)
         return NULL;
 
     switch (reg) {
-    case 0:  return checkasm_clobber_r0;
-    case 1:  return checkasm_clobber_r1;
-    case 2:  return checkasm_clobber_r2;
-    case 3:  return checkasm_clobber_r3;
-    case 4:  return checkasm_clobber_r4;
-    case 5:  return checkasm_clobber_r5;
-    case 6:  return checkasm_clobber_r6;
+    case 0: return checkasm_clobber_r0;
+    case 1: return checkasm_clobber_r1;
+    case 2: return checkasm_clobber_r2;
+    case 3: return checkasm_clobber_r3;
+    case 4: return checkasm_clobber_r4;
+    case 5: return checkasm_clobber_r5;
+    case 6: return checkasm_clobber_r6;
 #if ARCH_X86_64
     case 7:  return checkasm_clobber_r7;
     case 8:  return checkasm_clobber_r8;
@@ -126,9 +131,9 @@ static noop_func *get_clobber(int reg)
     }
 }
 
-DEF_NOOP_GETTER(CHECKASM_CPU_FLAG_X86,  sigill_x86)
-DEF_NOOP_GETTER(CHECKASM_CPU_FLAG_X86,  corrupt_stack_x86)
-DEF_COPY_GETTER(CHECKASM_CPU_FLAG_MMX,  copy_noemms_mmx)
+DEF_NOOP_GETTER(CHECKASM_CPU_FLAG_X86, sigill_x86)
+DEF_NOOP_GETTER(CHECKASM_CPU_FLAG_X86, corrupt_stack_x86)
+DEF_COPY_GETTER(CHECKASM_CPU_FLAG_MMX, copy_noemms_mmx)
 DEF_COPY_GETTER(CHECKASM_CPU_FLAG_AVX2, copy_novzeroupper_avx2)
 
 static void check_clobber(int from, int to)
@@ -152,7 +157,7 @@ static void test_copy_emms(copy_func fun, const char *name)
 {
     ALIGN_STK_64(uint8_t, c_dst, 256, );
     ALIGN_STK_64(uint8_t, a_dst, 256, );
-    ALIGN_STK_64(uint8_t,   src, 256, );
+    ALIGN_STK_64(uint8_t, src, 256, );
     RANDOMIZE_BUF(src);
 
     declare_func_emms(CHECKASM_CPU_FLAG_MMX, void, uint8_t *dest, const uint8_t *src, size_t n);
@@ -172,17 +177,16 @@ static void test_copy_emms(copy_func fun, const char *name)
     report("%s", name);
 }
 
-
 void checkasm_check_x86(void)
 {
-    checkasm_test_copy(get_copy_x86(),                  "copy");
-    test_copy_emms(get_copy_noemms_mmx(),               "copy_noemms");
+    checkasm_test_copy(get_copy_x86(), "copy");
+    test_copy_emms(get_copy_noemms_mmx(), "copy_noemms");
     check_clobber(0, NUM_SAFE);
 
     checkasm_should_fail(1);
-    checkasm_test_noop(get_sigill_x86(),                "sigill");
-    checkasm_test_noop(get_corrupt_stack_x86(),         "corrupt_stack");
-    checkasm_test_copy(get_copy_noemms_mmx(),           "noemms");
-    checkasm_test_copy(get_copy_novzeroupper_avx2(),    "novzeroupper");
+    checkasm_test_noop(get_sigill_x86(), "sigill");
+    checkasm_test_noop(get_corrupt_stack_x86(), "corrupt_stack");
+    checkasm_test_copy(get_copy_noemms_mmx(), "noemms");
+    checkasm_test_copy(get_copy_novzeroupper_avx2(), "novzeroupper");
     check_clobber(NUM_SAFE, NUM_REGS);
 }

@@ -27,14 +27,14 @@
 #ifndef CHECKASM_TESTS_H
 #define CHECKASM_TESTS_H
 
-#include <stdint.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <string.h>
 
 #include "src/config.h"
 
 enum {
-    CHECKASM_CPU_FLAG_BAD_C  = 1 << 0, // dummy flag for "bad" C implementations
+    CHECKASM_CPU_FLAG_BAD_C = 1 << 0, // dummy flag for "bad" C implementations
 #if ARCH_X86
     CHECKASM_CPU_FLAG_X86    = 1 << 1,
     CHECKASM_CPU_FLAG_MMX    = 1 << 2,
@@ -42,8 +42,8 @@ enum {
     CHECKASM_CPU_FLAG_AVX2   = 1 << 4,
     CHECKASM_CPU_FLAG_AVX512 = 1 << 5,
 #elif ARCH_RISCV
-    CHECKASM_CPU_FLAG_RISCV  = 1 << 1,
-    CHECKASM_CPU_FLAG_RVV    = 1 << 2,
+    CHECKASM_CPU_FLAG_RISCV = 1 << 1,
+    CHECKASM_CPU_FLAG_RVV   = 1 << 2,
 #endif
 };
 
@@ -56,14 +56,14 @@ uint64_t checkasm_get_cpu_flags_riscv(void);
 /**
  * Copy `size` (power-of-two) bytes from aligned buffers `src` to `dst`.
  */
-typedef void (copy_func)(uint8_t *dst, const uint8_t *src, size_t size);
+typedef void(copy_func)(uint8_t *dst, const uint8_t *src, size_t size);
 void checkasm_test_copy(copy_func *func, const char *name);
 
-#define DEF_COPY_FUNC(NAME) \
-    void checkasm_##NAME(uint8_t *dst, const uint8_t *src, size_t size)
+#define DEF_COPY_FUNC(NAME) void checkasm_##NAME(uint8_t *dst, const uint8_t *src, size_t size)
 
-#define DEF_COPY_GETTER(FLAG, NAME) \
-    static copy_func *get_##NAME(void) { \
+#define DEF_COPY_GETTER(FLAG, NAME)                                                   \
+    static copy_func *get_##NAME(void)                                                \
+    {                                                                                 \
         return (checkasm_get_cpu_flags() & FLAG) ? checkasm_##NAME : checkasm_copy_c; \
     }
 
@@ -78,12 +78,13 @@ static inline DEF_COPY_FUNC(copy_c)
  * The singular int parameter is just to have at least one parameter,
  * which is required by `declare_func`.
  */
-typedef void (noop_func)(int unused);
+typedef void(noop_func)(int unused);
 void checkasm_test_noop(noop_func *func, const char *name);
 
 #define DEF_NOOP_FUNC(NAME) void checkasm_##NAME(int unused)
-#define DEF_NOOP_GETTER(FLAG, NAME) \
-    static noop_func *get_##NAME(void) { \
+#define DEF_NOOP_GETTER(FLAG, NAME)                                        \
+    static noop_func *get_##NAME(void)                                     \
+    {                                                                      \
         return (checkasm_get_cpu_flags() & FLAG) ? checkasm_##NAME : NULL; \
     }
 

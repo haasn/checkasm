@@ -31,16 +31,15 @@
 
 #include <stdint.h>
 
-static inline uint64_t readtime_pmccntr(void) {
+static inline uint64_t readtime_pmccntr(void)
+{
     uint64_t cycle_counter;
     /* This requires enabling user mode access to the cycle counter
      * (which can only be done from kernel space).
      * This could also read cntvct_el0 instead of pmccntr_el0; that register
      * might also be readable (depending on kernel version), but it has much
      * worse precision (it's a fixed 50 MHz timer). */
-    __asm__ __volatile__("isb\nmrs %0, pmccntr_el0"
-                        : "=r"(cycle_counter)
-                        :: "memory");
+    __asm__ __volatile__("isb\nmrs %0, pmccntr_el0" : "=r"(cycle_counter)::"memory");
     return cycle_counter;
 }
 

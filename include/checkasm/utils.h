@@ -37,11 +37,11 @@ CHECKASM_API int checkasm_rand(void);
 
 /* memory manipulation / initialization utilities */
 CHECKASM_API void checkasm_randomize(void *buf, size_t bytes);
-CHECKASM_API void checkasm_randomize_mask8 (uint8_t  *buf, int width, uint8_t  mask);
+CHECKASM_API void checkasm_randomize_mask8(uint8_t *buf, int width, uint8_t mask);
 CHECKASM_API void checkasm_randomize_mask16(uint16_t *buf, int width, uint16_t mask);
 
 CHECKASM_API void checkasm_clear(void *buf, size_t bytes);
-CHECKASM_API void checkasm_clear8 (uint8_t  *buf, int width, uint8_t  val);
+CHECKASM_API void checkasm_clear8(uint8_t *buf, int width, uint8_t val);
 CHECKASM_API void checkasm_clear16(uint16_t *buf, int width, uint16_t val);
 
 #define CLEAR_BUF(buf)     checkasm_clear(buf, sizeof(buf))
@@ -50,17 +50,16 @@ CHECKASM_API void checkasm_clear16(uint16_t *buf, int width, uint16_t val);
 /* float compare utilities */
 CHECKASM_API int checkasm_float_near_ulp(float a, float b, unsigned max_ulp);
 CHECKASM_API int checkasm_float_near_abs_eps(float a, float b, float eps);
-CHECKASM_API int checkasm_float_near_abs_eps_ulp(float a, float b, float eps,
-                                                 unsigned max_ulp);
-CHECKASM_API int checkasm_float_near_ulp_array(const float *a, const float *b,
-                                               unsigned max_ulp, int len);
-CHECKASM_API int checkasm_float_near_abs_eps_array(const float *a, const float *b,
-                                                   float eps, int len);
-CHECKASM_API int checkasm_float_near_abs_eps_array_ulp(const float *a, const float *b,
-                                                       float eps, unsigned max_ulp, int len);
+CHECKASM_API int checkasm_float_near_abs_eps_ulp(float a, float b, float eps, unsigned max_ulp);
+CHECKASM_API int checkasm_float_near_ulp_array(const float *a, const float *b, unsigned max_ulp,
+                                               int len);
+CHECKASM_API int checkasm_float_near_abs_eps_array(const float *a, const float *b, float eps,
+                                                   int len);
+CHECKASM_API int checkasm_float_near_abs_eps_array_ulp(const float *a, const float *b, float eps,
+                                                       unsigned max_ulp, int len);
 CHECKASM_API int checkasm_double_near_abs_eps(double a, double b, double eps);
-CHECKASM_API int checkasm_double_near_abs_eps_array(const double *a, const double *b,
-                                                    double eps, unsigned len);
+CHECKASM_API int checkasm_double_near_abs_eps_array(const double *a, const double *b, double eps,
+                                                    unsigned len);
 
 /* Defined for backwards compatibility */
 #define float_near_ulp               checkasm_float_near_ulp
@@ -79,9 +78,9 @@ CHECKASM_API int checkasm_double_near_abs_eps_array(const double *a, const doubl
  *   ALIGN_ARR(uint8_t var[1][2][3][4], alignment).
  */
 #ifdef _MSC_VER
-    #define ALIGN_ARR(ll, a) __declspec(align(a)) ll
+  #define ALIGN_ARR(ll, a) __declspec(align(a)) ll
 #else
-    #define ALIGN_ARR(line, align) line __attribute__((aligned(align)))
+  #define ALIGN_ARR(line, align) line __attribute__((aligned(align)))
 #endif
 
 /*
@@ -90,32 +89,27 @@ CHECKASM_API int checkasm_double_near_abs_eps_array(const double *a, const doubl
  * becomes:
  * ALIGN_STK_$align(uint8_t, var, 1, [2][3][4])
  */
-#define ALIGN_STK_64(type, var, sz1d, sznd) \
-    ALIGN_ARR(type var[sz1d]sznd, ALIGN_64_VAL)
-#define ALIGN_STK_32(type, var, sz1d, sznd) \
-    ALIGN_ARR(type var[sz1d]sznd, ALIGN_32_VAL)
-#define ALIGN_STK_16(type, var, sz1d, sznd) \
-    ALIGN_ARR(type var[sz1d]sznd, ALIGN_16_VAL)
+#define ALIGN_STK_64(type, var, sz1d, sznd) ALIGN_ARR(type var[sz1d] sznd, ALIGN_64_VAL)
+#define ALIGN_STK_32(type, var, sz1d, sznd) ALIGN_ARR(type var[sz1d] sznd, ALIGN_32_VAL)
+#define ALIGN_STK_16(type, var, sz1d, sznd) ALIGN_ARR(type var[sz1d] sznd, ALIGN_16_VAL)
 
-#define CHECKASM_ROUND(x,a) (((x)+((a)-1)) & ~((a)-1))
-#define PIXEL_RECT(name, w, h) \
-    ALIGN_STK_64(pixel, name##_buf, ((h)+32)*(CHECKASM_ROUND(w,64)+64) + 64,); \
-    ptrdiff_t name##_stride = sizeof(pixel)*(CHECKASM_ROUND(w,64)+64); \
-    (void)name##_stride; \
-    int name##_buf_h = (h)+32; \
-    (void)name##_buf_h;\
-    pixel *name = name##_buf + (CHECKASM_ROUND(w,64)+64)*16 + 64
+#define CHECKASM_ROUND(x, a) (((x) + ((a) - 1)) & ~((a) - 1))
+#define PIXEL_RECT(name, w, h)                                                         \
+    ALIGN_STK_64(pixel, name##_buf, ((h) + 32) * (CHECKASM_ROUND(w, 64) + 64) + 64, ); \
+    ptrdiff_t name##_stride = sizeof(pixel) * (CHECKASM_ROUND(w, 64) + 64);            \
+    (void) name##_stride;                                                              \
+    int name##_buf_h = (h) + 32;                                                       \
+    (void) name##_buf_h;                                                               \
+    pixel *name = name##_buf + (CHECKASM_ROUND(w, 64) + 64) * 16 + 64
 
 #define CLEAR_PIXEL_RECT(name)     CLEAR_BUF(name##_buf)
 #define RANDOMIZE_PIXEL_RECT(name) RANDOMIZE_BUF(name##_buf)
 
-#define DECL_CHECKASM_CHECK_FUNC(type) \
-CHECKASM_API int checkasm_check_##type(const char *const file, const int line, \
-                                       const type *const buf1, const ptrdiff_t stride1, \
-                                       const type *const buf2, const ptrdiff_t stride2, \
-                                       const int w, const int h, const char *const name, \
-                                       const int align_w, const int align_h, \
-                                       const int padding)
+#define DECL_CHECKASM_CHECK_FUNC(type)                                                           \
+    CHECKASM_API int checkasm_check_##type(                                                      \
+        const char *const file, const int line, const type *const buf1, const ptrdiff_t stride1, \
+        const type *const buf2, const ptrdiff_t stride2, const int w, const int h,               \
+        const char *const name, const int align_w, const int align_h, const int padding)
 
 DECL_CHECKASM_CHECK_FUNC(int8_t);
 DECL_CHECKASM_CHECK_FUNC(int16_t);
@@ -124,16 +118,14 @@ DECL_CHECKASM_CHECK_FUNC(uint8_t);
 DECL_CHECKASM_CHECK_FUNC(uint16_t);
 DECL_CHECKASM_CHECK_FUNC(uint32_t);
 
-CHECKASM_API int checkasm_check_float_ulp(const char *file, int line,
-                                          const float *buf1, ptrdiff_t stride1,
-                                          const float *buf2, ptrdiff_t stride2,
-                                          int w, int h, const char *name,
-                                          unsigned max_ulp, int align_w, int align_h,
-                                          int padding);
+CHECKASM_API int checkasm_check_float_ulp(const char *file, int line, const float *buf1,
+                                          ptrdiff_t stride1, const float *buf2, ptrdiff_t stride2,
+                                          int w, int h, const char *name, unsigned max_ulp,
+                                          int align_w, int align_h, int padding);
 
 #ifndef CONCAT
-    #define CONCAT2(a,b) a ## b
-    #define CONCAT(a,b) CONCAT2(a, b)
+  #define CONCAT2(a, b) a##b
+  #define CONCAT(a, b)  CONCAT2(a, b)
 #endif
 
 #define checkasm_check2(type, ...)       CONCAT(checkasm_check_, type)(__FILE__, __LINE__, __VA_ARGS__)
@@ -143,6 +135,6 @@ CHECKASM_API int checkasm_check_float_ulp(const char *file, int line,
 #define checkasm_check_pixel(...)              checkasm_check(PIXEL_TYPE, __VA_ARGS__)
 #define checkasm_check_pixel_padded(...)       checkasm_check2(PIXEL_TYPE, __VA_ARGS__, 1, 1, 8)
 #define checkasm_check_pixel_padded_align(...) checkasm_check2(PIXEL_TYPE, __VA_ARGS__, 8)
-#define checkasm_check_coef(...)  checkasm_check(COEF_TYPE,  __VA_ARGS__)
+#define checkasm_check_coef(...)               checkasm_check(COEF_TYPE, __VA_ARGS__)
 
 #endif /* CHECKASM_UTILS_H */

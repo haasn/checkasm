@@ -31,8 +31,8 @@
 #include "checkasm/platform.h"
 
 #include "config.h"
-#include "internal.h"
 #include "cpu.h"
+#include "internal.h"
 
 #if ARCH_X86_64
 
@@ -40,18 +40,21 @@ typedef struct {
     uint32_t eax, ebx, edx, ecx;
 } CpuidRegisters;
 
-void checkasm_cpu_cpuid(CpuidRegisters *regs, unsigned leaf, unsigned subleaf);
+void     checkasm_cpu_cpuid(CpuidRegisters *regs, unsigned leaf, unsigned subleaf);
 uint64_t checkasm_cpu_xgetbv(unsigned xcr);
 
 void checkasm_warmup_avx(void);
 void checkasm_warmup_avx512(void);
-static void noop(void) {}
+
+static void noop(void)
+{
+}
 
 typedef void (*checkasm_simd_warmup_func)(void);
 static COLD checkasm_simd_warmup_func get_simd_warmup(void)
 {
     checkasm_simd_warmup_func simd_warmup = noop;
-    CpuidRegisters r;
+    CpuidRegisters            r;
     checkasm_cpu_cpuid(&r, 0, 0);
     const uint32_t max_leaf = r.eax;
     if (max_leaf < 1)

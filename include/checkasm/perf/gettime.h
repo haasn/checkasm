@@ -32,14 +32,15 @@
 #include <stdint.h>
 #include <time.h>
 
-static inline uint64_t clock_gettime_nsec(void) {
+static inline uint64_t clock_gettime_nsec(void)
+{
     struct timespec ts;
 #ifdef CLOCK_MONOTONIC_RAW
     clock_gettime(CLOCK_MONOTONIC_RAW, &ts);
 #else
     clock_gettime(CLOCK_MONOTONIC, &ts);
 #endif
-    return ((uint64_t)ts.tv_sec*1000000000u) + (uint64_t)ts.tv_nsec;
+    return ((uint64_t) ts.tv_sec * 1000000000u) + (uint64_t) ts.tv_nsec;
 }
 
 #define CHECKASM_PERF_SETUP()

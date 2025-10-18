@@ -55,68 +55,79 @@ CHECKASM_API void checkasm_checked_call_emms(void *func, ...);
  * any issues. The following set of macros automatically calculates a bitmask
  * specifying which parameters should have their upper halves clobbered. */
 #ifdef _WIN32
-    /* Integer and floating-point parameters share "register slots". */
-    #define IGNORED_FP_ARGS 0
+  /* Integer and floating-point parameters share "register slots". */
+  #define IGNORED_FP_ARGS 0
 #else
-    /* Up to 8 floating-point parameters are passed in XMM registers, which are
-    * handled orthogonally from integer parameters passed in GPR registers. */
-    #define IGNORED_FP_ARGS 8
+  /* Up to 8 floating-point parameters are passed in XMM registers, which are
+   * handled orthogonally from integer parameters passed in GPR registers. */
+  #define IGNORED_FP_ARGS 8
 #endif
 
 #if defined(__STDC__) && defined(__STDC_VERSION) && __STDC__ && __STDC_VERSION >= 201112L
-    #define clobber_type(arg) _Generic((void (*)(void*, arg))NULL,\
-        void (*)(void*, int32_t ): clobber_mask |= 1 << mpos++,\
-        void (*)(void*, uint32_t): clobber_mask |= 1 << mpos++,\
-        void (*)(void*, float   ): mpos += (fp_args++ >= IGNORED_FP_ARGS),\
-        void (*)(void*, double  ): mpos += (fp_args++ >= IGNORED_FP_ARGS),\
-        default:                   mpos++)
+  #define clobber_type(arg)                                                 \
+      _Generic((void (*)(void *, arg)) NULL,                                \
+          void (*)(void *, int32_t): clobber_mask |= 1 << mpos++,           \
+          void (*)(void *, uint32_t): clobber_mask |= 1 << mpos++,          \
+          void (*)(void *, float): mpos += (fp_args++ >= IGNORED_FP_ARGS),  \
+          void (*)(void *, double): mpos += (fp_args++ >= IGNORED_FP_ARGS), \
+          default: mpos++)
 
-    #define init_clobber_mask(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, ...)\
-        unsigned clobber_mask = 0;\
-        {\
-            int mpos = 0, fp_args = 0;\
-            clobber_type(a); clobber_type(b); clobber_type(c); clobber_type(d);\
-            clobber_type(e); clobber_type(f); clobber_type(g); clobber_type(h);\
-            clobber_type(i); clobber_type(j); clobber_type(k); clobber_type(l);\
-            clobber_type(m); clobber_type(n); clobber_type(o); clobber_type(p);\
-        }
+  #define init_clobber_mask(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, ...) \
+      unsigned clobber_mask = 0;                                                 \
+      {                                                                          \
+          int mpos = 0, fp_args = 0;                                             \
+          clobber_type(a);                                                       \
+          clobber_type(b);                                                       \
+          clobber_type(c);                                                       \
+          clobber_type(d);                                                       \
+          clobber_type(e);                                                       \
+          clobber_type(f);                                                       \
+          clobber_type(g);                                                       \
+          clobber_type(h);                                                       \
+          clobber_type(i);                                                       \
+          clobber_type(j);                                                       \
+          clobber_type(k);                                                       \
+          clobber_type(l);                                                       \
+          clobber_type(m);                                                       \
+          clobber_type(n);                                                       \
+          clobber_type(o);                                                       \
+          clobber_type(p);                                                       \
+      }
 #else
-    /* Skip parameter clobbering on compilers without support for _Generic() */
-    #define init_clobber_mask(...) unsigned clobber_mask = 0
+  /* Skip parameter clobbering on compilers without support for _Generic() */
+  #define init_clobber_mask(...) unsigned clobber_mask = 0
 #endif
 
-#define declare_new(ret, ...)\
-    ret (*checked_call)(__VA_ARGS__, int, int, int, int, int, int, int,\
-                        int, int, int, int, int, int, int, int, int,\
-                        void*, unsigned) =\
-        (ret (*)(__VA_ARGS__, int, int, int, int, int, int, int,\
-         int, int, int, int, int, int, int, int, int,\
-         void *, unsigned)) (void *) checkasm_checked_call;\
-    int emms_needed = 0; (void) emms_needed;\
-    init_clobber_mask(__VA_ARGS__, void*, void*, void*, void*,\
-                      void*, void*, void*, void*, void*, void*,\
-                      void*, void*, void*, void*, void*);
+#define declare_new(ret, ...)                                                                      \
+    ret (*checked_call)(__VA_ARGS__, int, int, int, int, int, int, int, int, int, int, int, int,   \
+                        int, int, int, int, void *, unsigned)                                      \
+        = (ret (*)(__VA_ARGS__, int, int, int, int, int, int, int, int, int, int, int, int, int,   \
+                   int, int, int, void *, unsigned))(void *) checkasm_checked_call;                \
+    int emms_needed = 0;                                                                           \
+    (void) emms_needed;                                                                            \
+    init_clobber_mask(__VA_ARGS__, void *, void *, void *, void *, void *, void *, void *, void *, \
+                      void *, void *, void *, void *, void *, void *, void *);
 
-#define call_new(...)\
-    (checkasm_set_signal_handler_state(1),\
-     checkasm_simd_warmup(),\
-     checked_call(__VA_ARGS__, 16, 15, 14, 13, 12, 11, 10, 9, 8,\
-                  7, 6, 5, 4, 3, 2, 1, func_new, clobber_mask));\
+#define call_new(...)                                                                           \
+    (checkasm_set_signal_handler_state(1), checkasm_simd_warmup(),                              \
+     checked_call(__VA_ARGS__, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, func_new, \
+                  clobber_mask));                                                               \
     checkasm_set_signal_handler_state(0)
 
-#define declare_func_emms(cpu_flags, ret, ...)\
-    declare_func(ret, __VA_ARGS__);\
-    if (checkasm_get_cpu_flags() & (cpu_flags)) {\
-        checked_call = (ret (*)(__VA_ARGS__, int, int, int, int, int, int, int,\
-                        int, int, int, int, int, int, int, int, int,\
-                        void *, unsigned)) (void *) checkasm_checked_call_emms;\
-        emms_needed = 1;\
+#define declare_func_emms(cpu_flags, ret, ...)                                                    \
+    declare_func(ret, __VA_ARGS__);                                                               \
+    if (checkasm_get_cpu_flags() & (cpu_flags)) {                                                 \
+        checked_call                                                                              \
+            = (ret (*)(__VA_ARGS__, int, int, int, int, int, int, int, int, int, int, int, int,   \
+                       int, int, int, int, void *, unsigned))(void *) checkasm_checked_call_emms; \
+        emms_needed = 1;                                                                          \
     }
 
-#define checkasm_clear_cpu_state() do {\
-    if (emms_needed)\
-        __asm__ volatile ("emms" ::: "memory");\
-} while (0)
+#define checkasm_clear_cpu_state()                 \
+    do {                                           \
+        if (emms_needed)                           \
+            __asm__ volatile("emms" ::: "memory"); \
+    } while (0)
 
 /* x86-64 needs 32- and 64-byte alignment for AVX2 and AVX-512. */
 #define ALIGN_64_VAL 64

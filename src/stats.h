@@ -40,7 +40,7 @@ static inline double checkasm_stddev(const CheckasmVar x)
 
 static inline CheckasmVar checkasm_var_const(double x)
 {
-    return (CheckasmVar){ x, 0.0 };
+    return (CheckasmVar) { x, 0.0 };
 }
 
 /* Assumes independent random variables */
@@ -54,15 +54,15 @@ CheckasmVar checkasm_var_inv(CheckasmVar a);
 /* Statistical analysis helpers */
 typedef struct CheckasmSample {
     uint64_t sum; /* batched sum of data points */
-    int count;    /* number of data points in batch */
+    int      count; /* number of data points in batch */
 } CheckasmSample;
 
 typedef struct CheckasmStats {
     /* With a ~12% exponential growth on the number of data points per sample,
      * 256 samples can effectively represent many billions of data points */
     CheckasmSample samples[256];
-    int nb_samples;
-    int next_count;
+    int            nb_samples;
+    int            next_count;
 } CheckasmStats;
 
 static inline void checkasm_stats_reset(CheckasmStats *const stats)
@@ -71,8 +71,7 @@ static inline void checkasm_stats_reset(CheckasmStats *const stats)
     stats->next_count = 1;
 }
 
-static inline void checkasm_stats_add(CheckasmStats *const stats,
-                                      const CheckasmSample s)
+static inline void checkasm_stats_add(CheckasmStats *const stats, const CheckasmSample s)
 {
     if (s.count > 0) {
         assert(stats->nb_samples < (int) ARRAY_SIZE(stats->samples));
@@ -103,7 +102,6 @@ typedef struct CheckasmDistribution {
 } CheckasmDistribution;
 
 /* `distribution` is optional and gives more detail */
-CheckasmVar checkasm_stats_estimate(CheckasmStats *stats,
-                                    CheckasmDistribution *distribution);
+CheckasmVar checkasm_stats_estimate(CheckasmStats *stats, CheckasmDistribution *distribution);
 
 #endif /* CHECKASM_STATS_H */

@@ -31,11 +31,10 @@
 
 #include <stdint.h>
 
-static inline uint64_t readtime_rdtime(void) {
+static inline uint64_t readtime_rdtime(void)
+{
     uint64_t a, id;
-    __asm__ __volatile__("rdtime.d  %0, %1"
-                        : "=r"(a), "=r"(id)
-                        :: );
+    __asm__ __volatile__("rdtime.d  %0, %1" : "=r"(a), "=r"(id)::);
     return a;
 }
 
