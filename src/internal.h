@@ -75,7 +75,7 @@ typedef struct RandomVar {
 /* Platform specific timing code */
 int checkasm_perf_init(void);
 RandomVar checkasm_measure_nop_cycles(void); /* cycles per iter */
-RandomVar checkasm_measure_perf_scale(void); /* ns per cycle */
+RandomVar checkasm_measure_perf_scale(double *low_estimate); /* ns per cycle */
 uint64_t checkasm_gettime_nsec(void);
 void checkasm_noop(void *);
 
