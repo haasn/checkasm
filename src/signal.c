@@ -37,6 +37,7 @@
 #include "test.h"
 
 #ifdef _WIN32
+  #include <windows.h>
   #ifndef SIGBUS
     /* non-standard, use the same value as mingw-w64 */
     #define SIGBUS 10

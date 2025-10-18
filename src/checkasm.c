@@ -53,6 +53,10 @@
   #endif
 #endif
 
+#ifdef _WIN32
+  #include <windows.h>
+#endif
+
 typedef struct CheckasmFuncVersion {
     struct CheckasmFuncVersion *next;
     const CheckasmCpuInfo      *cpu;
