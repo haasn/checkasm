@@ -104,6 +104,37 @@ static DEF_NOOP_FUNC(segfault)
     *bad              = 0;
 }
 
+static int identity_ref(const int x)
+{
+    return x;
+}
+
+/* Just make this a separate function to test the checked wrappers */
+static int identity_new(const int x)
+{
+    return x;
+}
+
+static void checkasm_test_retval(void)
+{
+    const int flags = checkasm_get_cpu_flags();
+
+    declare_func(int, int);
+
+    if (check_func(flags ? identity_new : identity_ref, "identity")) {
+        for (int i = 0; i < 10; i++) {
+            int x = call_ref(i);
+            int y = call_new(i);
+            if (x != y) {
+                if (fail())
+                    fprintf(stderr, "expected %d, got %d\n", x, y);
+            }
+        }
+    }
+
+    report("identity");
+}
+
 DEF_COPY_GETTER(CHECKASM_CPU_FLAG_BAD_C, memset)
 DEF_COPY_GETTER(CHECKASM_CPU_FLAG_BAD_C, overwrite_left)
 DEF_COPY_GETTER(CHECKASM_CPU_FLAG_BAD_C, overwrite_right)
@@ -113,6 +144,7 @@ DEF_NOOP_GETTER(CHECKASM_CPU_FLAG_BAD_C, segfault)
 void checkasm_check_generic(void)
 {
     checkasm_test_copy(checkasm_copy_c, "copy");
+    checkasm_test_retval();
 
     checkasm_should_fail(1);
     checkasm_test_copy(get_memset(), "memset");
