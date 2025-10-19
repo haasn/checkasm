@@ -26,7 +26,7 @@
 %undef private_prefix
 %define private_prefix checkasm
 
-%include "config.asm"
+%include "checkasm_config.asm"
 %include "x86/x86inc.asm"
 
 SECTION_RODATA 16

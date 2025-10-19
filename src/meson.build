@@ -125,7 +125,7 @@ elif arch_loongarch
 elif arch_x86
   add_languages('nasm', native: false)
   checkasm_config += configure_file(
-    output: 'config.asm',
+    output: 'checkasm_config.asm',
     output_format: 'nasm',
     configuration: cdata,
     install: false,

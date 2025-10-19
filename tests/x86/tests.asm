@@ -1,7 +1,7 @@
 %undef private_prefix
 %define private_prefix checkasm
 
-%include "src/config.asm"
+%include "src/checkasm_config.asm"
 %include "src/x86/x86inc.asm"
 
 SECTION .text
