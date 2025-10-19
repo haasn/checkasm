@@ -622,24 +622,26 @@ void *checkasm_check_func(void *const func, const char *const name, ...)
 
 /* Indicate that the current test has failed, return whether verbose printing
  * is requested. */
-#define DEF_FAIL_FUNC(funcname)                                                          \
-    int funcname(const char *const msg, ...)                                             \
-    {                                                                                    \
-        CheckasmFuncVersion *const v = state.current_func_ver;                           \
-        if (v && v->cpu && v->ok) {                                                      \
-            va_list arg;                                                                 \
-                                                                                         \
-            print_cpu_name();                                                            \
-            fprintf(stderr, "   %s_%s (", state.current_func->name, cpu_suffix(v->cpu)); \
-            va_start(arg, msg);                                                          \
-            vfprintf(stderr, msg, arg);                                                  \
-            va_end(arg);                                                                 \
-            fprintf(stderr, ")\n");                                                      \
-                                                                                         \
-            v->ok = 0;                                                                   \
-            state.num_failed++;                                                          \
-        }                                                                                \
-        return cfg.verbose;                                                              \
+#define DEF_FAIL_FUNC(funcname)                                                              \
+    int funcname(const char *const msg, ...)                                                 \
+    {                                                                                        \
+        CheckasmFuncVersion *const v = state.current_func_ver;                               \
+        if (v && v->ok) {                                                                    \
+            va_list arg;                                                                     \
+                                                                                             \
+            if (!state.should_fail) {                                                        \
+                print_cpu_name();                                                            \
+                fprintf(stderr, "   %s_%s (", state.current_func->name, cpu_suffix(v->cpu)); \
+                va_start(arg, msg);                                                          \
+                vfprintf(stderr, msg, arg);                                                  \
+                va_end(arg);                                                                 \
+                fprintf(stderr, ")\n");                                                      \
+            }                                                                                \
+                                                                                             \
+            v->ok = 0;                                                                       \
+            state.num_failed++;                                                              \
+        }                                                                                    \
+        return cfg.verbose && !state.should_fail;                                            \
     }
 
 /* We need to define two versions of this function, one to export and one for
