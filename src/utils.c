@@ -139,9 +139,10 @@ void checkasm_clear16(uint16_t *buf, int width, uint16_t val)
         *buf++ = val;
 }
 
-/* Print colored text to stderr if the terminal supports it */
 static int use_printf_color;
-void       checkasm_fprintf(FILE *const f, const int color, const char *const fmt, ...)
+
+/* Print colored text to stderr if the terminal supports it */
+void checkasm_fprintf(FILE *const f, const int color, const char *const fmt, ...)
 {
     va_list arg;
 
