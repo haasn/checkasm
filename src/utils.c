@@ -271,11 +271,24 @@ static int check_err(const char *const file, const int line, const char *const n
     return 0;
 }
 
-#define DEF_CHECKASM_CHECK_BODY(compare, type, fmt)                                              \
+#define PRINT_LINE(buf1, buf2, xstart, xend, fmt, fmtw)                \
+    do {                                                               \
+        for (int x = xstart; x < xend; x++) {                          \
+            if (buf1[x] != buf2[x])                                    \
+                checkasm_fprintf(stderr, COLOR_RED, " " fmt, buf1[x]); \
+            else                                                       \
+                fprintf(stderr, " " fmt, buf1[x]);                     \
+        }                                                              \
+        for (int pad = xend; pad < xstart + display_elems; pad++)      \
+            fprintf(stderr, &"          "[9 - fmtw]);                  \
+    } while (0)
+
+#define DEF_CHECKASM_CHECK_BODY(compare, type, fmt, fmtw)                                        \
     do {                                                                                         \
-        int aligned_w = (w + align_w - 1) & ~(align_w - 1);                                      \
-        int aligned_h = (h + align_h - 1) & ~(align_h - 1);                                      \
-        int err       = 0;                                                                       \
+        const int display_elems = 24 / fmtw;                                                     \
+        int       aligned_w     = (w + align_w - 1) & ~(align_w - 1);                            \
+        int       aligned_h     = (h + align_h - 1) & ~(align_h - 1);                            \
+        int       err           = 0;                                                             \
         stride1 /= sizeof(*buf1);                                                                \
         stride2 /= sizeof(*buf2);                                                                \
         int y = 0;                                                                               \
@@ -286,29 +299,26 @@ static int check_err(const char *const file, const int line, const char *const n
             if (check_err(file, line, name, w, h, &err))                                         \
                 return 1;                                                                        \
             for (y = 0; y < h; y++) {                                                            \
-                for (int x = 0; x < w; x++) {                                                    \
-                    if (buf1[x] != buf2[x])                                                      \
-                        checkasm_fprintf(stderr, COLOR_RED, " " fmt, buf1[x]);                   \
+                for (int xstart = 0; xstart < w; xstart += display_elems) {                      \
+                    const int xend = imin(xstart + display_elems, w);                            \
+                    if (xstart == 0) /* line change */                                           \
+                        checkasm_fprintf(stderr, COLOR_BLUE, "%3d: ", y);                        \
                     else                                                                         \
-                        fprintf(stderr, " " fmt, buf1[x]);                                       \
-                }                                                                                \
-                fprintf(stderr, "    ");                                                         \
-                for (int x = 0; x < w; x++) {                                                    \
-                    if (buf1[x] != buf2[x])                                                      \
-                        checkasm_fprintf(stderr, COLOR_RED, " " fmt, buf2[x]);                   \
-                    else                                                                         \
-                        fprintf(stderr, " " fmt, buf2[x]);                                       \
-                }                                                                                \
-                fprintf(stderr, "    ");                                                         \
-                for (int x = 0; x < w; x++) {                                                    \
-                    if (buf1[x] != buf2[x])                                                      \
-                        checkasm_fprintf(stderr, COLOR_RED, "x");                                \
-                    else                                                                         \
-                        fprintf(stderr, ".");                                                    \
+                        fprintf(stderr, "     ");                                                \
+                    PRINT_LINE(buf1, buf2, xstart, xend, fmt, fmtw);                             \
+                    fprintf(stderr, "    ");                                                     \
+                    PRINT_LINE(buf2, buf1, xstart, xend, fmt, fmtw);                             \
+                    fprintf(stderr, "    ");                                                     \
+                    for (int x = xstart; x < xend; x++) {                                        \
+                        if (buf1[x] != buf2[x])                                                  \
+                            checkasm_fprintf(stderr, COLOR_RED, "x");                            \
+                        else                                                                     \
+                            fprintf(stderr, ".");                                                \
+                    }                                                                            \
+                    fprintf(stderr, "\n");                                                       \
                 }                                                                                \
                 buf1 += stride1;                                                                 \
                 buf2 += stride2;                                                                 \
-                fprintf(stderr, "\n");                                                           \
             }                                                                                    \
             buf1 -= h * stride1;                                                                 \
             buf2 -= h * stride2;                                                                 \
@@ -348,26 +358,26 @@ static int check_err(const char *const file, const int line, const char *const n
     } while (0)
 
 #define cmp_int(a, b, len) (!memcmp(a, b, (len) * sizeof(*(a))))
-#define DEF_CHECKASM_CHECK_FUNC(type, fmt)                                                         \
+#define DEF_CHECKASM_CHECK_FUNC(type, fmt, fmtw)                                                   \
     int checkasm_check_##type(const char *file, int line, const type *buf1, ptrdiff_t stride1,     \
                               const type *buf2, ptrdiff_t stride2, int w, int h, const char *name, \
                               int align_w, int align_h, int padding)                               \
     {                                                                                              \
-        DEF_CHECKASM_CHECK_BODY(cmp_int, type, fmt);                                               \
+        DEF_CHECKASM_CHECK_BODY(cmp_int, type, fmt, fmtw);                                         \
     }
 
-DEF_CHECKASM_CHECK_FUNC(int8_t, "%4d")
-DEF_CHECKASM_CHECK_FUNC(int16_t, "%6d")
-DEF_CHECKASM_CHECK_FUNC(int32_t, "%9d")
-DEF_CHECKASM_CHECK_FUNC(uint8_t, "%02x")
-DEF_CHECKASM_CHECK_FUNC(uint16_t, "%04x")
-DEF_CHECKASM_CHECK_FUNC(uint32_t, "%08x")
+DEF_CHECKASM_CHECK_FUNC(int8_t, "%4d", 4)
+DEF_CHECKASM_CHECK_FUNC(int16_t, "%6d", 6)
+DEF_CHECKASM_CHECK_FUNC(int32_t, "%9d", 9)
+DEF_CHECKASM_CHECK_FUNC(uint8_t, "%02x", 2)
+DEF_CHECKASM_CHECK_FUNC(uint16_t, "%04x", 4)
+DEF_CHECKASM_CHECK_FUNC(uint32_t, "%08x", 8)
 
 int checkasm_check_float_ulp(const char *file, int line, const float *buf1, ptrdiff_t stride1,
                              const float *buf2, ptrdiff_t stride2, int w, int h, const char *name,
                              unsigned max_ulp, int align_w, int align_h, int padding)
 {
 #define cmp_float(a, b, len) float_near_ulp_array(a, b, max_ulp, len)
-    DEF_CHECKASM_CHECK_BODY(cmp_float, float, "%g");
+    DEF_CHECKASM_CHECK_BODY(cmp_float, float, "%7g", 7);
 #undef cmp_float
 }
