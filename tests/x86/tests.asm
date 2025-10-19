@@ -80,7 +80,11 @@ clobber r14, _r14
 
 cglobal corrupt_stack_x86
     xor rax, rax
+%if WIN64
+    mov [rsp+32+8], rax ; account for shadow space
+%else
     mov [rsp+8], rax
+%endif
     RET
 
 ; MMX functions
