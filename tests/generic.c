@@ -31,7 +31,6 @@
 #include <string.h>
 
 #include "tests.h"
-#include <checkasm/test.h>
 
 typedef uint8_t pixel;
 #define PIXEL_TYPE uint8_t

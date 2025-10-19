@@ -35,7 +35,6 @@
 #include "checkasm/longjmp.h"
 #include "checkasm/perf.h"
 #include "checkasm/platform.h"
-#include "checkasm/utils.h"
 
 /********************************************
  * Internal checkasm API. Used inside tests *

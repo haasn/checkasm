@@ -33,6 +33,9 @@
 
 #include "src/config.h"
 
+#include <checkasm/test.h>
+#include <checkasm/utils.h>
+
 enum {
     CHECKASM_CPU_FLAG_BAD_C = 1 << 0, // dummy flag for "bad" C implementations
 #if ARCH_X86

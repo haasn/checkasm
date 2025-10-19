@@ -1,5 +1,3 @@
-#include <checkasm/test.h>
-
 #include "tests.h"
 
 /* Re-use from main checkasm library */

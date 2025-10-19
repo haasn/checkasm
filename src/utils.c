@@ -47,6 +47,7 @@
 #endif
 
 #include "checkasm/test.h"
+#include "checkasm/utils.h"
 #include "internal.h"
 
 NOINLINE void checkasm_noop(void *ptr)

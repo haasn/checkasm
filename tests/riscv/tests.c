@@ -1,5 +1,3 @@
-#include <checkasm/test.h>
-
 #include "tests.h"
 
 int checkasm_get_vlenb(void);
