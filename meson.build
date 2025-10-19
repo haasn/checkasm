@@ -27,6 +27,7 @@ project('checkasm', 'c',
   version: '1.0.0',
   default_options: ['c_std=c11',
                     'buildtype=debugoptimized',
+                    'default_library=static',
                     'b_ndebug=if-release',
                     'warning_level=2'],
   meson_version : '>=0.64.0')
