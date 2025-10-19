@@ -53,5 +53,5 @@ checkasm_test = executable('checkasm',
   install: false,
 )
 
-test('checkasm',      checkasm_test, suite: 'checkasm')
+test('checkasm',      checkasm_test, suite: 'checkasm', args: ['--verbose'])
 benchmark('checkasm', checkasm_test, suite: 'checkasm', args: ['--bench', '--verbose'])
