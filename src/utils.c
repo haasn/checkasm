@@ -286,14 +286,26 @@ static int check_err(const char *const file, const int line, const char *const n
             if (check_err(file, line, name, w, h, &err))                                         \
                 return 1;                                                                        \
             for (y = 0; y < h; y++) {                                                            \
-                for (int x = 0; x < w; x++)                                                      \
-                    fprintf(stderr, " " fmt, buf1[x]);                                           \
+                for (int x = 0; x < w; x++) {                                                    \
+                    if (buf1[x] != buf2[x])                                                      \
+                        checkasm_fprintf(stderr, COLOR_RED, " " fmt, buf1[x]);                   \
+                    else                                                                         \
+                        fprintf(stderr, " " fmt, buf1[x]);                                       \
+                }                                                                                \
                 fprintf(stderr, "    ");                                                         \
-                for (int x = 0; x < w; x++)                                                      \
-                    fprintf(stderr, " " fmt, buf2[x]);                                           \
+                for (int x = 0; x < w; x++) {                                                    \
+                    if (buf1[x] != buf2[x])                                                      \
+                        checkasm_fprintf(stderr, COLOR_RED, " " fmt, buf2[x]);                   \
+                    else                                                                         \
+                        fprintf(stderr, " " fmt, buf2[x]);                                       \
+                }                                                                                \
                 fprintf(stderr, "    ");                                                         \
-                for (int x = 0; x < w; x++)                                                      \
-                    fprintf(stderr, "%c", buf1[x] != buf2[x] ? 'x' : '.');                       \
+                for (int x = 0; x < w; x++) {                                                    \
+                    if (buf1[x] != buf2[x])                                                      \
+                        checkasm_fprintf(stderr, COLOR_RED, "x");                                \
+                    else                                                                         \
+                        fprintf(stderr, ".");                                                    \
+                }                                                                                \
                 buf1 += stride1;                                                                 \
                 buf2 += stride2;                                                                 \
                 fprintf(stderr, "\n");                                                           \
