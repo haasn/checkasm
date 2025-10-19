@@ -60,6 +60,10 @@ int checkasm_fail_internal(const char *msg, ...) ATTR_FORMAT_PRINTF(1, 2);
 #define COLOR_RED     31
 #define COLOR_GREEN   32
 #define COLOR_YELLOW  33
+#define COLOR_BLUE    34
+#define COLOR_MAGENTA 35
+#define COLOR_CYAN    36
+#define COLOR_WHITE   37
 
 /* Colored variant of fprintf for terminals that support it */
 void checkasm_setup_fprintf(FILE *const f);
