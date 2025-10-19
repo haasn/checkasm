@@ -349,8 +349,8 @@ static void check_cpu_flag(const CheckasmCpuInfo *cpu)
 /* Print the name of the current CPU flag, but only do it once */
 static void print_cpu_name(void)
 {
-    if (state.cpu && !state.cpu_name_printed) {
-        checkasm_fprintf(stderr, COLOR_YELLOW, "%s:\n", state.cpu->name);
+    if (!state.cpu_name_printed) {
+        checkasm_fprintf(stderr, COLOR_YELLOW, "%s:\n", state.cpu ? state.cpu->name : "C");
         state.cpu_name_printed = 1;
     }
 }
