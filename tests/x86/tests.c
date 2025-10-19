@@ -153,9 +153,9 @@ static void check_clobber(int from, int to)
 
 static void test_copy_emms(copy_func fun, const char *name)
 {
-    ALIGN_STK_64(uint8_t, c_dst, 256, );
-    ALIGN_STK_64(uint8_t, a_dst, 256, );
-    ALIGN_STK_64(uint8_t, src, 256, );
+    CHECKASM_ALIGN(uint8_t c_dst[256]);
+    CHECKASM_ALIGN(uint8_t a_dst[256]);
+    CHECKASM_ALIGN(uint8_t src[256]);
     RANDOMIZE_BUF(src);
 
     declare_func_emms(CHECKASM_CPU_FLAG_MMX, void, uint8_t *dest, const uint8_t *src, size_t n);

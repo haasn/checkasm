@@ -48,8 +48,6 @@ CHECKASM_API extern void (*checkasm_checked_call_ptr)(void *func, int dummy, ...
     checkasm_set_signal_handler_state(0)
 
 /* ARM doesn't benefit from anything more than 16-byte alignment. */
-#define ALIGN_64_VAL 16
-#define ALIGN_32_VAL 16
-#define ALIGN_16_VAL 16
+#define CHECKASM_ALIGNMENT 16
 
 #endif /* CHECKASM_PLATFORM_ARM_H */

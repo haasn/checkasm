@@ -61,8 +61,6 @@ CHECKASM_API void checkasm_stack_clobber(uint64_t clobber, ...);
 #endif
 
 /* ARM doesn't benefit from anything more than 16-byte alignment. */
-#define ALIGN_64_VAL 16
-#define ALIGN_32_VAL 16
-#define ALIGN_16_VAL 16
+#define CHECKASM_ALIGNMENT 16
 
 #endif /* CHECKASM_PLATFORM_AARCH64_H */

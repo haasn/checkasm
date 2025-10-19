@@ -71,35 +71,19 @@ CHECKASM_API int checkasm_double_near_abs_eps_array(const double *a, const doubl
 #define double_near_abs_eps          checkasm_double_near_abs_eps
 #define double_near_abs_eps_array    checkasm_double_near_abs_eps_array
 
-/*
- * API for variables, struct members (ALIGN_ARR()) like:
- *   uint8_t var[1][2][3][4]
- * becomes:
- *   ALIGN_ARR(uint8_t var[1][2][3][4], alignment).
- */
 #ifdef _MSC_VER
-  #define ALIGN_ARR(ll, a) __declspec(align(a)) ll
+  #define CHECKASM_ALIGN(x) __declspec(align(CHECKASM_ALIGNMENT)) x
 #else
-  #define ALIGN_ARR(line, align) line __attribute__((aligned(align)))
+  #define CHECKASM_ALIGN(x) x __attribute__((aligned(CHECKASM_ALIGNMENT)))
 #endif
 
-/*
- * API for stack alignment (ALIGN_STK_$align()) of variables like:
- * uint8_t var[1][2][3][4]
- * becomes:
- * ALIGN_STK_$align(uint8_t, var, 1, [2][3][4])
- */
-#define ALIGN_STK_64(type, var, sz1d, sznd) ALIGN_ARR(type var[sz1d] sznd, ALIGN_64_VAL)
-#define ALIGN_STK_32(type, var, sz1d, sznd) ALIGN_ARR(type var[sz1d] sznd, ALIGN_32_VAL)
-#define ALIGN_STK_16(type, var, sz1d, sznd) ALIGN_ARR(type var[sz1d] sznd, ALIGN_16_VAL)
-
 #define CHECKASM_ROUND(x, a) (((x) + ((a) - 1)) & ~((a) - 1))
-#define PIXEL_RECT(name, w, h)                                                         \
-    ALIGN_STK_64(pixel, name##_buf, ((h) + 32) * (CHECKASM_ROUND(w, 64) + 64) + 64, ); \
-    ptrdiff_t name##_stride = sizeof(pixel) * (CHECKASM_ROUND(w, 64) + 64);            \
-    (void) name##_stride;                                                              \
-    int name##_buf_h = (h) + 32;                                                       \
-    (void) name##_buf_h;                                                               \
+#define PIXEL_RECT(name, w, h)                                                        \
+    CHECKASM_ALIGN(pixel name##_buf[((h) + 32) * (CHECKASM_ROUND(w, 64) + 64) + 64]); \
+    ptrdiff_t name##_stride = sizeof(pixel) * (CHECKASM_ROUND(w, 64) + 64);           \
+    (void) name##_stride;                                                             \
+    int name##_buf_h = (h) + 32;                                                      \
+    (void) name##_buf_h;                                                              \
     pixel *name = name##_buf + (CHECKASM_ROUND(w, 64) + 64) * 16 + 64
 
 #define CLEAR_PIXEL_RECT(name)     CLEAR_BUF(name##_buf)

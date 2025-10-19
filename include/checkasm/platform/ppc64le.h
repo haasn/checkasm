@@ -35,8 +35,6 @@
     (checkasm_set_signal_handler_state(1), ((func_type *) func_new)(__VA_ARGS__)); \
     checkasm_set_signal_handler_state(0)
 
-#define ALIGN_64_VAL 16
-#define ALIGN_32_VAL 16
-#define ALIGN_16_VAL 16
+#define CHECKASM_ALIGNMENT 16
 
 #endif /* CHECKASM_PLATFORM_PPC64LE_H */

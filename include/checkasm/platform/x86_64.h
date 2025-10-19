@@ -130,8 +130,6 @@ CHECKASM_API void checkasm_checked_call_emms(void *func, ...);
     } while (0)
 
 /* x86-64 needs 32- and 64-byte alignment for AVX2 and AVX-512. */
-#define ALIGN_64_VAL 64
-#define ALIGN_32_VAL 32
-#define ALIGN_16_VAL 16
+#define CHECKASM_ALIGNMENT 64
 
 #endif /* CHECKASM_PLATFORM_X86_64_H */
