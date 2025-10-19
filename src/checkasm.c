@@ -622,26 +622,30 @@ void *checkasm_check_func(void *const func, const char *const name, ...)
 
 /* Indicate that the current test has failed, return whether verbose printing
  * is requested. */
-int checkasm_fail_func(const char *const msg, ...)
-{
-    CheckasmFuncVersion *const v = state.current_func_ver;
-    if (v && v->cpu && v->ok) {
-        va_list arg;
-
-        print_cpu_name();
-        fprintf(stderr, "   %s_%s (", state.current_func->name, cpu_suffix(v->cpu));
-        va_start(arg, msg);
-        vfprintf(stderr, msg, arg);
-        va_end(arg);
-        fprintf(stderr, ")\n");
-
-        v->ok = 0;
-        state.num_failed++;
+#define DEF_FAIL_FUNC(funcname)                                                          \
+    int funcname(const char *const msg, ...)                                             \
+    {                                                                                    \
+        CheckasmFuncVersion *const v = state.current_func_ver;                           \
+        if (v && v->cpu && v->ok) {                                                      \
+            va_list arg;                                                                 \
+                                                                                         \
+            print_cpu_name();                                                            \
+            fprintf(stderr, "   %s_%s (", state.current_func->name, cpu_suffix(v->cpu)); \
+            va_start(arg, msg);                                                          \
+            vfprintf(stderr, msg, arg);                                                  \
+            va_end(arg);                                                                 \
+            fprintf(stderr, ")\n");                                                      \
+                                                                                         \
+            v->ok = 0;                                                                   \
+            state.num_failed++;                                                          \
+        }                                                                                \
+        return cfg.verbose;                                                              \
     }
-    return cfg.verbose;
-}
 
-HIDDEN int checkasm_fail_internal(const char *msg, ...) ALIAS(checkasm_fail_func);
+/* We need to define two versions of this function, one to export and one for
+ * asm routines to call internally (with local linking) */
+DEF_FAIL_FUNC(checkasm_fail_func);
+DEF_FAIL_FUNC(checkasm_fail_internal);
 
 void checkasm_should_fail(int s)
 {
