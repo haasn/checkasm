@@ -53,7 +53,7 @@ endif
 
 # Global paths
 checkasm_src_root = meson.current_source_dir()
-checkasm_inc_dirs = include_directories(['.', 'include/checkasm', 'include'])
+checkasm_inc_dirs = include_directories('.', 'include')
 
 # Global platform flags
 arch_aarch64     = host_machine.cpu_family() == 'aarch64' or host_machine.cpu() == 'arm64'

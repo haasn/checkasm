@@ -38,11 +38,11 @@
 
 #include "config.h"
 
-#include "checkasm.h"
+#include "checkasm/checkasm.h"
+#include "checkasm/test.h"
 #include "cpu.h"
 #include "internal.h"
 #include "stats.h"
-#include "test.h"
 
 #ifndef _WIN32
   #if HAVE_PTHREAD_SETAFFINITY_NP

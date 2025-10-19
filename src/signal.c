@@ -33,8 +33,8 @@
 
 #include "config.h"
 
+#include "checkasm/test.h"
 #include "internal.h"
-#include "test.h"
 
 #ifdef _WIN32
   #include <windows.h>
