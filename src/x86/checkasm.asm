@@ -505,8 +505,8 @@ cvisible checked_call%1, 1, 7
 .stack_ok:
 %ifnidn %1, _emms
     fstenv        [esp]
-    mov            r0, [esp + 8]
-    add            r0, 1
+    mov            r1, [esp + 8]
+    add            r1, 1
     jz .emms_ok ; x87 state clean
     emms
     REPORT_FAILURE errmsg_emms
