@@ -585,7 +585,7 @@ void *checkasm_check_func(void *const func, const char *const name, ...)
         CheckasmFuncVersion *prev;
         do {
             /* Only test functions that haven't already been tested */
-            if (v->func == func)
+            if (v->func == func || (!v->cpu && !v->ok))
                 return NULL;
 
             if (v->ok)
