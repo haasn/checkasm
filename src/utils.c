@@ -301,10 +301,9 @@ static int check_err(const char *const file, const int line, const char *const n
 
 #define DEF_CHECKASM_CHECK_BODY(compare, type, fmt, fmtw)                                        \
     do {                                                                                         \
-        const int display_elems = 24 / fmtw;                                                     \
-        int       aligned_w     = (w + align_w - 1) & ~(align_w - 1);                            \
-        int       aligned_h     = (h + align_h - 1) & ~(align_h - 1);                            \
-        int       err           = 0;                                                             \
+        int aligned_w = (w + align_w - 1) & ~(align_w - 1);                                      \
+        int aligned_h = (h + align_h - 1) & ~(align_h - 1);                                      \
+        int err       = 0;                                                                       \
         stride1 /= sizeof(*buf1);                                                                \
         stride2 /= sizeof(*buf2);                                                                \
         int y = 0;                                                                               \
@@ -312,6 +311,10 @@ static int check_err(const char *const file, const int line, const char *const n
             if (!compare(&buf1[y * stride1], &buf2[y * stride2], w))                             \
                 break;                                                                           \
         if (y != h) {                                                                            \
+            const int overhead      = 5 + 3 + 3;                                                 \
+            const int term_width    = get_terminal_width() - overhead;                           \
+            const int elem_size     = 2 * (fmtw + 1) + 1;                                        \
+            const int display_elems = term_width / elem_size;                                    \
             if (check_err(file, line, name, w, h, &err))                                         \
                 return 1;                                                                        \
             for (y = 0; y < h; y++) {                                                            \
