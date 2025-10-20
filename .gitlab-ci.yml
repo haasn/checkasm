@@ -156,6 +156,20 @@ test-debian-clang:
         CC: clang
         CC_LD: mold
 
+test-debian-qemu:
+    extends: .debian-amd64-common
+    tags:
+        - docker
+        - avx2
+        - amd64
+    script:
+        - meson setup build --buildtype debug
+        - cd build && ninja
+        - exit_code=0
+        - meson test -v --wrapper 'qemu-x86_64 -cpu Conroe' || exit_code=$((exit_code + $?))
+        - meson test -v --wrapper 'qemu-x86_64 -cpu Penryn' || exit_code=$((exit_code + $?))
+        - if [ $exit_code -ne 0 ]; then exit $exit_code; fi
+
 test-win:
     extends: .debian-amd64-common
     script:
