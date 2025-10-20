@@ -58,7 +58,7 @@ SECTION_RODATA 16
 errmsg_stack: db "stack corruption", 0
 errmsg_register: db "failed to preserve register:%s", 0
 errmsg_vzeroupper: db "missing vzeroupper", 0
-errmsg_emms: db "missing emms", 0
+errmsg_emms: db "missing emms, fpu tag = 0x%x", 0
 
 SECTION .bss
 
@@ -509,6 +509,7 @@ cvisible checked_call%1, 1, 7
     cmp            r1, 0xffff
     je .emms_ok ; x87 state clean
     emms
+    mov       [esp+4], r1
     REPORT_FAILURE errmsg_emms
 .emms_ok:
 %else ; _emms
