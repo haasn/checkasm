@@ -249,3 +249,11 @@ dst data (64x1):
       72 f6 e5 c1 47 80 63 f2                       72 f6 e5 c1 aa aa aa aa                      ....xxxx
  - generic.underwrite      [FAILED]
 ```
+
+## History and authors
+
+This project was forked from [dav1d's](https://code.videolan.org/videolan/dav1d) internal copy of checkasm, which was itself a more-or-less up-to-date version of the various checkasm versions that existed in FFmpeg, x264 and so on.
+
+This choice was made because dav1d was the closest to being feature complete, while also being permissively licensed and using a modern CI and build system. Some changes have been ported over from FFmpeg's copy of checkasm, with permission to relicense.
+
+checkasm's original authors include Henrik Gramner, Loren Merritt, Fiona Glaser and others. This fork was authored by Niklas Haas.
