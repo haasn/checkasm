@@ -59,11 +59,17 @@ elif arch_x86
 elif arch_aarch64
   if cc.get_id() == 'msvc'
     perf_header = files('perf/windows.h')
+  elif host_machine.system() == 'darwin'
+    perf_header = files('perf/mach.h')
   else
     perf_header = files('perf/aarch64.h')
   endif
 elif arch_arm
-  perf_header = files('perf/arm.h')
+  if host_machine.system() == 'darwin'
+    perf_header = files('perf/mach.h')
+  else
+    perf_header = files('perf/arm.h')
+  endif
 elif arch_ppc64le
   perf_header = files('perf/ppc64le.h')
 elif arch_riscv
