@@ -89,6 +89,7 @@ static struct {
 
     /* Miscellaneous state */
     int num_checked;
+    int num_skipped;
     int num_failed;
     int suffix_length;
     int cpu_name_printed;
@@ -526,15 +527,19 @@ int checkasm_run(const CheckasmConfig *config)
     for (int i = 0; i < cfg.nb_cpu_flags; i++)
         check_cpu_flag(&cfg.cpu_flags[i]);
 
-    int ret = 0;
+    int  ret         = 0;
+    char skipped[32] = "";
+    if (state.num_skipped)
+        snprintf(skipped, sizeof(skipped), " (%d skipped)", state.num_skipped);
     if (state.num_failed) {
-        fprintf(stderr, "checkasm: %d of %d tests failed\n", state.num_failed, state.num_checked);
+        fprintf(stderr, "checkasm: %d of %d tests failed%s\n", state.num_failed, state.num_checked,
+                skipped);
         ret = 1;
     } else {
         if (state.num_checked)
-            fprintf(stderr, "checkasm: all %d tests passed\n", state.num_checked);
+            fprintf(stderr, "checkasm: all %d tests passed%s\n", state.num_checked, skipped);
         else
-            fprintf(stderr, "checkasm: no tests to perform\n");
+            fprintf(stderr, "checkasm: no tests to perform%s\n", skipped);
 
         if (cfg.bench && state.max_function_name_length) {
             if (cfg.separator && cfg.verbose) {
@@ -641,6 +646,8 @@ void *checkasm_check_func(void *const func, const char *const name, ...)
             v->ok = 0;                                                                       \
             if (v->cpu)                                                                      \
                 state.num_failed++;                                                          \
+            else                                                                             \
+                state.num_skipped++;                                                         \
         }                                                                                    \
         return cfg.verbose && !state.should_fail;                                            \
     }
