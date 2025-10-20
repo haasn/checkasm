@@ -296,9 +296,14 @@ void checkasm_bench_finish(void)
     CheckasmFuncVersion *const v = state.current_func_ver;
     if (v && state.total_cycles) {
         const CheckasmVar est_raw = checkasm_stats_estimate(&state.stats, NULL);
-        const CheckasmVar cycles  = checkasm_var_sub(est_raw, state.nop_cycles);
-        v->cycles = checkasm_var_scale(cycles, 1.0 / 32.0); /* 32 calls per sample */
+        CheckasmVar       cycles  = checkasm_var_sub(est_raw, state.nop_cycles);
+        cycles = checkasm_var_scale(cycles, 1.0 / 32.0); /* 32 calls per sample */
+        /* Allow accumulating multiple bench_new() calls, by just adding the total time */
+        v->cycles = checkasm_var_add(v->cycles, cycles);
     }
+
+    checkasm_stats_reset(&state.stats);
+    state.total_cycles = 0;
 }
 
 /* Compares a string with a wildcard pattern. */
@@ -619,9 +624,6 @@ void *checkasm_check_func(void *const func, const char *const name, ...)
     if (state.cpu)
         state.num_checked++;
 
-    /* Reset benchmark state */
-    checkasm_stats_reset(&state.stats);
-    state.total_cycles = 0;
     return ref;
 }
 
