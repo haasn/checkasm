@@ -639,7 +639,8 @@ void *checkasm_check_func(void *const func, const char *const name, ...)
             }                                                                                \
                                                                                              \
             v->ok = 0;                                                                       \
-            state.num_failed++;                                                              \
+            if (v->cpu)                                                                      \
+                state.num_failed++;                                                          \
         }                                                                                    \
         return cfg.verbose && !state.should_fail;                                            \
     }
