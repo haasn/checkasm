@@ -5,8 +5,9 @@ typedef struct {
     uint32_t eax, ebx, edx, ecx;
 } CpuidRegisters;
 
-void     checkasm_cpu_cpuid(CpuidRegisters *regs, unsigned leaf, unsigned subleaf);
-uint64_t checkasm_cpu_xgetbv(unsigned xcr);
+void       checkasm_cpu_cpuid(CpuidRegisters *regs, unsigned leaf, unsigned subleaf);
+uint64_t   checkasm_cpu_xgetbv(unsigned xcr);
+static int has_vzeroupper_check;
 
 uint64_t checkasm_get_cpu_flags_x86(void)
 {
@@ -30,8 +31,10 @@ uint64_t checkasm_get_cpu_flags_x86(void)
         return flags;
 
     checkasm_cpu_cpuid(&r, 7, 0);
-    if (r.ebx & 0x00000020) /* AVX2 */
+    if (r.ebx & 0x00000020) { /* AVX2 */
         flags |= CHECKASM_CPU_FLAG_AVX2;
+        has_vzeroupper_check = !(checkasm_cpu_xgetbv(1) & 0x04); /* YMM state always dirty */
+    }
 
     if (~xcr0 & 0xe0) /* ZMM/OPMASK */
         return flags;
@@ -185,6 +188,8 @@ void checkasm_check_x86(void)
     checkasm_test_noop(get_sigill_x86(), "sigill");
     checkasm_test_noop(get_corrupt_stack_x86(), "corrupt_stack");
     checkasm_test_copy(get_copy_noemms_mmx(), "noemms");
-    checkasm_test_copy(get_copy_novzeroupper_avx2(), "novzeroupper");
     check_clobber(NUM_SAFE, NUM_REGS);
+
+    if (has_vzeroupper_check)
+        checkasm_test_copy(get_copy_novzeroupper_avx2(), "novzeroupper");
 }
