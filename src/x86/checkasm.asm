@@ -376,10 +376,10 @@ cvisible checked_call%1, 2, 15, 16, max_args*8+64+8
     REPORT_FAILURE errmsg_register
 .gpr_xmm_ok:
 %ifnidn %1, _emms
-    fstenv             [stack_param]
-    mov           r0d, [stack_param + 8]
-    add           r0d, 1
-    jz .emms_ok ; x87 state clean
+    fstenv        [stack_param]
+    movzx          r1, word [stack_param + 8]
+    cmp            r1, 0xffff
+    je .emms_ok ; x87 state clean
     emms
     REPORT_FAILURE errmsg_emms
 .emms_ok:
@@ -505,9 +505,9 @@ cvisible checked_call%1, 1, 7
 .stack_ok:
 %ifnidn %1, _emms
     fstenv        [esp]
-    mov            r1, [esp + 8]
-    add            r1, 1
-    jz .emms_ok ; x87 state clean
+    movzx          r1, word [esp + 8]
+    cmp            r1, 0xffff
+    je .emms_ok ; x87 state clean
     emms
     REPORT_FAILURE errmsg_emms
 .emms_ok:
