@@ -44,6 +44,8 @@
   #ifndef ENABLE_VIRTUAL_TERMINAL_PROCESSING
     #define ENABLE_VIRTUAL_TERMINAL_PROCESSING 0x04
   #endif
+#else
+  #include <sys/ioctl.h>
 #endif
 
 #include "checkasm/test.h"
@@ -172,6 +174,20 @@ COLD void checkasm_setup_fprintf(FILE *const f)
         use_printf_color       = term && strcmp(term, "dumb");
     }
 #endif
+}
+
+static int get_terminal_width(void)
+{
+#ifdef _WIN32
+    CONSOLE_SCREEN_BUFFER_INFO csbi;
+    if (GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi))
+        return csbi.srWindow.Right - csbi.srWindow.Left + 1;
+#else
+    struct winsize w;
+    if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) != -1)
+        return w.ws_col;
+#endif
+    return 80;
 }
 
 /* float compare support code */
