@@ -170,7 +170,7 @@ static void print_benchs(const CheckasmFunc *const f)
                                checkasm_stddev(v->cycles), time.mean,
                                checkasm_stddev(time));
                     }
-                    if (v != ref) {
+                    if (v != ref && ref->cycles.mean > 0.0) {
                         const double ratio_lo = ratio.mean - checkasm_stddev(ratio);
                         const double ratio_hi = ratio.mean + checkasm_stddev(ratio);
                         const int    color    = ratio_lo >= 10.0 ? COLOR_GREEN
