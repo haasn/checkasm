@@ -38,7 +38,8 @@ static inline uint64_t readtime_counter(void)
     uint32_t cycle_counter;
     /* This requires enabling user mode access to the cycle counter (which
      * can only be done from kernel space). */
-    __asm__ __volatile__("isb\nmrc p15, 0, %0, c9, c13, 0" : "=r"(cycle_counter)::"memory");
+    __asm__ __volatile__("isb\nmrc p15, 0, %0, c9, c13, 0"
+                         : "=r"(cycle_counter)::"memory");
     return cycle_counter;
 }
 

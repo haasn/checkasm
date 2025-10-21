@@ -41,7 +41,8 @@ typedef struct {
     int     status;
 } checkasm_jmp_buf;
 
-  #define checkasm_save_context(ctx) (ctx.status = 0, RtlCaptureContext(&ctx.c), ctx.status)
+  #define checkasm_save_context(ctx)                          \
+      (ctx.status = 0, RtlCaptureContext(&ctx.c), ctx.status)
   #define checkasm_load_context(ctx) (ctx.status = 1, RtlRestoreContext(&ctx.c, NULL))
 
 #else /* !WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP) */

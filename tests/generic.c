@@ -53,7 +53,8 @@ void checkasm_test_copy(copy_func fun, const char *name)
 
             call_ref(c_dst, src, w);
             call_new(a_dst, src, w);
-            checkasm_check_pixel_padded(c_dst, c_dst_stride, a_dst, a_dst_stride, w, 1, "dst data");
+            checkasm_check_pixel_padded(c_dst, c_dst_stride, a_dst, a_dst_stride, w, 1,
+                                        "dst data");
 
             bench_new(a_dst, src, w);
         }

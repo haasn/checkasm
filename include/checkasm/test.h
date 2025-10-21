@@ -40,11 +40,12 @@
  * Internal checkasm API. Used inside tests *
  ********************************************/
 
-CHECKASM_API void *checkasm_check_func(void *func, const char *name, ...) ATTR_FORMAT_PRINTF(2, 3);
-CHECKASM_API int   checkasm_fail_func(const char *msg, ...) ATTR_FORMAT_PRINTF(1, 2);
-CHECKASM_API void  checkasm_report(const char *name, ...) ATTR_FORMAT_PRINTF(1, 2);
-CHECKASM_API void  checkasm_set_signal_handler_state(int enabled);
-CHECKASM_API void  checkasm_handle_signal(void);
+CHECKASM_API void *checkasm_check_func(void *func, const char *name, ...)
+    ATTR_FORMAT_PRINTF(2, 3);
+CHECKASM_API int  checkasm_fail_func(const char *msg, ...) ATTR_FORMAT_PRINTF(1, 2);
+CHECKASM_API void checkasm_report(const char *name, ...) ATTR_FORMAT_PRINTF(1, 2);
+CHECKASM_API void checkasm_set_signal_handler_state(int enabled);
+CHECKASM_API void checkasm_handle_signal(void);
 CHECKASM_API extern checkasm_jmp_buf checkasm_context;
 
 /* Mark a block of tests as expected to fail. If this is set, at least

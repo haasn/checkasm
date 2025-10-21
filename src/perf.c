@@ -89,7 +89,8 @@ COLD int checkasm_perf_init(void)
 {
     uint64_t config[COUNTERS_COUNT] = { 0 };
 
-    void *kperf = dlopen("/System/Library/PrivateFrameworks/kperf.framework/kperf", RTLD_LAZY);
+    void *kperf
+        = dlopen("/System/Library/PrivateFrameworks/kperf.framework/kperf", RTLD_LAZY);
     if (!kperf) {
         fprintf(stderr, "checkasm: Unable to load kperf: %s\n", dlerror());
         return 1;
@@ -261,9 +262,9 @@ COLD CheckasmVar checkasm_measure_perf_scale(double *low_estimate)
     }
 
     CheckasmDistribution dist_cycles, dist_nsec;
-    CheckasmVar          est_cycles = checkasm_stats_estimate(&stats_cycles, &dist_cycles);
-    CheckasmVar          est_nsec   = checkasm_stats_estimate(&stats_nsec, &dist_nsec);
-    *low_estimate                   = dist_nsec.q1 / dist_cycles.q3;
+    CheckasmVar est_cycles = checkasm_stats_estimate(&stats_cycles, &dist_cycles);
+    CheckasmVar est_nsec   = checkasm_stats_estimate(&stats_nsec, &dist_nsec);
+    *low_estimate          = dist_nsec.q1 / dist_cycles.q3;
     return checkasm_var_div(est_nsec, est_cycles);
 }
 #else

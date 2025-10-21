@@ -33,7 +33,8 @@ uint64_t checkasm_get_cpu_flags_x86(void)
     checkasm_cpu_cpuid(&r, 7, 0);
     if (r.ebx & 0x00000020) { /* AVX2 */
         flags |= CHECKASM_CPU_FLAG_AVX2;
-        has_vzeroupper_check = !(checkasm_cpu_xgetbv(1) & 0x04); /* YMM state always dirty */
+        has_vzeroupper_check
+            = !(checkasm_cpu_xgetbv(1) & 0x04); /* YMM state always dirty */
     }
 
     if (~xcr0 & 0xe0) /* ZMM/OPMASK */
@@ -161,7 +162,8 @@ static void test_copy_emms(copy_func fun, const char *name)
     CHECKASM_ALIGN(uint8_t src[256]);
     RANDOMIZE_BUF(src);
 
-    declare_func_emms(CHECKASM_CPU_FLAG_MMX, void, uint8_t *dest, const uint8_t *src, size_t n);
+    declare_func_emms(CHECKASM_CPU_FLAG_MMX, void, uint8_t *dest, const uint8_t *src,
+                      size_t n);
 
     for (size_t w = 1; w <= 256; w *= 2) {
         if (check_func(fun, "%s_%zu", name, w)) {

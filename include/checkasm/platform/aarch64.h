@@ -36,21 +36,22 @@
 
 CHECKASM_API void checkasm_stack_clobber(uint64_t clobber, ...);
 
-  #define declare_new(ret, ...)                                                                  \
-      ret (*checked_call)(void *, int, int, int, int, int, int, int, __VA_ARGS__, int, int, int, \
-                          int, int, int, int, int, int, int, int, int, int, int, int)            \
-          = (ret (*)(void *, int, int, int, int, int, int, int, __VA_ARGS__, int, int, int, int, \
-                     int, int, int, int, int, int, int, int, int, int,                           \
+  #define declare_new(ret, ...)                                                        \
+      ret (*checked_call)(void *, int, int, int, int, int, int, int, __VA_ARGS__, int, \
+                          int, int, int, int, int, int, int, int, int, int, int, int,  \
+                          int, int)                                                    \
+          = (ret (*)(void *, int, int, int, int, int, int, int, __VA_ARGS__, int, int, \
+                     int, int, int, int, int, int, int, int, int, int, int, int,       \
                      int))(void *) checkasm_checked_call;
 
   #define CLOB (UINT64_C(0xdeadbeefdeadbeef))
-  #define call_new(...)                                                                          \
-      (checkasm_set_signal_handler_state(1),                                                     \
-       checkasm_stack_clobber(CLOB, CLOB, CLOB, CLOB, CLOB, CLOB, CLOB, CLOB, CLOB, CLOB, CLOB,  \
-                              CLOB, CLOB, CLOB, CLOB, CLOB, CLOB, CLOB, CLOB, CLOB, CLOB, CLOB,  \
-                              CLOB),                                                             \
-       checked_call(func_new, 0, 0, 0, 0, 0, 0, 0, __VA_ARGS__, 7, 6, 5, 4, 3, 2, 1, 0, 0, 0, 0, \
-                    0, 0, 0, 0));                                                                \
+  #define call_new(...)                                                                 \
+      (checkasm_set_signal_handler_state(1),                                            \
+       checkasm_stack_clobber(CLOB, CLOB, CLOB, CLOB, CLOB, CLOB, CLOB, CLOB, CLOB,     \
+                              CLOB, CLOB, CLOB, CLOB, CLOB, CLOB, CLOB, CLOB, CLOB,     \
+                              CLOB, CLOB, CLOB, CLOB, CLOB),                            \
+       checked_call(func_new, 0, 0, 0, 0, 0, 0, 0, __VA_ARGS__, 7, 6, 5, 4, 3, 2, 1, 0, \
+                    0, 0, 0, 0, 0, 0, 0));                                              \
       checkasm_set_signal_handler_state(0)
 
 #else /* __APPLE__ */

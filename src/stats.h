@@ -48,7 +48,7 @@ CheckasmVar checkasm_var_scale(CheckasmVar a, double s);
 CheckasmVar checkasm_var_add(CheckasmVar a, CheckasmVar b);
 CheckasmVar checkasm_var_sub(CheckasmVar a, CheckasmVar b);
 CheckasmVar checkasm_var_mul(CheckasmVar a, CheckasmVar b);
-CheckasmVar checkasm_var_div(CheckasmVar a, CheckasmVar b); /* approximation, use with caution */
+CheckasmVar checkasm_var_div(CheckasmVar a, CheckasmVar b); /* approximation */
 CheckasmVar checkasm_var_inv(CheckasmVar a);
 
 /* Statistical analysis helpers */
@@ -102,6 +102,7 @@ typedef struct CheckasmDistribution {
 } CheckasmDistribution;
 
 /* `distribution` is optional and gives more detail */
-CheckasmVar checkasm_stats_estimate(CheckasmStats *stats, CheckasmDistribution *distribution);
+CheckasmVar checkasm_stats_estimate(CheckasmStats        *stats,
+                                    CheckasmDistribution *distribution);
 
 #endif /* CHECKASM_STATS_H */

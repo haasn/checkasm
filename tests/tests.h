@@ -62,7 +62,8 @@ uint64_t checkasm_get_cpu_flags_riscv(void);
 typedef void(copy_func)(uint8_t *dst, const uint8_t *src, size_t size);
 void checkasm_test_copy(copy_func *func, const char *name);
 
-#define DEF_COPY_FUNC(NAME) void checkasm_##NAME(uint8_t *dst, const uint8_t *src, size_t size)
+#define DEF_COPY_FUNC(NAME)                                             \
+    void checkasm_##NAME(uint8_t *dst, const uint8_t *src, size_t size)
 
 #define DEF_COPY_GETTER(FLAG, NAME)                                                   \
     static copy_func *get_##NAME(void)                                                \

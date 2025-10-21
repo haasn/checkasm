@@ -3,7 +3,7 @@ BasedOnStyle: WebKit
 IndentWidth: 4
 IndentPPDirectives: BeforeHash
 PPIndentWidth: 2
-ColumnLimit: 100
+ColumnLimit: 90
 AllowShortFunctionsOnASingleLine: false
 AllowShortLoopsOnASingleLine: false
 AllowShortCaseLabelsOnASingleLine: true

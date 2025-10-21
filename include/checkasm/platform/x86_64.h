@@ -98,29 +98,31 @@ CHECKASM_API void checkasm_checked_call_emms(void *func, ...);
   #define init_clobber_mask(...) unsigned clobber_mask = 0
 #endif
 
-#define declare_new(ret, ...)                                                                      \
-    ret (*checked_call)(__VA_ARGS__, int, int, int, int, int, int, int, int, int, int, int, int,   \
-                        int, int, int, int, void *, unsigned)                                      \
-        = (ret (*)(__VA_ARGS__, int, int, int, int, int, int, int, int, int, int, int, int, int,   \
-                   int, int, int, void *, unsigned))(void *) checkasm_checked_call;                \
-    int emms_needed = 0;                                                                           \
-    (void) emms_needed;                                                                            \
-    init_clobber_mask(__VA_ARGS__, void *, void *, void *, void *, void *, void *, void *, void *, \
-                      void *, void *, void *, void *, void *, void *, void *);
+#define declare_new(ret, ...)                                                          \
+    ret (*checked_call)(__VA_ARGS__, int, int, int, int, int, int, int, int, int, int, \
+                        int, int, int, int, int, int, void *, unsigned)                \
+        = (ret (*)(__VA_ARGS__, int, int, int, int, int, int, int, int, int, int, int, \
+                   int, int, int, int, int, void *,                                    \
+                   unsigned))(void *) checkasm_checked_call;                           \
+    int emms_needed = 0;                                                               \
+    (void) emms_needed;                                                                \
+    init_clobber_mask(__VA_ARGS__, void *, void *, void *, void *, void *, void *,     \
+                      void *, void *, void *, void *, void *, void *, void *, void *,  \
+                      void *);
 
-#define call_new(...)                                                                           \
-    (checkasm_set_signal_handler_state(1), checkasm_simd_warmup(),                              \
-     checked_call(__VA_ARGS__, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, func_new, \
-                  clobber_mask));                                                               \
+#define call_new(...)                                                                 \
+    (checkasm_set_signal_handler_state(1), checkasm_simd_warmup(),                    \
+     checked_call(__VA_ARGS__, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, \
+                  func_new, clobber_mask));                                           \
     checkasm_set_signal_handler_state(0)
 
-#define declare_func_emms(cpu_flags, ret, ...)                                                    \
-    declare_func(ret, __VA_ARGS__);                                                               \
-    if (checkasm_get_cpu_flags() & (cpu_flags)) {                                                 \
-        checked_call                                                                              \
-            = (ret (*)(__VA_ARGS__, int, int, int, int, int, int, int, int, int, int, int, int,   \
-                       int, int, int, int, void *, unsigned))(void *) checkasm_checked_call_emms; \
-        emms_needed = 1;                                                                          \
+#define declare_func_emms(cpu_flags, ret, ...)                                       \
+    declare_func(ret, __VA_ARGS__);                                                  \
+    if (checkasm_get_cpu_flags() & (cpu_flags)) {                                    \
+        checked_call = (ret (*)(__VA_ARGS__, int, int, int, int, int, int, int, int, \
+                                int, int, int, int, int, int, int, int, void *,      \
+                                unsigned))(void *) checkasm_checked_call_emms;       \
+        emms_needed  = 1;                                                            \
     }
 
 #define checkasm_clear_cpu_state()                 \

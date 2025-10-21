@@ -157,24 +157,27 @@ static void print_benchs(const CheckasmFunc *const f)
                 const CheckasmVar time  = checkasm_var_mul(v->cycles, state.perf_scale);
                 const CheckasmVar ratio = checkasm_var_div(ref->cycles, v->cycles);
                 if (cfg.separator) {
-                    printf("%s%c%s%c%.1f%c%.1f%c%.2f\n", f->name, cfg.separator, cpu_suffix(v->cpu),
-                           cfg.separator, v->cycles.mean, cfg.separator, checkasm_stddev(v->cycles),
-                           cfg.separator, time.mean);
+                    printf("%s%c%s%c%.1f%c%.1f%c%.2f\n", f->name, cfg.separator,
+                           cpu_suffix(v->cpu), cfg.separator, v->cycles.mean,
+                           cfg.separator, checkasm_stddev(v->cycles), cfg.separator,
+                           time.mean);
                 } else {
                     const int pad = 12 + state.max_function_name_length
                                   - printf("  %s_%s:", f->name, cpu_suffix(v->cpu));
                     printf("%*.1f", imax(pad, 0), v->cycles.mean);
                     if (cfg.verbose) {
-                        printf(" +/- %-7.1f %11.0f ns +/- %-6.0f", checkasm_stddev(v->cycles),
-                               time.mean, checkasm_stddev(time));
+                        printf(" +/- %-7.1f %11.0f ns +/- %-6.0f",
+                               checkasm_stddev(v->cycles), time.mean,
+                               checkasm_stddev(time));
                     }
                     if (v != ref) {
                         const double ratio_lo = ratio.mean - checkasm_stddev(ratio);
                         const double ratio_hi = ratio.mean + checkasm_stddev(ratio);
-                        const int    color    = ratio_lo >= 10.0                   ? COLOR_GREEN
-                                              : ratio_hi >= 1.1 && ratio_lo >= 1.0 ? COLOR_DEFAULT
-                                              : ratio_hi >= 1.0                    ? COLOR_YELLOW
-                                                                                   : COLOR_RED;
+                        const int    color    = ratio_lo >= 10.0 ? COLOR_GREEN
+                                              : ratio_hi >= 1.1 && ratio_lo >= 1.0
+                                                  ? COLOR_DEFAULT
+                                              : ratio_hi >= 1.0 ? COLOR_YELLOW
+                                                                : COLOR_RED;
                         printf(" (");
                         checkasm_fprintf(stdout, color, "%5.2fx", ratio.mean);
                         printf(")");
@@ -196,7 +199,8 @@ static int cmp_func_names(const char *a, const char *b)
     const char *const start = a;
 
     int ascii_diff, digit_diff;
-    for (; !(ascii_diff = *(const unsigned char *) a - *(const unsigned char *) b) && *a; a++, b++)
+    for (; !(ascii_diff = *(const unsigned char *) a - *(const unsigned char *) b) && *a;
+         a++, b++)
         ;
     for (; is_digit(*a) && is_digit(*b); a++, b++)
         ;
@@ -356,7 +360,8 @@ static void check_cpu_flag(const CheckasmCpuInfo *cpu)
 static void print_cpu_name(void)
 {
     if (!state.cpu_name_printed) {
-        checkasm_fprintf(stderr, COLOR_YELLOW, "%s:\n", state.cpu ? state.cpu->name : "C");
+        checkasm_fprintf(stderr, COLOR_YELLOW, "%s:\n",
+                         state.cpu ? state.cpu->name : "C");
         state.cpu_name_printed = 1;
     }
 }
@@ -370,8 +375,8 @@ static int set_cpu_affinity(const uint64_t affinity)
 #ifdef _WIN32
     HANDLE process = GetCurrentProcess();
   #if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
-    BOOL(WINAPI * spdcs)(HANDLE, const ULONG *, ULONG)
-        = (void *) GetProcAddress(GetModuleHandleW(L"kernel32.dll"), "SetProcessDefaultCpuSets");
+    BOOL(WINAPI * spdcs)(HANDLE, const ULONG *, ULONG) = (void *) GetProcAddress(
+        GetModuleHandleW(L"kernel32.dll"), "SetProcessDefaultCpuSets");
     if (spdcs)
         affinity_err = !spdcs(process, (ULONG[]) { affinity + 256 }, 1);
     else
@@ -514,17 +519,19 @@ int checkasm_run(const CheckasmConfig *config)
         fprintf(stderr, " - Timing source: %s\n", CHECKASM_PERF_NAME);
         if (cfg.verbose) {
             fprintf(stderr, " - Timing overhead: %.1f +/- %.2f %ss per iteration\n",
-                    state.nop_cycles.mean, checkasm_stddev(state.nop_cycles), CHECKASM_PERF_UNIT);
+                    state.nop_cycles.mean, checkasm_stddev(state.nop_cycles),
+                    CHECKASM_PERF_UNIT);
 
-            const CheckasmVar mhz = checkasm_var_div(checkasm_var_const(1e3), state.perf_scale);
+            const CheckasmVar mhz
+                = checkasm_var_div(checkasm_var_const(1e3), state.perf_scale);
             fprintf(stderr,
                     " - Timing resolution: %.4f +/- %.3f ns/%s (%.0f +/- %.1f "
                     "MHz)\n",
-                    state.perf_scale.mean, checkasm_stddev(state.perf_scale), CHECKASM_PERF_UNIT,
-                    mhz.mean, checkasm_stddev(mhz));
+                    state.perf_scale.mean, checkasm_stddev(state.perf_scale),
+                    CHECKASM_PERF_UNIT, mhz.mean, checkasm_stddev(mhz));
         }
-        fprintf(stderr, " - Bench duration: %d µs per function (%" PRIu64 " %ss)\n", cfg.bench_usec,
-                state.target_cycles, CHECKASM_PERF_UNIT);
+        fprintf(stderr, " - Bench duration: %d µs per function (%" PRIu64 " %ss)\n",
+                cfg.bench_usec, state.target_cycles, CHECKASM_PERF_UNIT);
     }
     fprintf(stderr, " - Random seed: %u\n", cfg.seed);
 
@@ -537,19 +544,20 @@ int checkasm_run(const CheckasmConfig *config)
     if (state.num_skipped)
         snprintf(skipped, sizeof(skipped), " (%d skipped)", state.num_skipped);
     if (state.num_failed) {
-        fprintf(stderr, "checkasm: %d of %d tests failed%s\n", state.num_failed, state.num_checked,
-                skipped);
+        fprintf(stderr, "checkasm: %d of %d tests failed%s\n", state.num_failed,
+                state.num_checked, skipped);
         ret = 1;
     } else {
         if (state.num_checked)
-            fprintf(stderr, "checkasm: all %d tests passed%s\n", state.num_checked, skipped);
+            fprintf(stderr, "checkasm: all %d tests passed%s\n", state.num_checked,
+                    skipped);
         else
             fprintf(stderr, "checkasm: no tests to perform%s\n", skipped);
 
         if (cfg.bench && state.max_function_name_length) {
             if (cfg.separator && cfg.verbose) {
-                printf("name%csuffix%c%ss%cstddev%cnanoseconds\n", cfg.separator, cfg.separator,
-                       CHECKASM_PERF_UNIT, cfg.separator, cfg.separator);
+                printf("name%csuffix%c%ss%cstddev%cnanoseconds\n", cfg.separator,
+                       cfg.separator, CHECKASM_PERF_UNIT, cfg.separator, cfg.separator);
             } else if (!cfg.separator) {
                 checkasm_fprintf(stdout, COLOR_YELLOW, "Benchmark results:\n");
                 checkasm_fprintf(stdout, COLOR_GREEN, "  name%*ss",
@@ -629,30 +637,31 @@ void *checkasm_check_func(void *const func, const char *const name, ...)
 
 /* Indicate that the current test has failed, return whether verbose printing
  * is requested. */
-#define DEF_FAIL_FUNC(funcname)                                                            \
-    int funcname(const char *const msg, ...)                                               \
-    {                                                                                      \
-        CheckasmFuncVersion *const v = state.current_func_ver;                             \
-        if (v && v->ok) {                                                                  \
-            va_list arg;                                                                   \
-                                                                                           \
-            if (!state.should_fail) {                                                      \
-                print_cpu_name();                                                          \
-                checkasm_fprintf(stderr, COLOR_RED, "FAILURE:");                           \
-                fprintf(stderr, " %s_%s (", state.current_func->name, cpu_suffix(v->cpu)); \
-                va_start(arg, msg);                                                        \
-                vfprintf(stderr, msg, arg);                                                \
-                va_end(arg);                                                               \
-                fprintf(stderr, ")\n");                                                    \
-            }                                                                              \
-                                                                                           \
-            v->ok = 0;                                                                     \
-            if (v->cpu)                                                                    \
-                state.num_failed++;                                                        \
-            else                                                                           \
-                state.num_skipped++;                                                       \
-        }                                                                                  \
-        return cfg.verbose && !state.should_fail;                                          \
+#define DEF_FAIL_FUNC(funcname)                                       \
+    int funcname(const char *const msg, ...)                          \
+    {                                                                 \
+        CheckasmFuncVersion *const v = state.current_func_ver;        \
+        if (v && v->ok) {                                             \
+            va_list arg;                                              \
+                                                                      \
+            if (!state.should_fail) {                                 \
+                print_cpu_name();                                     \
+                checkasm_fprintf(stderr, COLOR_RED, "FAILURE:");      \
+                fprintf(stderr, " %s_%s (", state.current_func->name, \
+                        cpu_suffix(v->cpu));                          \
+                va_start(arg, msg);                                   \
+                vfprintf(stderr, msg, arg);                           \
+                va_end(arg);                                          \
+                fprintf(stderr, ")\n");                               \
+            }                                                         \
+                                                                      \
+            v->ok = 0;                                                \
+            if (v->cpu)                                               \
+                state.num_failed++;                                   \
+            else                                                      \
+                state.num_skipped++;                                  \
+        }                                                             \
+        return cfg.verbose && !state.should_fail;                     \
     }
 
 /* We need to define two versions of this function, one to export and one for
@@ -691,13 +700,15 @@ void checkasm_report(const char *const name, ...)
              * requiring a failure for every single test, since not all checked
              * functions in each block may actually trigger the failure,
              * dependent on register sizes etc. */
-            state.num_failed = prev_failed + (state.num_failed == prev_failed) * new_checked;
+            state.num_failed
+                = prev_failed + (state.num_failed == prev_failed) * new_checked;
         }
 
         if (state.num_failed == prev_failed)
             checkasm_fprintf(stderr, COLOR_GREEN, state.should_fail ? "EXPECTED" : "OK");
         else
-            checkasm_fprintf(stderr, COLOR_RED, state.should_fail ? "SHOULD FAIL" : "FAILED");
+            checkasm_fprintf(stderr, COLOR_RED,
+                             state.should_fail ? "SHOULD FAIL" : "FAILED");
         fprintf(stderr, "]\n");
 
         prev_checked = state.num_checked;
@@ -763,7 +774,8 @@ int checkasm_main(CheckasmConfig *config, int argc, const char *argv[])
         if (!strncmp(argv[1], "--help", 6) || !strcmp(argv[1], "-h")) {
             print_usage(argv[0]);
             return 0;
-        } else if (!strcmp(argv[1], "--list-cpu-flags") || !strcmp(argv[1], "--list-cpuflags")) {
+        } else if (!strcmp(argv[1], "--list-cpu-flags")
+                   || !strcmp(argv[1], "--list-cpuflags")) {
             checkasm_list_cpu_flags(config);
             return 0;
         } else if (!strcmp(argv[1], "--list-tests")) {
