@@ -185,7 +185,7 @@ void checkasm_test_1(void)
 
 ### Example outputs
 
-This is what the output looks like, when using `--verbose` mode to print all timing data:
+This is what the output looks like, when using `--verbose` mode to print all timing data (on a pretty noisy/busy system):
 
 ```
 checkasm:
