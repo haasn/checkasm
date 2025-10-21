@@ -314,7 +314,7 @@ static int check_err(const char *const file, const int line, const char *const n
             const int overhead      = 5 + 3 + 3;                                                 \
             const int term_width    = get_terminal_width() - overhead;                           \
             const int elem_size     = 2 * (fmtw + 1) + 1;                                        \
-            const int display_elems = term_width / elem_size;                                    \
+            const int display_elems = imin(term_width / elem_size, w);                           \
             if (check_err(file, line, name, w, h, &err))                                         \
                 return 1;                                                                        \
             for (y = 0; y < h; y++) {                                                            \
