@@ -67,7 +67,6 @@ Then integrate it into your build system:
 # otherwise.
 checkasm_dependency = dependency('checkasm',
     # Extracts the `checkasm_dep` variable from the `checkasm` subproject.
-    extract_variable: 'checkasm_dep',
     fallback: ['checkasm', 'checkasm_dep'],
     required: false
 )
