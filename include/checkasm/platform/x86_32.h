@@ -33,12 +33,12 @@
 
 CHECKASM_API void checkasm_checked_call_emms(void *func, ...);
 
-#define declare_new(ret, ...)                                                        \
-    ret (*checked_call)(void *, __VA_ARGS__, int, int, int, int, int, int, int, int, \
-                        int, int, int, int, int, int, int)                           \
-        = (ret (*)(void *, __VA_ARGS__, int, int, int, int, int, int, int, int, int, \
-                   int, int, int, int, int, int))(void *) checkasm_checked_call;     \
-    int emms_needed = 0;                                                             \
+#define declare_new(ret, ...)                                                            \
+    ret (*checked_call)(void *, __VA_ARGS__, int, int, int, int, int, int, int, int,     \
+                        int, int, int, int, int, int, int)                               \
+        = (ret (*)(void *, __VA_ARGS__, int, int, int, int, int, int, int, int, int,     \
+                   int, int, int, int, int, int))(void *) checkasm_checked_call;         \
+    int emms_needed = 0;                                                                 \
     (void) emms_needed;
 
 #define call_new(...)                                                                    \
@@ -47,19 +47,19 @@ CHECKASM_API void checkasm_checked_call_emms(void *func, ...);
                   1));                                                                   \
     checkasm_set_signal_handler_state(0)
 
-#define declare_func_emms(cpu_flags, ret, ...)                                          \
-    declare_func(ret, __VA_ARGS__);                                                     \
-    if (checkasm_get_cpu_flags() & (cpu_flags)) {                                       \
-        checked_call = (ret (*)(void *, __VA_ARGS__, int, int, int, int, int, int, int, \
-                                int, int, int, int, int, int, int,                      \
-                                int))(void *) checkasm_checked_call_emms;               \
-        emms_needed  = 1;                                                               \
+#define declare_func_emms(cpu_flags, ret, ...)                                           \
+    declare_func(ret, __VA_ARGS__);                                                      \
+    if (checkasm_get_cpu_flags() & (cpu_flags)) {                                        \
+        checked_call = (ret (*)(void *, __VA_ARGS__, int, int, int, int, int, int, int,  \
+                                int, int, int, int, int, int, int,                       \
+                                int))(void *) checkasm_checked_call_emms;                \
+        emms_needed  = 1;                                                                \
     }
 
-#define checkasm_clear_cpu_state()                 \
-    do {                                           \
-        if (emms_needed)                           \
-            __asm__ volatile("emms" ::: "memory"); \
+#define checkasm_clear_cpu_state()                                                       \
+    do {                                                                                 \
+        if (emms_needed)                                                                 \
+            __asm__ volatile("emms" ::: "memory");                                       \
     } while (0)
 
 #define CHECKASM_ALIGNMENT 64

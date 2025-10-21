@@ -289,16 +289,16 @@ static int check_err(const char *const file, const int line, const char *const n
     return 0;
 }
 
-#define PRINT_LINE(buf1, buf2, xstart, xend, fmt, fmtw)                \
-    do {                                                               \
-        for (int x = xstart; x < xend; x++) {                          \
-            if (buf1[x] != buf2[x])                                    \
-                checkasm_fprintf(stderr, COLOR_RED, " " fmt, buf1[x]); \
-            else                                                       \
-                fprintf(stderr, " " fmt, buf1[x]);                     \
-        }                                                              \
-        for (int pad = xend; pad < xstart + display_elems; pad++)      \
-            fprintf(stderr, &"          "[9 - fmtw]);                  \
+#define PRINT_LINE(buf1, buf2, xstart, xend, fmt, fmtw)                                  \
+    do {                                                                                 \
+        for (int x = xstart; x < xend; x++) {                                            \
+            if (buf1[x] != buf2[x])                                                      \
+                checkasm_fprintf(stderr, COLOR_RED, " " fmt, buf1[x]);                   \
+            else                                                                         \
+                fprintf(stderr, " " fmt, buf1[x]);                                       \
+        }                                                                                \
+        for (int pad = xend; pad < xstart + display_elems; pad++)                        \
+            fprintf(stderr, &"          "[9 - fmtw]);                                    \
     } while (0)
 
 #define DEF_CHECKASM_CHECK_BODY(compare, type, fmt, fmtw)                                \
@@ -380,13 +380,13 @@ static int check_err(const char *const file, const int line, const char *const n
     } while (0)
 
 #define cmp_int(a, b, len) (!memcmp(a, b, (len) * sizeof(*(a))))
-#define DEF_CHECKASM_CHECK_FUNC(type, fmt, fmtw)                                        \
-    int checkasm_check_##type(const char *file, int line, const type *buf1,             \
-                              ptrdiff_t stride1, const type *buf2, ptrdiff_t stride2,   \
-                              int w, int h, const char *name, int align_w, int align_h, \
-                              int padding)                                              \
-    {                                                                                   \
-        DEF_CHECKASM_CHECK_BODY(cmp_int, type, fmt, fmtw);                              \
+#define DEF_CHECKASM_CHECK_FUNC(type, fmt, fmtw)                                         \
+    int checkasm_check_##type(const char *file, int line, const type *buf1,              \
+                              ptrdiff_t stride1, const type *buf2, ptrdiff_t stride2,    \
+                              int w, int h, const char *name, int align_w, int align_h,  \
+                              int padding)                                               \
+    {                                                                                    \
+        DEF_CHECKASM_CHECK_BODY(cmp_int, type, fmt, fmtw);                               \
     }
 
 DEF_CHECKASM_CHECK_FUNC(int8_t, "%4d", 4)

@@ -11,7 +11,7 @@ AlignConsecutiveDeclarations: true
 AlignConsecutiveAssignments: true
 AlignConsecutiveMacros: true
 AlignOperands: AlignAfterOperator
-AlignEscapedNewlines: LeftWithLastLine
+AlignEscapedNewlines: Right
 AlignAfterOpenBracket: Align
 AlignArrayOfStructures: Left
 ---

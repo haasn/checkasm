@@ -55,17 +55,17 @@ CHECKASM_API extern checkasm_jmp_buf checkasm_context;
 CHECKASM_API void checkasm_should_fail(int);
 
 /* Decide whether or not the specified function needs to be tested */
-#define check_func(func, ...)                                                      \
+#define check_func(func, ...)                                                            \
     (func_ref = (func_type *) checkasm_check_func((func_new = func), __VA_ARGS__))
 
 /* Declare the function prototype. The first argument is the return value,
  * the remaining arguments are the function parameters. Naming parameters
  * is optional. */
-#define declare_func(ret, ...)                   \
-    declare_new(ret, __VA_ARGS__);               \
-    typedef ret func_type(__VA_ARGS__);          \
-    func_type  *func_ref, *func_new;             \
-    if (checkasm_save_context(checkasm_context)) \
+#define declare_func(ret, ...)                                                           \
+    declare_new(ret, __VA_ARGS__);                                                       \
+    typedef ret func_type(__VA_ARGS__);                                                  \
+    func_type  *func_ref, *func_new;                                                     \
+    if (checkasm_save_context(checkasm_context))                                         \
         checkasm_handle_signal();
 
 /* Indicate that the current test has failed */
@@ -75,8 +75,8 @@ CHECKASM_API void checkasm_should_fail(int);
 #define report checkasm_report
 
 /* Call the reference function */
-#define call_ref(...)                                              \
-    (checkasm_set_signal_handler_state(1), func_ref(__VA_ARGS__)); \
+#define call_ref(...)                                                                    \
+    (checkasm_set_signal_handler_state(1), func_ref(__VA_ARGS__));                       \
     checkasm_set_signal_handler_state(0)
 
 /* Verifies that clobbered callee-saved registers
@@ -85,29 +85,29 @@ CHECKASM_API void checkasm_checked_call(void *func, ...);
 
 /* Clears any processor state possible left over after running a function */
 #ifndef checkasm_clear_cpu_state
-  #define checkasm_clear_cpu_state() \
-      do {                           \
+  #define checkasm_clear_cpu_state()                                                     \
+      do {                                                                               \
       } while (0)
 #endif
 
-#define CALL4(...)             \
-    do {                       \
-        talt = 0;              \
-        func_new(__VA_ARGS__); \
-        talt = 1;              \
-        func_new(__VA_ARGS__); \
-        talt = 0;              \
-        func_new(__VA_ARGS__); \
-        talt = 1;              \
-        func_new(__VA_ARGS__); \
+#define CALL4(...)                                                                       \
+    do {                                                                                 \
+        talt = 0;                                                                        \
+        func_new(__VA_ARGS__);                                                           \
+        talt = 1;                                                                        \
+        func_new(__VA_ARGS__);                                                           \
+        talt = 0;                                                                        \
+        func_new(__VA_ARGS__);                                                           \
+        talt = 1;                                                                        \
+        func_new(__VA_ARGS__);                                                           \
     } while (0)
 
-#define CALL16(...)         \
-    do {                    \
-        CALL4(__VA_ARGS__); \
-        CALL4(__VA_ARGS__); \
-        CALL4(__VA_ARGS__); \
-        CALL4(__VA_ARGS__); \
+#define CALL16(...)                                                                      \
+    do {                                                                                 \
+        CALL4(__VA_ARGS__);                                                              \
+        CALL4(__VA_ARGS__);                                                              \
+        CALL4(__VA_ARGS__);                                                              \
+        CALL4(__VA_ARGS__);                                                              \
     } while (0)
 
 /* Benchmark the function */
@@ -117,41 +117,41 @@ CHECKASM_API int  checkasm_bench_runs(void);
 CHECKASM_API void checkasm_bench_update(int iterations, uint64_t cycles);
 CHECKASM_API void checkasm_bench_finish(void);
 
-  #define bench_new(...)                                                      \
-      do {                                                                    \
-          if (checkasm_bench_func()) {                                        \
-              checkasm_set_signal_handler_state(1);                           \
-              CHECKASM_PERF_SETUP();                                          \
-              for (int truns; (truns = checkasm_bench_runs());) {             \
-                  uint64_t tsum   = 0;                                        \
-                  int      tcount = 0;                                        \
-                  for (int ti = 0; ti < truns; ti++) {                        \
-                      uint64_t t;                                             \
-                      int      talt;                                          \
-                      (void) talt;                                            \
-                      CHECKASM_PERF_START(t);                                 \
-                      CALL16(__VA_ARGS__);                                    \
-                      CALL16(__VA_ARGS__);                                    \
-                      CHECKASM_PERF_STOP(t);                                  \
-                      if (t * tcount <= tsum * 4 && (ti > 0 || truns < 50)) { \
-                          tsum += t;                                          \
-                          tcount++;                                           \
-                      }                                                       \
-                  }                                                           \
-                  checkasm_clear_cpu_state();                                 \
-                  checkasm_bench_update(tcount, tsum);                        \
-              }                                                               \
-              checkasm_set_signal_handler_state(0);                           \
-              checkasm_bench_finish();                                        \
-          } else {                                                            \
-              const int talt = 0;                                             \
-              (void) talt;                                                    \
-              call_new(__VA_ARGS__);                                          \
-          }                                                                   \
+  #define bench_new(...)                                                                 \
+      do {                                                                               \
+          if (checkasm_bench_func()) {                                                   \
+              checkasm_set_signal_handler_state(1);                                      \
+              CHECKASM_PERF_SETUP();                                                     \
+              for (int truns; (truns = checkasm_bench_runs());) {                        \
+                  uint64_t tsum   = 0;                                                   \
+                  int      tcount = 0;                                                   \
+                  for (int ti = 0; ti < truns; ti++) {                                   \
+                      uint64_t t;                                                        \
+                      int      talt;                                                     \
+                      (void) talt;                                                       \
+                      CHECKASM_PERF_START(t);                                            \
+                      CALL16(__VA_ARGS__);                                               \
+                      CALL16(__VA_ARGS__);                                               \
+                      CHECKASM_PERF_STOP(t);                                             \
+                      if (t * tcount <= tsum * 4 && (ti > 0 || truns < 50)) {            \
+                          tsum += t;                                                     \
+                          tcount++;                                                      \
+                      }                                                                  \
+                  }                                                                      \
+                  checkasm_clear_cpu_state();                                            \
+                  checkasm_bench_update(tcount, tsum);                                   \
+              }                                                                          \
+              checkasm_set_signal_handler_state(0);                                      \
+              checkasm_bench_finish();                                                   \
+          } else {                                                                       \
+              const int talt = 0;                                                        \
+              (void) talt;                                                               \
+              call_new(__VA_ARGS__);                                                     \
+          }                                                                              \
       } while (0)
 #else
-  #define bench_new(...) \
-      do {               \
+  #define bench_new(...)                                                                 \
+      do {                                                                               \
       } while (0)
 #endif
 

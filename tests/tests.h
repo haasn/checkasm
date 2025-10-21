@@ -62,13 +62,13 @@ uint64_t checkasm_get_cpu_flags_riscv(void);
 typedef void(copy_func)(uint8_t *dst, const uint8_t *src, size_t size);
 void checkasm_test_copy(copy_func *func, const char *name);
 
-#define DEF_COPY_FUNC(NAME)                                             \
+#define DEF_COPY_FUNC(NAME)                                                              \
     void checkasm_##NAME(uint8_t *dst, const uint8_t *src, size_t size)
 
-#define DEF_COPY_GETTER(FLAG, NAME)                                                   \
-    static copy_func *get_##NAME(void)                                                \
-    {                                                                                 \
-        return (checkasm_get_cpu_flags() & FLAG) ? checkasm_##NAME : checkasm_copy_c; \
+#define DEF_COPY_GETTER(FLAG, NAME)                                                      \
+    static copy_func *get_##NAME(void)                                                   \
+    {                                                                                    \
+        return (checkasm_get_cpu_flags() & FLAG) ? checkasm_##NAME : checkasm_copy_c;    \
     }
 
 /* Reference function for copy routines */
@@ -86,10 +86,10 @@ typedef void(noop_func)(int unused);
 void checkasm_test_noop(noop_func *func, const char *name);
 
 #define DEF_NOOP_FUNC(NAME) void checkasm_##NAME(int unused)
-#define DEF_NOOP_GETTER(FLAG, NAME)                                        \
-    static noop_func *get_##NAME(void)                                     \
-    {                                                                      \
-        return (checkasm_get_cpu_flags() & FLAG) ? checkasm_##NAME : NULL; \
+#define DEF_NOOP_GETTER(FLAG, NAME)                                                      \
+    static noop_func *get_##NAME(void)                                                   \
+    {                                                                                    \
+        return (checkasm_get_cpu_flags() & FLAG) ? checkasm_##NAME : NULL;               \
     }
 
 /* Platform-specific tests */

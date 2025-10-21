@@ -80,22 +80,22 @@ CHECKASM_API int checkasm_double_near_abs_eps_array(const double *a, const doubl
 #endif
 
 #define CHECKASM_ROUND(x, a) (((x) + ((a) - 1)) & ~((a) - 1))
-#define PIXEL_RECT(name, w, h)                                                        \
-    CHECKASM_ALIGN(pixel name##_buf[((h) + 32) * (CHECKASM_ROUND(w, 64) + 64) + 64]); \
-    ptrdiff_t name##_stride = sizeof(pixel) * (CHECKASM_ROUND(w, 64) + 64);           \
-    (void) name##_stride;                                                             \
-    int name##_buf_h = (h) + 32;                                                      \
-    (void) name##_buf_h;                                                              \
+#define PIXEL_RECT(name, w, h)                                                           \
+    CHECKASM_ALIGN(pixel name##_buf[((h) + 32) * (CHECKASM_ROUND(w, 64) + 64) + 64]);    \
+    ptrdiff_t name##_stride = sizeof(pixel) * (CHECKASM_ROUND(w, 64) + 64);              \
+    (void) name##_stride;                                                                \
+    int name##_buf_h = (h) + 32;                                                         \
+    (void) name##_buf_h;                                                                 \
     pixel *name = name##_buf + (CHECKASM_ROUND(w, 64) + 64) * 16 + 64
 
 #define CLEAR_PIXEL_RECT(name)     CLEAR_BUF(name##_buf)
 #define RANDOMIZE_PIXEL_RECT(name) RANDOMIZE_BUF(name##_buf)
 
-#define DECL_CHECKASM_CHECK_FUNC(type)                                            \
-    CHECKASM_API int checkasm_check_##type(                                       \
-        const char *const file, const int line, const type *const buf1,           \
-        const ptrdiff_t stride1, const type *const buf2, const ptrdiff_t stride2, \
-        const int w, const int h, const char *const name, const int align_w,      \
+#define DECL_CHECKASM_CHECK_FUNC(type)                                                   \
+    CHECKASM_API int checkasm_check_##type(                                              \
+        const char *const file, const int line, const type *const buf1,                  \
+        const ptrdiff_t stride1, const type *const buf2, const ptrdiff_t stride2,        \
+        const int w, const int h, const char *const name, const int align_w,             \
         const int align_h, const int padding)
 
 DECL_CHECKASM_CHECK_FUNC(int8_t);
@@ -116,7 +116,7 @@ CHECKASM_API int checkasm_check_float_ulp(const char *file, int line, const floa
   #define CONCAT(a, b)  CONCAT2(a, b)
 #endif
 
-#define checkasm_check2(type, ...)                                 \
+#define checkasm_check2(type, ...)                                                       \
     CONCAT(checkasm_check_, type)(__FILE__, __LINE__, __VA_ARGS__)
 #define checkasm_check(type, ...)        checkasm_check2(type, __VA_ARGS__, 0, 0, 0)
 #define checkasm_check_padded(type, ...) checkasm_check2(type, __VA_ARGS__)
