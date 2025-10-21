@@ -48,7 +48,7 @@ In addition the following timer sources are available for benchmarking:
 
 ## Integration into your project
 
-You can either load checkasm as a library (via `pkg-config`), or include it directly in your project's build system.
+You can either load checkasm as a library (e.g. via `pkg-config`), or include it directly in your project's build system.
 
 ### Meson
 
@@ -61,10 +61,17 @@ $ git submodule add https://code.videolan.org/videolan/checkasm subprojects/chec
 
 Then integrate it into your build system:
 ```meson
+# This first attempts loading checkasm as an external dependency using the
+# appropriate platform-specific method (e.g. pkg-config on POSIX systems),
+# and falls back to using the bundled version inside `subprojects/checkasm`
+# otherwise.
 checkasm_dependency = dependency('checkasm',
     fallback: ['checkasm', 'checkasm_dep'],
     required: false
 )
+
+# Alternatively, you can directly prefer the bundled version:
+# checkasm_dependency = subproject('checkasm').get_variable('checkasm_dep')
 
 if checkasm_dependency.found()
     checkasm = executable('checkasm',
