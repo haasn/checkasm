@@ -218,7 +218,7 @@ COLD CheckasmVar checkasm_measure_nop_cycles(void)
             checkasm_stats_count_grow(&stats);
     }
 
-    return checkasm_stats_estimate(&stats, NULL);
+    return checkasm_stats_estimate(&stats);
 }
 
 COLD CheckasmVar checkasm_measure_perf_scale(void)
@@ -261,8 +261,8 @@ COLD CheckasmVar checkasm_measure_perf_scale(void)
             checkasm_stats_count_grow(&stats_cycles);
     }
 
-    CheckasmVar est_cycles = checkasm_stats_estimate(&stats_cycles, NULL);
-    CheckasmVar est_nsec   = checkasm_stats_estimate(&stats_nsec, NULL);
+    CheckasmVar est_cycles = checkasm_stats_estimate(&stats_cycles);
+    CheckasmVar est_nsec   = checkasm_stats_estimate(&stats_nsec);
     return checkasm_var_div(est_nsec, est_cycles);
 }
 #else

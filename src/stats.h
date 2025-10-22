@@ -113,8 +113,6 @@ typedef struct CheckasmDistribution {
     double high_mild, high_extreme;
 } CheckasmDistribution;
 
-/* `distribution` is optional and gives more detail */
-CheckasmVar checkasm_stats_estimate(CheckasmStats        *stats,
-                                    CheckasmDistribution *distribution);
+CheckasmVar checkasm_stats_estimate(CheckasmStats *stats);
 
 #endif /* CHECKASM_STATS_H */

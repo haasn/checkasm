@@ -310,7 +310,7 @@ void checkasm_bench_finish(void)
 {
     CheckasmFuncVersion *const v = state.current_func_ver;
     if (v && state.total_cycles) {
-        const CheckasmVar est_raw = checkasm_stats_estimate(&state.stats, NULL);
+        const CheckasmVar est_raw = checkasm_stats_estimate(&state.stats);
         CheckasmVar       cycles  = checkasm_var_sub(est_raw, state.nop_cycles);
         cycles = checkasm_var_scale(cycles, 1.0 / 32.0); /* 32 calls per sample */
         /* Allow accumulating multiple bench_new() calls, by just adding the total time */

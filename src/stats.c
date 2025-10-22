@@ -121,8 +121,7 @@ static CheckasmVar var_est(uint64_t sum, double sum2, int count)
     return (CheckasmVar) { mean, var };
 }
 
-CheckasmVar checkasm_stats_estimate(CheckasmStats *const        stats,
-                                    CheckasmDistribution *const distribution)
+CheckasmVar checkasm_stats_estimate(CheckasmStats *const stats)
 {
     if (!stats->nb_samples)
         return (CheckasmVar) { 0.0, 0.0 };
@@ -132,26 +131,18 @@ CheckasmVar checkasm_stats_estimate(CheckasmStats *const        stats,
     /* Sort all samples and get the Q1 and Q3 values */
     qsort(stats->samples, stats->nb_samples, sizeof(CheckasmSample), cmp_samples);
     const int idx_q1 = ((total_count - 1) * 1) / 4;
-    const int idx_q2 = ((total_count - 1) * 2) / 4;
     const int idx_q3 = ((total_count - 1) * 3) / 4;
 
-    const double q0  = sample_mean(get_sample(stats, 0));
     const double q1  = sample_mean(get_sample(stats, idx_q1));
-    const double q2  = sample_mean(get_sample(stats, idx_q2));
     const double q3  = sample_mean(get_sample(stats, idx_q3));
-    const double q4  = sample_mean(get_sample(stats, total_count - 1));
     const double iqr = q3 - q1;
     assert(iqr >= 0.0);
 
     /* Define boxplot thresholds */
-    const double lo_mild    = q1 - 1.5 * iqr;
-    const double hi_mild    = q3 + 1.5 * iqr;
-    const double lo_extreme = q1 - 3.0 * iqr;
-    const double hi_extreme = q3 + 3.0 * iqr;
+    const double lo_mild = q1 - 1.5 * iqr;
+    const double hi_mild = q3 + 1.5 * iqr;
 
     /* Classify and accumulate */
-    int      nb_lo_mild = 0, nb_lo_extreme = 0;
-    int      nb_hi_mild = 0, nb_hi_extreme = 0;
     uint64_t sum_raw = 0, sum_trim = 0;
     double   sum2_raw = 0.0, sum2_trim = 0.0;
     int      nb_trim = 0;
@@ -163,35 +154,11 @@ CheckasmVar checkasm_stats_estimate(CheckasmStats *const        stats,
         sum2_raw += s.sum * x;
 
         /* Reject outliers */
-        if (x < lo_extreme) {
-            nb_lo_extreme += s.count;
-        } else if (x > hi_extreme) {
-            nb_hi_extreme += s.count;
-        } else if (x < lo_mild) {
-            nb_lo_mild += s.count;
-        } else if (x > hi_mild) {
-            nb_hi_mild += s.count;
-        } else {
+        if (x >= lo_mild && x <= hi_mild) {
             sum_trim += s.sum;
             sum2_trim += s.sum * x;
             nb_trim += s.count;
         }
-    }
-
-    if (distribution) {
-        *distribution = (CheckasmDistribution) {
-            .min    = q0,
-            .q1     = q1,
-            .median = q2,
-            .q3     = q3,
-            .max    = q4,
-
-            .outliers     = (double) (total_count - nb_trim) / total_count,
-            .low_mild     = (double) nb_lo_mild / total_count,
-            .low_extreme  = (double) nb_lo_extreme / total_count,
-            .high_mild    = (double) nb_hi_mild / total_count,
-            .high_extreme = (double) nb_hi_extreme / total_count,
-        };
     }
 
     assert(nb_trim > 0);
