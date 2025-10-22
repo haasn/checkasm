@@ -62,7 +62,8 @@ typedef struct CheckasmFuncVersion {
     const CheckasmCpuInfo      *cpu;
 
     void       *func;
-    CheckasmVar cycles;
+    CheckasmVar cycles_sum;
+    int         nb_bench;
     int         ok;
 } CheckasmFuncVersion;
 
@@ -143,6 +144,13 @@ static const char *cpu_suffix(const CheckasmCpuInfo *cpu)
     return cpu ? cpu->suffix : "c";
 }
 
+static CheckasmVar get_cycles(const CheckasmFuncVersion *const v)
+{
+    /* Gives the arithmetic mean across all bench_new() invocations */
+    return v->nb_bench ? checkasm_var_scale(v->cycles_sum, 1.0 / v->nb_bench)
+                       : checkasm_var_const(0.0);
+}
+
 /* Print benchmark results */
 static void print_benchs(const CheckasmFunc *const f)
 {
@@ -153,25 +161,27 @@ static void print_benchs(const CheckasmFunc *const f)
         const CheckasmFuncVersion *v   = ref;
 
         do {
-            const double cycles = checkasm_mean(v->cycles);
-            if (cycles > 0.0) {
-                const CheckasmVar time  = checkasm_var_mul(v->cycles, state.perf_scale);
-                const CheckasmVar ratio = checkasm_var_div(ref->cycles, v->cycles);
+            if (v->nb_bench) {
+                const CheckasmVar cycles     = get_cycles(v);
+                const CheckasmVar cycles_ref = get_cycles(ref);
+                const CheckasmVar ratio      = checkasm_var_div(cycles_ref, cycles);
+                const CheckasmVar time       = checkasm_var_mul(cycles, state.perf_scale);
+
                 if (cfg.separator) {
                     printf("%s%c%s%c%.4f%c%.5f%c%.4f\n", f->name, cfg.separator,
-                           cpu_suffix(v->cpu), cfg.separator, cycles, cfg.separator,
-                           checkasm_stddev(v->cycles), cfg.separator,
+                           cpu_suffix(v->cpu), cfg.separator, checkasm_mean(cycles),
+                           cfg.separator, checkasm_stddev(cycles), cfg.separator,
                            checkasm_mean(time));
                 } else {
                     const int pad = 12 + state.max_function_name_length
                                   - printf("  %s_%s:", f->name, cpu_suffix(v->cpu));
-                    printf("%*.1f", imax(pad, 0), cycles);
+                    printf("%*.1f", imax(pad, 0), checkasm_mean(cycles));
                     if (cfg.verbose) {
                         printf(" +/- %-7.1f %11.0f ns +/- %-6.0f",
-                               checkasm_stddev(v->cycles), checkasm_mean(time),
+                               checkasm_stddev(cycles), checkasm_mean(time),
                                checkasm_stddev(time));
                     }
-                    if (v != ref && checkasm_mean(ref->cycles) > 0.0) {
+                    if (v != ref && ref->nb_bench) {
                         const double ratio_lo = checkasm_sample(ratio, -1.0);
                         const double ratio_hi = checkasm_sample(ratio, 1.0);
                         const int    color    = ratio_lo >= 10.0 ? COLOR_GREEN
@@ -304,7 +314,8 @@ void checkasm_bench_finish(void)
         CheckasmVar       cycles  = checkasm_var_sub(est_raw, state.nop_cycles);
         cycles = checkasm_var_scale(cycles, 1.0 / 32.0); /* 32 calls per sample */
         /* Allow accumulating multiple bench_new() calls, by just adding the total time */
-        v->cycles = checkasm_var_add(v->cycles, cycles);
+        v->cycles_sum = checkasm_var_add(v->cycles_sum, cycles);
+        v->nb_bench++;
     }
 
     checkasm_stats_reset(&state.stats);
@@ -635,7 +646,7 @@ void *checkasm_check_func(void *const func, const char *const name, ...)
         state.num_checked++;
 
     if (cfg.bench)
-        v->cycles = checkasm_var_const(0.0);
+        v->cycles_sum = checkasm_var_const(0.0);
     return ref;
 }
 
