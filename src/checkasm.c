@@ -62,7 +62,7 @@ typedef struct CheckasmFuncVersion {
     const CheckasmCpuInfo      *cpu;
 
     void       *func;
-    CheckasmVar cycles_sum;
+    CheckasmVar cycles_prod;
     int         nb_bench;
     int         ok;
 } CheckasmFuncVersion;
@@ -146,8 +146,8 @@ static const char *cpu_suffix(const CheckasmCpuInfo *cpu)
 
 static CheckasmVar get_cycles(const CheckasmFuncVersion *const v)
 {
-    /* Gives the arithmetic mean across all bench_new() invocations */
-    return v->nb_bench ? checkasm_var_scale(v->cycles_sum, 1.0 / v->nb_bench)
+    /* Gives the geometric mean across all bench_new() invocations */
+    return v->nb_bench ? checkasm_var_pow(v->cycles_prod, 1.0 / v->nb_bench)
                        : checkasm_var_const(0.0);
 }
 
@@ -313,8 +313,8 @@ void checkasm_bench_finish(void)
         const CheckasmVar est_raw = checkasm_stats_estimate(&state.stats);
         CheckasmVar       cycles  = checkasm_var_sub(est_raw, state.nop_cycles);
         cycles = checkasm_var_scale(cycles, 1.0 / 32.0); /* 32 calls per sample */
-        /* Allow accumulating multiple bench_new() calls, by just adding the total time */
-        v->cycles_sum = checkasm_var_add(v->cycles_sum, cycles);
+        /* Accumulate multiple bench_new() calls */
+        v->cycles_prod = checkasm_var_mul(v->cycles_prod, cycles);
         v->nb_bench++;
     }
 
@@ -646,7 +646,7 @@ void *checkasm_check_func(void *const func, const char *const name, ...)
         state.num_checked++;
 
     if (cfg.bench)
-        v->cycles_sum = checkasm_var_const(0.0);
+        v->cycles_prod = checkasm_var_const(1.0);
     return ref;
 }
 
