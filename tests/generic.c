@@ -144,7 +144,7 @@ DEF_NOOP_GETTER(CHECKASM_CPU_FLAG_BAD_C, segfault)
 
 void checkasm_check_generic(void)
 {
-    checkasm_test_copy(checkasm_copy_c, "copy");
+    checkasm_test_copy(checkasm_copy_c, "copy_generic");
     checkasm_test_retval();
 
     checkasm_should_fail(1);
