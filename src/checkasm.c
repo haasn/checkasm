@@ -633,6 +633,8 @@ void *checkasm_check_func(void *const func, const char *const name, ...)
     if (state.cpu)
         state.num_checked++;
 
+    if (cfg.bench)
+        v->cycles = checkasm_var_const(0.0);
     return ref;
 }
 
