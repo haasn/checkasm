@@ -158,7 +158,7 @@ static void print_benchs(const CheckasmFunc *const f)
                 const CheckasmVar time  = checkasm_var_mul(v->cycles, state.perf_scale);
                 const CheckasmVar ratio = checkasm_var_div(ref->cycles, v->cycles);
                 if (cfg.separator) {
-                    printf("%s%c%s%c%.1f%c%.1f%c%.2f\n", f->name, cfg.separator,
+                    printf("%s%c%s%c%.4f%c%.5f%c%.4f\n", f->name, cfg.separator,
                            cpu_suffix(v->cpu), cfg.separator, cycles, cfg.separator,
                            checkasm_stddev(v->cycles), cfg.separator,
                            checkasm_mean(time));
