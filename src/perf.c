@@ -221,7 +221,7 @@ COLD CheckasmVar checkasm_measure_nop_cycles(void)
     return checkasm_stats_estimate(&stats, NULL);
 }
 
-COLD CheckasmVar checkasm_measure_perf_scale(double *low_estimate)
+COLD CheckasmVar checkasm_measure_perf_scale(void)
 {
     /* Try to make the loop long enough to be measurable, but not too long
      * to avoid being affected by CPU frequency scaling or preemption */
@@ -261,10 +261,8 @@ COLD CheckasmVar checkasm_measure_perf_scale(double *low_estimate)
             checkasm_stats_count_grow(&stats_cycles);
     }
 
-    CheckasmDistribution dist_cycles, dist_nsec;
-    CheckasmVar est_cycles = checkasm_stats_estimate(&stats_cycles, &dist_cycles);
-    CheckasmVar est_nsec   = checkasm_stats_estimate(&stats_nsec, &dist_nsec);
-    *low_estimate          = dist_nsec.q1 / dist_cycles.q3;
+    CheckasmVar est_cycles = checkasm_stats_estimate(&stats_cycles, NULL);
+    CheckasmVar est_nsec   = checkasm_stats_estimate(&stats_nsec, NULL);
     return checkasm_var_div(est_nsec, est_cycles);
 }
 #else
@@ -272,9 +270,8 @@ COLD CheckasmVar checkasm_measure_nop_cycles(void)
 {
     return (CheckasmVar) { 0 };
 }
-COLD CheckasmVar checkasm_measure_perf_scale(double *low_estimate)
+COLD CheckasmVar checkasm_measure_perf_scale(void)
 {
-    (void) low_estimate;
     return (CheckasmVar) { 0 };
 }
 #endif

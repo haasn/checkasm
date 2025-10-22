@@ -80,7 +80,7 @@ typedef struct CheckasmVar {
 /* Platform specific timing code */
 int         checkasm_perf_init(void);
 CheckasmVar checkasm_measure_nop_cycles(void); /* cycles per iter */
-CheckasmVar checkasm_measure_perf_scale(double *low_estimate); /* ns per cycle */
+CheckasmVar checkasm_measure_perf_scale(void); /* ns per cycle */
 uint64_t    checkasm_gettime_nsec(void);
 void        checkasm_noop(void *);
 
