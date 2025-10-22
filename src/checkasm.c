@@ -491,6 +491,7 @@ int checkasm_run(const CheckasmConfig *config)
          * ensure we reach the required number of cycles with confidence */
         const double low_estimate = checkasm_sample(state.perf_scale, -1.0);
         state.target_cycles       = 1e3 * cfg.bench_usec / low_estimate;
+        checkasm_stats_reset(&state.stats);
     }
 
 #if ARCH_ARM
