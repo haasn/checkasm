@@ -153,33 +153,34 @@ static void print_benchs(const CheckasmFunc *const f)
         const CheckasmFuncVersion *v   = ref;
 
         do {
-            if (v->cycles.mean > 0.0) {
+            const double cycles = checkasm_mean(v->cycles);
+            if (cycles > 0.0) {
                 const CheckasmVar time  = checkasm_var_mul(v->cycles, state.perf_scale);
                 const CheckasmVar ratio = checkasm_var_div(ref->cycles, v->cycles);
                 if (cfg.separator) {
                     printf("%s%c%s%c%.1f%c%.1f%c%.2f\n", f->name, cfg.separator,
-                           cpu_suffix(v->cpu), cfg.separator, v->cycles.mean,
-                           cfg.separator, checkasm_stddev(v->cycles), cfg.separator,
-                           time.mean);
+                           cpu_suffix(v->cpu), cfg.separator, cycles, cfg.separator,
+                           checkasm_stddev(v->cycles), cfg.separator,
+                           checkasm_mean(time));
                 } else {
                     const int pad = 12 + state.max_function_name_length
                                   - printf("  %s_%s:", f->name, cpu_suffix(v->cpu));
-                    printf("%*.1f", imax(pad, 0), v->cycles.mean);
+                    printf("%*.1f", imax(pad, 0), cycles);
                     if (cfg.verbose) {
                         printf(" +/- %-7.1f %11.0f ns +/- %-6.0f",
-                               checkasm_stddev(v->cycles), time.mean,
+                               checkasm_stddev(v->cycles), checkasm_mean(time),
                                checkasm_stddev(time));
                     }
-                    if (v != ref && ref->cycles.mean > 0.0) {
-                        const double ratio_lo = ratio.mean - checkasm_stddev(ratio);
-                        const double ratio_hi = ratio.mean + checkasm_stddev(ratio);
+                    if (v != ref && checkasm_mean(ref->cycles) > 0.0) {
+                        const double ratio_lo = checkasm_sample(ratio, -1.0);
+                        const double ratio_hi = checkasm_sample(ratio, 1.0);
                         const int    color    = ratio_lo >= 10.0 ? COLOR_GREEN
                                               : ratio_hi >= 1.1 && ratio_lo >= 1.0
                                                   ? COLOR_DEFAULT
                                               : ratio_hi >= 1.0 ? COLOR_YELLOW
                                                                 : COLOR_RED;
                         printf(" (");
-                        checkasm_fprintf(stdout, color, "%5.2fx", ratio.mean);
+                        checkasm_fprintf(stdout, color, "%5.2fx", checkasm_mean(ratio));
                         printf(")");
                     }
                     printf("\n");
@@ -519,7 +520,7 @@ int checkasm_run(const CheckasmConfig *config)
         fprintf(stderr, " - Timing source: %s\n", CHECKASM_PERF_NAME);
         if (cfg.verbose) {
             fprintf(stderr, " - Timing overhead: %.1f +/- %.2f %ss per iteration\n",
-                    state.nop_cycles.mean, checkasm_stddev(state.nop_cycles),
+                    checkasm_mean(state.nop_cycles), checkasm_stddev(state.nop_cycles),
                     CHECKASM_PERF_UNIT);
 
             const CheckasmVar mhz
@@ -527,8 +528,8 @@ int checkasm_run(const CheckasmConfig *config)
             fprintf(stderr,
                     " - Timing resolution: %.4f +/- %.3f ns/%s (%.0f +/- %.1f "
                     "MHz)\n",
-                    state.perf_scale.mean, checkasm_stddev(state.perf_scale),
-                    CHECKASM_PERF_UNIT, mhz.mean, checkasm_stddev(mhz));
+                    checkasm_mean(state.perf_scale), checkasm_stddev(state.perf_scale),
+                    CHECKASM_PERF_UNIT, checkasm_mean(mhz), checkasm_stddev(mhz));
         }
         fprintf(stderr, " - Bench duration: %d µs per function (%" PRIu64 " %ss)\n",
                 cfg.bench_usec, state.target_cycles, CHECKASM_PERF_UNIT);

@@ -38,6 +38,18 @@ static inline double checkasm_stddev(const CheckasmVar x)
     return x.var > 0.0 ? sqrt(x.var) : 0.0;
 }
 
+/* Returns the point estimate of a random variable at the given sigma level;
+ * sigma=0.0 gives the mean, sigma=1.0 gives mean+stddev, etc. */
+static inline double checkasm_sample(const CheckasmVar x, const double sigma)
+{
+    return x.mean + sigma * checkasm_stddev(x);
+}
+
+static inline double checkasm_mean(const CheckasmVar x)
+{
+    return checkasm_sample(x, 0.0);
+}
+
 static inline CheckasmVar checkasm_var_const(double x)
 {
     return (CheckasmVar) { x, 0.0 };
