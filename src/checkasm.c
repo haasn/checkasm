@@ -177,7 +177,7 @@ static void print_benchs(const CheckasmFunc *const f)
                                   - printf("  %s_%s:", f->name, cpu_suffix(v->cpu));
                     printf("%*.1f", imax(pad, 0), checkasm_mean(cycles));
                     if (cfg.verbose) {
-                        printf(" +/- %-7.1f %11.0f ns +/- %-6.0f",
+                        printf(" +/- %-7.1f %11.1f ns +/- %-6.1f",
                                checkasm_stddev(cycles), checkasm_mean(time),
                                checkasm_stddev(time));
                     }
