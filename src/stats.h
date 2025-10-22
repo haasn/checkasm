@@ -35,14 +35,14 @@
 
 static inline double checkasm_stddev(const CheckasmVar x)
 {
-    return x.var > 0.0 ? sqrt(x.var) : 0.0;
+    return exp(x.lmean + 0.5 * x.lvar) * sqrt(exp(x.lvar) - 1.0);
 }
 
 /* Returns the point estimate of a random variable at the given sigma level;
- * sigma=0.0 gives the mean, sigma=1.0 gives mean+stddev, etc. */
+ * sigma=0.0 gives the mean, sigma=1.0 gives the 1 sigma upper bound, etc. */
 static inline double checkasm_sample(const CheckasmVar x, const double sigma)
 {
-    return x.mean + sigma * checkasm_stddev(x);
+    return exp(x.lmean + sigma * sqrt(x.lvar));
 }
 
 static inline double checkasm_mean(const CheckasmVar x)
@@ -52,15 +52,16 @@ static inline double checkasm_mean(const CheckasmVar x)
 
 static inline CheckasmVar checkasm_var_const(double x)
 {
-    return (CheckasmVar) { x, 0.0 };
+    return (CheckasmVar) { log(x), 0.0 };
 }
 
 /* Assumes independent random variables */
 CheckasmVar checkasm_var_scale(CheckasmVar a, double s);
-CheckasmVar checkasm_var_add(CheckasmVar a, CheckasmVar b);
-CheckasmVar checkasm_var_sub(CheckasmVar a, CheckasmVar b);
+CheckasmVar checkasm_var_pow(CheckasmVar a, double exp);
+CheckasmVar checkasm_var_add(CheckasmVar a, CheckasmVar b); /* approximation */
+CheckasmVar checkasm_var_sub(CheckasmVar a, CheckasmVar b); /* approximation */
 CheckasmVar checkasm_var_mul(CheckasmVar a, CheckasmVar b);
-CheckasmVar checkasm_var_div(CheckasmVar a, CheckasmVar b); /* approximation */
+CheckasmVar checkasm_var_div(CheckasmVar a, CheckasmVar b);
 CheckasmVar checkasm_var_inv(CheckasmVar a);
 
 /* Statistical analysis helpers */

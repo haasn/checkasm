@@ -33,68 +33,75 @@ CheckasmVar checkasm_var_scale(CheckasmVar a, double s)
 {
     /* = checkasm_var_mul(a, checkasm_var_const(b)) */
     return (CheckasmVar) {
-        .mean = a.mean * s,
-        .var  = a.var * s * s,
+        .lmean = a.lmean + log(s),
+        .lvar  = a.lvar,
+    };
+}
+
+CheckasmVar checkasm_var_pow(CheckasmVar a, double exp)
+{
+    return (CheckasmVar) {
+        .lmean = a.lmean * exp,
+        .lvar  = a.lvar * exp * exp,
     };
 }
 
 CheckasmVar checkasm_var_add(const CheckasmVar a, const CheckasmVar b)
 {
+    /* Approximation assuming independent log-normal distributions */
+    const double ma = exp(a.lmean + 0.5 * a.lvar);
+    const double mb = exp(b.lmean + 0.5 * b.lvar);
+    const double va = (exp(a.lvar) - 1.0) * exp(2.0 * a.lmean + a.lvar);
+    const double vb = (exp(b.lvar) - 1.0) * exp(2.0 * b.lmean + b.lvar);
+    const double m  = ma + mb;
+    const double v  = va + vb;
     return (CheckasmVar) {
-        .mean = a.mean + b.mean,
-        .var  = a.var + b.var,
+        .lmean = log(m * m / sqrt(v + m * m)),
+        .lvar  = log(1.0 + v / (m * m)),
     };
 }
 
 CheckasmVar checkasm_var_sub(CheckasmVar a, CheckasmVar b)
 {
+    const double ma = exp(a.lmean + 0.5 * a.lvar);
+    const double mb = exp(b.lmean + 0.5 * b.lvar);
+    const double va = (exp(a.lvar) - 1.0) * exp(2.0 * a.lmean + a.lvar);
+    const double vb = (exp(b.lvar) - 1.0) * exp(2.0 * b.lmean + b.lvar);
+    const double m  = fmax(ma - mb, 1e-30); /* avoid negative mean */
+    const double v  = va + vb;
     return (CheckasmVar) {
-        .mean = a.mean - b.mean,
-        .var  = a.var + b.var,
+        .lmean = log(m * m / sqrt(v + m * m)),
+        .lvar  = log(1.0 + v / (m * m)),
     };
 }
 
 CheckasmVar checkasm_var_mul(CheckasmVar a, CheckasmVar b)
 {
     return (CheckasmVar) {
-        .mean = a.mean * b.mean,
-        .var  = a.var * b.var + a.var * b.mean * b.mean + b.var * a.mean * a.mean,
+        .lmean = a.lmean + b.lmean,
+        .lvar  = a.lvar + b.lvar,
     };
 }
 
 CheckasmVar checkasm_var_inv(CheckasmVar a)
 {
-    /* Approximate using first-order Taylor expansion */
-    const double inv_mean  = 1.0 / a.mean;
-    const double inv_mean2 = inv_mean * inv_mean;
     return (CheckasmVar) {
-        .mean = inv_mean,
-        .var  = a.var * inv_mean2 * inv_mean2,
+        .lmean = -a.lmean,
+        .lvar  = a.lvar,
     };
 }
 
 CheckasmVar checkasm_var_div(CheckasmVar a, CheckasmVar b)
 {
-    return checkasm_var_mul(a, checkasm_var_inv(b));
+    return (CheckasmVar) {
+        .lmean = a.lmean - b.lmean,
+        .lvar  = a.lvar + b.lvar,
+    };
 }
 
 static double sample_mean(const CheckasmSample s)
 {
     return (double) s.sum / s.count;
-}
-
-/* Get the sample corresponding to a true count position */
-static CheckasmSample get_sample(const CheckasmStats *const stats, int position)
-{
-    int seen = 0;
-    for (int i = 0; i < stats->nb_samples; i++) {
-        const CheckasmSample s = stats->samples[i];
-        if (seen + s.count > position)
-            return s;
-        seen += s.count;
-    }
-
-    return (CheckasmSample) { 0, 0 };
 }
 
 /* Compare by mean value */
@@ -114,55 +121,26 @@ int checkasm_stats_count_total(const CheckasmStats *const stats)
     return total;
 }
 
-static CheckasmVar var_est(uint64_t sum, double sum2, int count)
-{
-    const double mean = (double) sum / count;
-    const double var  = sum2 / count - mean * mean;
-    return (CheckasmVar) { mean, var };
-}
-
 CheckasmVar checkasm_stats_estimate(CheckasmStats *const stats)
 {
     if (!stats->nb_samples)
-        return (CheckasmVar) { 0.0, 0.0 };
+        return checkasm_var_const(0.0);
 
-    const int total_count = checkasm_stats_count_total(stats);
-
-    /* Sort all samples and get the Q1 and Q3 values */
     qsort(stats->samples, stats->nb_samples, sizeof(CheckasmSample), cmp_samples);
-    const int idx_q1 = ((total_count - 1) * 1) / 4;
-    const int idx_q3 = ((total_count - 1) * 3) / 4;
 
-    const double q1  = sample_mean(get_sample(stats, idx_q1));
-    const double q3  = sample_mean(get_sample(stats, idx_q3));
-    const double iqr = q3 - q1;
-    assert(iqr >= 0.0);
-
-    /* Define boxplot thresholds */
-    const double lo_mild = q1 - 1.5 * iqr;
-    const double hi_mild = q3 + 1.5 * iqr;
-
-    /* Classify and accumulate */
-    uint64_t sum_raw = 0, sum_trim = 0;
-    double   sum2_raw = 0.0, sum2_trim = 0.0;
-    int      nb_trim = 0;
-
+    /* Compute mean and variance */
+    double sum = 0.0, sum2 = 0.0;
     for (int i = 0; i < stats->nb_samples; i++) {
         const CheckasmSample s = stats->samples[i];
-        const double         x = sample_mean(s);
-        sum_raw += s.sum;
-        sum2_raw += s.sum * x;
-
-        /* Reject outliers */
-        if (x >= lo_mild && x <= hi_mild) {
-            sum_trim += s.sum;
-            sum2_trim += s.sum * x;
-            nb_trim += s.count;
-        }
+        const double         x = log(sample_mean(s));
+        sum += x * s.count;
+        sum2 += x * x * s.count;
     }
 
-    assert(nb_trim > 0);
-    const CheckasmVar raw  = var_est(sum_raw, sum2_raw, total_count);
-    const CheckasmVar trim = var_est(sum_trim, sum2_trim, nb_trim);
-    return (CheckasmVar) { trim.mean, raw.var };
+    const int    count = checkasm_stats_count_total(stats);
+    const double mean  = sum / count;
+    return (CheckasmVar) {
+        .lmean = mean,
+        .lvar  = sum2 / count - mean * mean,
+    };
 }

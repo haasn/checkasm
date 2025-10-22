@@ -74,7 +74,7 @@ void checkasm_fprintf(FILE *const f, const int color, const char *const fmt, ...
 void checkasm_set_signal_handlers(void);
 
 typedef struct CheckasmVar {
-    double mean, var; /* (trimmed) mean and variance */
+    double lmean, lvar; /* log mean and variance */
 } CheckasmVar;
 
 /* Platform specific timing code */
