@@ -43,8 +43,9 @@ static inline uint64_t checkasm_rdtsc(void)
 }
 #endif
 
-#define CHECKASM_PERF_ASM()    checkasm_rdtsc()
-#define CHECKASM_PERF_ASM_NAME "x86 (rdtsc)"
-#define CHECKASM_PERF_ASM_UNIT "cycle"
+#define CHECKASM_PERF_ASM()      checkasm_rdtsc()
+#define CHECKASM_PERF_ASM_NAME   "x86 (rdtsc)"
+#define CHECKASM_PERF_ASM_UNIT   "cycle"
+#define CHECKASM_PERF_ASM_USABLE 1
 
 #endif /* CHECKASM_PERF_X86_H */
