@@ -71,9 +71,10 @@ typedef struct CheckasmSample {
 } CheckasmSample;
 
 typedef struct CheckasmStats {
-    /* With a ~12% exponential growth on the number of data points per sample,
-     * 256 samples can effectively represent many billions of data points */
-    CheckasmSample samples[256];
+    /* With an exponential growth on the number of data points per sample,
+     * even a small number of samples can effectively represent many billions
+     * of data points */
+    CheckasmSample samples[1024];
     int            nb_samples;
     int            next_count;
 } CheckasmStats;
