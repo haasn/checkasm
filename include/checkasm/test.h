@@ -95,6 +95,10 @@ typedef struct CheckasmPerf {
     uint64_t (*start)(void);
     uint64_t (*stop)(uint64_t);
     const char *name, *unit;
+
+#ifdef CHECKASM_PERF_ASM
+    int asm_usable; /* Whether the ASM instruction is usable */
+#endif
 } CheckasmPerf;
 
 CHECKASM_API extern CheckasmPerf checkasm_perf;
