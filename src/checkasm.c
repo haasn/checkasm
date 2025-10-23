@@ -301,11 +301,8 @@ int checkasm_bench_runs(void)
 void checkasm_bench_update(const int iterations, const uint64_t cycles)
 {
     checkasm_stats_add(&state.stats, (CheckasmSample) { cycles, iterations });
+    checkasm_stats_count_grow(&state.stats, cycles, state.target_cycles);
     state.total_cycles += cycles;
-
-    /* Try and record at least 100 data points for each function */
-    if (cycles < state.target_cycles >> 7)
-        checkasm_stats_count_grow(&state.stats, cycles, state.target_cycles);
 }
 
 void checkasm_bench_finish(void)
