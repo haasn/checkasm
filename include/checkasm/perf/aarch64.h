@@ -31,7 +31,7 @@
 
 #include <stdint.h>
 
-static inline uint64_t readtime_pmccntr(void)
+static inline uint64_t checkasm_pmccntr(void)
 {
     uint64_t cycle_counter;
     /* This requires enabling user mode access to the cycle counter
@@ -44,8 +44,8 @@ static inline uint64_t readtime_pmccntr(void)
 }
 
 #define CHECKASM_PERF_SETUP()
-#define CHECKASM_PERF_START(t) t = readtime_pmccntr();
-#define CHECKASM_PERF_STOP(t)  t = readtime_pmccntr() - t
+#define CHECKASM_PERF_START(t) t = checkasm_pmccntr();
+#define CHECKASM_PERF_STOP(t)  t = checkasm_pmccntr() - t
 #define CHECKASM_PERF_NAME     "aarch64 (pmccntr)"
 #define CHECKASM_PERF_UNIT     "cycle"
 
