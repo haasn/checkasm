@@ -31,6 +31,11 @@
 
 #include <stdint.h>
 
+#if defined(_MSC_VER) && !defined(__clang__)
+  #define checkasm_pmccntr()                                                             \
+      (_InstructionSynchronizationBarrier(), ReadTimeStampCounter())
+  #define CHECKASM_PERF_NAME "windows (ReadTimeStampCounter)"
+#else
 static inline uint64_t checkasm_pmccntr(void)
 {
     uint64_t cycle_counter;
@@ -42,11 +47,12 @@ static inline uint64_t checkasm_pmccntr(void)
     __asm__ __volatile__("isb\nmrs %0, pmccntr_el0" : "=r"(cycle_counter)::"memory");
     return cycle_counter;
 }
+  #define CHECKASM_PERF_NAME "aarch64 (pmccntr)"
+#endif /* MSVC */
 
 #define CHECKASM_PERF_SETUP()
 #define CHECKASM_PERF_START(t) t = checkasm_pmccntr();
 #define CHECKASM_PERF_STOP(t)  t = checkasm_pmccntr() - t
-#define CHECKASM_PERF_NAME     "aarch64 (pmccntr)"
 #define CHECKASM_PERF_UNIT     "cycle"
 
 #endif /* CHECKASM_PERF_AARCH64_H */
