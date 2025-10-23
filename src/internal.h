@@ -41,6 +41,10 @@
   #define COLD
 #endif
 
+#ifndef __has_attribute
+#define __has_attribute(x) 0
+#endif
+
 #ifdef _MSC_VER
   #define NOINLINE __declspec(noinline)
 #elif __has_attribute(noclone)
