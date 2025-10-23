@@ -32,6 +32,11 @@
 
 #include <stdint.h>
 #include <stdio.h>
+#include <time.h>
+
+#ifdef _WIN32
+  #include <windows.h>
+#endif
 
 #include "checkasm/attributes.h"
 
@@ -85,7 +90,6 @@ typedef struct CheckasmVar {
 int         checkasm_perf_init(void);
 CheckasmVar checkasm_measure_nop_cycles(void); /* cycles per iter */
 CheckasmVar checkasm_measure_perf_scale(void); /* ns per cycle */
-uint64_t    checkasm_gettime_nsec(void);
 void        checkasm_noop(void *);
 
 /* Miscellaneous helpers */
@@ -97,6 +101,26 @@ static inline int imax(const int a, const int b)
 static inline int imin(const int a, const int b)
 {
     return a < b ? a : b;
+}
+
+static inline uint64_t checkasm_gettime_nsec(void)
+{
+#ifdef _WIN32
+    static LARGE_INTEGER freq;
+    LARGE_INTEGER        ts;
+    if (!freq.QuadPart)
+        QueryPerformanceFrequency(&freq);
+    QueryPerformanceCounter(&ts);
+    return UINT64_C(1000000000) * ts.QuadPart / freq.QuadPart;
+#else
+    struct timespec ts;
+  #ifdef CLOCK_MONOTONIC_RAW
+    clock_gettime(CLOCK_MONOTONIC_RAW, &ts);
+  #else
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+  #endif
+    return UINT64_C(1000000000) * ts.tv_sec + ts.tv_nsec;
+#endif
 }
 
 #endif /* CHECKASM_INTERNAL_H */
