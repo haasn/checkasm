@@ -57,7 +57,7 @@ NOINLINE void checkasm_noop(void *ptr)
     (void) ptr;
 }
 
-uint64_t checkasm_gettime_nsec(void)
+static ALWAYS_INLINE uint64_t gettime_nsec(void)
 {
 #ifdef _WIN32
     static LARGE_INTEGER freq;
@@ -75,6 +75,16 @@ uint64_t checkasm_gettime_nsec(void)
   #endif
     return UINT64_C(1000000000) * ts.tv_sec + ts.tv_nsec;
 #endif
+}
+
+uint64_t checkasm_gettime_nsec(void)
+{
+    return gettime_nsec();
+}
+
+uint64_t checkasm_gettime_nsec_diff(uint64_t t)
+{
+    return gettime_nsec() - t;
 }
 
 // xor128 from Marsaglia, George (July 2003). "Xorshift RNGs".

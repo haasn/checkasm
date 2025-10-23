@@ -42,6 +42,13 @@
   #include <dlfcn.h>
 #endif
 
+CheckasmPerf checkasm_perf = {
+    .start = checkasm_gettime_nsec,
+    .stop  = checkasm_gettime_nsec_diff,
+    .name  = "gettime",
+    .unit  = "nsec",
+};
+
 #if CONFIG_LINUX_PERF
 
 static int perf_sysfd;
@@ -157,7 +164,9 @@ COLD int checkasm_perf_init(void)
         uint64_t t;
         (void) t;
         checkasm_set_signal_handler_state(1);
+        CHECKASM_PERF_SETUP();
         CHECKASM_PERF_START(t);
+        CHECKASM_PERF_STOP(t);
         checkasm_set_signal_handler_state(0);
         return 0;
     } else {

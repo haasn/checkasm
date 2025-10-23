@@ -53,6 +53,12 @@
   #define NOINLINE __attribute__((noinline))
 #endif
 
+#ifdef _MSC_VER
+  #define ALWAYS_INLINE __forceinline
+#else
+  #define ALWAYS_INLINE inline __attribute__((always_inline))
+#endif
+
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
 
 void checkasm_srand(unsigned seed);
@@ -86,6 +92,7 @@ int         checkasm_perf_init(void);
 CheckasmVar checkasm_measure_nop_cycles(void); /* cycles per iter */
 CheckasmVar checkasm_measure_perf_scale(void); /* ns per cycle */
 uint64_t    checkasm_gettime_nsec(void);
+uint64_t    checkasm_gettime_nsec_diff(uint64_t t); /* subtracts t */
 void        checkasm_noop(void *);
 
 /* Miscellaneous helpers */

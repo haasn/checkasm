@@ -90,6 +90,23 @@ CHECKASM_API void checkasm_checked_call(void *func, ...);
       } while (0)
 #endif
 
+typedef struct CheckasmPerf {
+    /* Start/stop callbacks, used whenever not using inline ASM */
+    uint64_t (*start)(void);
+    uint64_t (*stop)(uint64_t);
+    const char *name, *unit;
+} CheckasmPerf;
+
+CHECKASM_API extern CheckasmPerf checkasm_perf;
+
+#ifndef CHECKASM_PERF_START
+  #define CHECKASM_PERF_SETUP()  const CheckasmPerf perf = checkasm_perf;
+  #define CHECKASM_PERF_START(t) t = perf.start()
+  #define CHECKASM_PERF_STOP(t)  t = perf.stop(t)
+  #define CHECKASM_PERF_NAME     checkasm_perf.name
+  #define CHECKASM_PERF_UNIT     checkasm_perf.unit
+#endif
+
 #define CALL4(...)                                                                       \
     do {                                                                                 \
         talt = 0;                                                                        \
@@ -112,48 +129,42 @@ CHECKASM_API void checkasm_checked_call(void *func, ...);
 
 /* Benchmark the function */
 CHECKASM_API int  checkasm_bench_func(void);
-#ifdef CHECKASM_PERF_START
 CHECKASM_API int  checkasm_bench_runs(void);
 CHECKASM_API void checkasm_bench_update(int iterations, uint64_t cycles);
 CHECKASM_API void checkasm_bench_finish(void);
 
-  #define bench_new(...)                                                                 \
-      do {                                                                               \
-          if (checkasm_bench_func()) {                                                   \
-              checkasm_set_signal_handler_state(1);                                      \
-              CHECKASM_PERF_SETUP();                                                     \
-              for (int truns; (truns = checkasm_bench_runs());) {                        \
-                  uint64_t tsum   = 0;                                                   \
-                  int      tcount = 0;                                                   \
-                  for (int ti = 0; ti < truns; ti++) {                                   \
-                      uint64_t t;                                                        \
-                      int      talt;                                                     \
-                      (void) talt;                                                       \
-                      CHECKASM_PERF_START(t);                                            \
-                      CALL16(__VA_ARGS__);                                               \
-                      CALL16(__VA_ARGS__);                                               \
-                      CHECKASM_PERF_STOP(t);                                             \
-                      if (t * tcount <= tsum * 4 && (ti > 0 || truns < 50)) {            \
-                          tsum += t;                                                     \
-                          tcount++;                                                      \
-                      }                                                                  \
-                  }                                                                      \
-                  checkasm_clear_cpu_state();                                            \
-                  checkasm_bench_update(tcount, tsum);                                   \
-              }                                                                          \
-              checkasm_set_signal_handler_state(0);                                      \
-              checkasm_bench_finish();                                                   \
-          } else {                                                                       \
-              const int talt = 0;                                                        \
-              (void) talt;                                                               \
-              call_new(__VA_ARGS__);                                                     \
-          }                                                                              \
-      } while (0)
-#else
-  #define bench_new(...)                                                                 \
-      do {                                                                               \
-      } while (0)
-#endif
+#define bench_new(...)                                                                   \
+    do {                                                                                 \
+        if (checkasm_bench_func()) {                                                     \
+            checkasm_set_signal_handler_state(1);                                        \
+            CHECKASM_PERF_SETUP();                                                       \
+            for (int truns; (truns = checkasm_bench_runs());) {                          \
+                uint64_t tsum   = 0;                                                     \
+                int      tcount = 0;                                                     \
+                for (int ti = 0; ti < truns; ti++) {                                     \
+                    uint64_t t;                                                          \
+                    int      talt;                                                       \
+                    (void) talt;                                                         \
+                    CHECKASM_PERF_START(t);                                              \
+                    CALL16(__VA_ARGS__);                                                 \
+                    CALL16(__VA_ARGS__);                                                 \
+                    CHECKASM_PERF_STOP(t);                                               \
+                    if (t * tcount <= tsum * 4 && (ti > 0 || truns < 50)) {              \
+                        tsum += t;                                                       \
+                        tcount++;                                                        \
+                    }                                                                    \
+                }                                                                        \
+                checkasm_clear_cpu_state();                                              \
+                checkasm_bench_update(tcount, tsum);                                     \
+            }                                                                            \
+            checkasm_set_signal_handler_state(0);                                        \
+            checkasm_bench_finish();                                                     \
+        } else {                                                                         \
+            const int talt = 0;                                                          \
+            (void) talt;                                                                 \
+            call_new(__VA_ARGS__);                                                       \
+        }                                                                                \
+    } while (0)
 
 /* Alternates between two pointers. Intended to be used within bench_new()
  * calls for functions which modifies their input buffer(s) to ensure that
