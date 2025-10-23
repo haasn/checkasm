@@ -57,9 +57,7 @@ elif get_option('macos_kperf') and host_machine.system() == 'darwin'
 elif arch_x86
   perf_header = files('perf/x86.h')
 elif arch_aarch64
-  if cc.get_id() == 'msvc'
-    perf_header = files('perf/windows.h')
-  elif host_machine.system() == 'darwin'
+  if host_machine.system() == 'darwin'
     perf_header = files('perf/mach.h')
   else
     perf_header = files('perf/aarch64.h')
