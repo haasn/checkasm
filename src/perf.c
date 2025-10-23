@@ -166,7 +166,7 @@ uint64_t checkasm_kperf_cycles(void)
     return counters[0];
 }
 
-#elif defined(CHECKASM_PERF_START)
+#else
 
 COLD int checkasm_perf_init(void)
 {
@@ -185,17 +185,8 @@ COLD int checkasm_perf_init(void)
     }
 }
 
-#else
-
-COLD int checkasm_perf_init(void)
-{
-    fprintf(stderr, "checkasm: benchmarking not supported on this platform\n");
-    return 1;
-}
-
 #endif
 
-#ifdef CHECKASM_PERF_START
 /* Measure the overhead of the timing code */
 COLD CheckasmVar checkasm_measure_nop_cycles(void)
 {
@@ -284,13 +275,3 @@ COLD CheckasmVar checkasm_measure_perf_scale(void)
     CheckasmVar est_nsec   = checkasm_stats_estimate(&stats_nsec);
     return checkasm_var_div(est_nsec, est_cycles);
 }
-#else
-COLD CheckasmVar checkasm_measure_nop_cycles(void)
-{
-    return (CheckasmVar) { 0 };
-}
-COLD CheckasmVar checkasm_measure_perf_scale(void)
-{
-    return (CheckasmVar) { 0 };
-}
-#endif
