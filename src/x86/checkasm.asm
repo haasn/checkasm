@@ -185,6 +185,10 @@ cglobal cpu_cpuid, 0, 5, 0, regs, leaf, subleaf
 %endif
     RET
 
+cvisible empty_mmx, 0, 0
+    emms
+    RET
+
 %if ARCH_X86_64
 
 %if WIN64

@@ -33,6 +33,8 @@
 
 CHECKASM_API void checkasm_checked_call_emms(void *func, ...);
 
+CHECKASM_API void checkasm_empty_mmx(void);
+
 #define declare_new(ret, ...)                                                            \
     ret (*checked_call)(void *, __VA_ARGS__, int, int, int, int, int, int, int, int,     \
                         int, int, int, int, int, int, int)                               \
@@ -56,10 +58,16 @@ CHECKASM_API void checkasm_checked_call_emms(void *func, ...);
         emms_needed  = 1;                                                                \
     }
 
+#if defined(__GNUC__) || defined(__clang__)
+#define checkasm_emms() __asm__ volatile("emms" ::: "memory")
+#else
+#define checkasm_emms() checkasm_empty_mmx()
+#endif
+
 #define checkasm_clear_cpu_state()                                                       \
     do {                                                                                 \
         if (emms_needed)                                                                 \
-            __asm__ volatile("emms" ::: "memory");                                       \
+            checkasm_emms();                                                             \
     } while (0)
 
 #define CHECKASM_ALIGNMENT 64

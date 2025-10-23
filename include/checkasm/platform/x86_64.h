@@ -48,6 +48,8 @@ CHECKASM_API void checkasm_simd_warmup(void);
  * kernels. It will omit the emms check and instead explicitly run emms. */
 CHECKASM_API void checkasm_checked_call_emms(void *func, ...);
 
+CHECKASM_API void checkasm_empty_mmx(void);
+
 /* The upper 32 bits of 32-bit data types are undefined when passed as function
  * parameters. In practice those bits usually end up being zero which may hide
  * certain bugs, such as using a register containing undefined bits as a pointer
@@ -125,10 +127,16 @@ CHECKASM_API void checkasm_checked_call_emms(void *func, ...);
         emms_needed  = 1;                                                                \
     }
 
+#if defined(__GNUC__) || defined(__clang__)
+#define checkasm_emms() __asm__ volatile("emms" ::: "memory")
+#else
+#define checkasm_emms() checkasm_empty_mmx()
+#endif
+
 #define checkasm_clear_cpu_state()                                                       \
     do {                                                                                 \
         if (emms_needed)                                                                 \
-            __asm__ volatile("emms" ::: "memory");                                       \
+            checkasm_emms();                                                             \
     } while (0)
 
 /* x86-64 needs 32- and 64-byte alignment for AVX2 and AVX-512. */
