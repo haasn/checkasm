@@ -70,8 +70,6 @@ elif arch_arm
   endif
 elif arch_ppc64le
   perf_header = files('perf/ppc64le.h')
-elif arch_riscv
-  perf_header = files('perf/gettime.h')
 elif arch_loongarch64
   perf_header = files('perf/loongarch64.h')
 elif arch_loongarch32
