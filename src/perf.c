@@ -36,6 +36,18 @@
 #include "internal.h"
 #include "stats.h"
 
+#ifdef CHECKASM_PERF_ASM
+static uint64_t perf_start_asm(void)
+{
+    return CHECKASM_PERF_ASM();
+}
+
+static uint64_t perf_stop_asm(uint64_t t)
+{
+    return CHECKASM_PERF_ASM() - t;
+}
+#endif
+
 static uint64_t perf_start_gettime(void)
 {
     return checkasm_gettime_nsec();
@@ -46,15 +58,29 @@ static uint64_t perf_stop_gettime(uint64_t t)
     return checkasm_gettime_nsec() - t;
 }
 
-CheckasmPerf checkasm_perf = {
-    .start = perf_start_gettime,
-    .stop  = perf_stop_gettime,
-    .name  = "gettime",
-    .unit  = "nsec",
-};
+CheckasmPerf checkasm_perf;
 
 COLD int checkasm_perf_init(void)
 {
+#ifdef CHECKASM_PERF_ASM
+    if (!checkasm_save_context(checkasm_context)) {
+        /* Try calling the asm timer to see if it works */
+        checkasm_set_signal_handler_state(1);
+        CHECKASM_PERF_ASM();
+        checkasm_set_signal_handler_state(0);
+
+        checkasm_perf.start      = perf_start_asm;
+        checkasm_perf.stop       = perf_stop_asm;
+        checkasm_perf.name       = CHECKASM_PERF_ASM_NAME;
+        checkasm_perf.unit       = CHECKASM_PERF_ASM_UNIT;
+        checkasm_perf.asm_usable = 1;
+        return 0;
+    } else {
+        fprintf(stderr, "checkasm: unable to access cycle counter\n");
+        checkasm_perf.asm_usable = 0;
+    }
+#endif
+
 #if CONFIG_LINUX_PERF
     if (!checkasm_perf_init_linux(&checkasm_perf))
         return 0;
@@ -65,19 +91,12 @@ COLD int checkasm_perf_init(void)
         return 0;
 #endif
 
-    if (!checkasm_save_context(checkasm_context)) {
-        uint64_t t;
-        (void) t;
-        checkasm_set_signal_handler_state(1);
-        CHECKASM_PERF_SETUP();
-        CHECKASM_PERF_START(t);
-        CHECKASM_PERF_STOP(t);
-        checkasm_set_signal_handler_state(0);
-        return 0;
-    } else {
-        fprintf(stderr, "checkasm: unable to access cycle counter\n");
-        return 1;
-    }
+    /* Generic fallback to gettime() */
+    checkasm_perf.start = perf_start_gettime;
+    checkasm_perf.stop  = perf_stop_gettime;
+    checkasm_perf.name  = "gettime";
+    checkasm_perf.unit  = "nsec";
+    return 0;
 }
 
 /* Measure the overhead of the timing code */
