@@ -301,11 +301,10 @@ void checkasm_bench_update(const int iterations, const uint64_t cycles)
     checkasm_stats_add(&state.stats, (CheckasmSample) { cycles, iterations });
     state.total_cycles += cycles;
 
-    /* Try and record at least 100 data points for each function */
-    uint64_t cycle_budget   = state.target_cycles - state.total_cycles;
-    int      samples_wanted = 100 - state.stats.nb_samples;
-    if (samples_wanted <= 0 || cycles * samples_wanted < cycle_budget)
-        checkasm_stats_count_grow(&state.stats);
+    if (state.total_cycles < state.target_cycles) {
+        uint64_t cycle_budget = state.target_cycles - state.total_cycles;
+        checkasm_stats_count_grow(&state.stats, cycles, cycle_budget);
+    }
 }
 
 void checkasm_bench_finish(void)

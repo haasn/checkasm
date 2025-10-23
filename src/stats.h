@@ -93,11 +93,23 @@ static inline void checkasm_stats_add(CheckasmStats *const stats, const Checkasm
     }
 }
 
-/* Increase number of data points exponentially, with 1/8 = ~12% growth */
-static inline void checkasm_stats_count_grow(CheckasmStats *const stats)
+#define GROW_EXP(x, s) (((x << s) + x + (1 << s) - 1) >> s)
+
+/* Increase number of data points exponentially, with 1/128 = ~1% growth */
+static inline void checkasm_stats_count_grow(CheckasmStats *const stats,
+                                             const uint64_t time, const uint64_t budget)
 {
-    stats->next_count = ((stats->next_count << 3) + stats->next_count + 7) >> 3;
-    stats->next_count = imin(stats->next_count, 1 << 28);
+    /* Try and record at least 400 data points for each function if possible */
+    const int samples_wanted = 400 - stats->nb_samples;
+
+    /* If the time spent is dramatically lower than the budget, double it */
+    if (time < budget >> 11) { /* sum[(1+1/128)^n | n < 400] = ~2048 */
+        stats->next_count <<= 1;
+    } else if (samples_wanted <= 0 || time * samples_wanted < budget) {
+        /* Otherwise, grow slowly at a ~1% rate as long as we don't exceed our budget */
+        const int target_count = GROW_EXP(stats->next_count, 7);
+        stats->next_count      = imin(target_count, 1 << 24);
+    }
 }
 
 int checkasm_stats_count_total(const CheckasmStats *stats);
