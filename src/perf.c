@@ -123,11 +123,10 @@ COLD CheckasmVar checkasm_measure_nop_cycles(void)
         uint64_t nsec = checkasm_gettime_nsec();
         CHECKASM_PERF_BENCH(count, cycles, alternate(ptr0, ptr1));
         nsec = checkasm_gettime_nsec() - nsec;
-        checkasm_stats_add(&stats, (CheckasmSample) { cycles, count });
-
         total_nsec += nsec;
-        if (nsec < target_nsec >> 7)
-            checkasm_stats_count_grow(&stats);
+
+        checkasm_stats_add(&stats, (CheckasmSample) { cycles, count });
+        checkasm_stats_count_grow(&stats, nsec, target_nsec - total_nsec);
     }
 
     return checkasm_stats_estimate(&stats);
@@ -169,7 +168,7 @@ COLD CheckasmVar checkasm_measure_perf_scale(void)
 
         checkasm_stats_add(&stats_cycles, (CheckasmSample) { cycles, iters });
         checkasm_stats_add(&stats_nsec, (CheckasmSample) { nsec, iters });
-        checkasm_stats_count_grow(&stats_cycles);
+        checkasm_stats_count_grow(&stats_cycles, nsec, target_nsec);
 
         if (nsec > target_nsec)
             break;
