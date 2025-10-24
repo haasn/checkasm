@@ -150,7 +150,7 @@ elif arch_loongarch
   checkasm_sources += files('loongarch/checkasm.S')
 elif arch_x86
   add_languages('nasm', native: false)
-  checkasm_config += configure_file(
+  configure_file(
     output: 'checkasm_config.asm',
     output_format: 'nasm',
     configuration: cdata,
