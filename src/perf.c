@@ -92,6 +92,11 @@ COLD int checkasm_perf_init(void)
 #endif
 
     /* Generic fallback to gettime() */
+    if (checkasm_gettime_nsec() == UINT64_C(-1)) {
+        fprintf(stderr, "checkasm: checkasm_gettime_nsec() returned nonsense\n");
+        return 1;
+    }
+
     checkasm_perf.start = perf_start_gettime;
     checkasm_perf.stop  = perf_stop_gettime;
     checkasm_perf.name  = "gettime";
