@@ -53,17 +53,9 @@ endif
 if arch_x86
   perf_header = files('perf/x86.h')
 elif arch_aarch64
-  if host_machine.system() == 'darwin'
-    perf_header = files('perf/mach.h')
-  else
-    perf_header = files('perf/aarch64.h')
-  endif
+  perf_header = files('perf/aarch64.h')
 elif arch_arm
-  if host_machine.system() == 'darwin'
-    perf_header = files('perf/mach.h')
-  else
-    perf_header = files('perf/arm.h')
-  endif
+  perf_header = files('perf/arm.h')
 elif arch_ppc64le
   perf_header = files('perf/ppc64le.h')
 elif arch_loongarch64
