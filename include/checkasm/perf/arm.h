@@ -49,5 +49,13 @@ static inline uint64_t readtime_counter(void)
   #define CHECKASM_PERF_NAME     "arm (ccnt)"
   #define CHECKASM_PERF_UNIT     "cycle"
 
+#else
+
+  #undef CHECKASM_PERF_SETUP
+  #undef CHECKASM_PERF_START
+  #undef CHECKASM_PERF_STOP
+  #define CHECKASM_PERF_NAME "none"
+  #define CHECKASM_PERF_UNIT "n/a"
+
 #endif /* !defined(_MSC_VER) && __ARM_ARCH >= 7 */
 #endif /* CHECKASM_PERF_ARM_H */
