@@ -23,6 +23,8 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+libm_dependency = cc.find_library('m', required: false)
+
 optional_arguments = []
 if cc.get_argument_syntax() != 'msvc'
     optional_arguments += [
@@ -54,9 +56,7 @@ checkasm_test = executable('checkasm',
   checkasm_test_sources,
   checkasm_config,
   c_args: extra_arguments,
-  objects: checkasm_library.extract_all_objects(recursive: true),
-  # Also link against checkasm dependencies to make extracted objects happy
-  dependencies: checkasm_dependencies + checkasm_dep,
+  dependencies: [checkasm_dep, libm_dependency],
   build_by_default: false,
   install: false,
 )
