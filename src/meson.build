@@ -64,6 +64,7 @@ if ((arch_aarch64 or arch_arm) and
             '-nologo',
             '-I@0@'.format(meson.current_source_dir()),
             '-I@0@'.format(meson.current_build_dir()),
+            '@EXTRA_ARGS@',
     ]
     gaspp_gen = generator(gaspp,
         output: '@BASENAME@.obj',
@@ -74,9 +75,12 @@ if ((arch_aarch64 or arch_arm) and
         ])
 endif
 
+api_export_flags = []
+api_export_flags_asm = []
 if host_machine.system() == 'windows'
     if get_option('default_library') != 'static'
-        api_export_flags = ['-DCHECKASM_BUILDING_DLL']
+        api_export_flags = ['-DCHECKASM_BUILDING_DLL', '-DBUILDING_DLL']
+        api_export_flags_asm = ['-DBUILDING_DLL']
     endif
 endif
 
@@ -146,14 +150,14 @@ endif
 if arch_aarch64
   checkasm_asm_sources = files('arm/checkasm_64.S')
   if use_gaspp
-    checkasm_asm_objs += gaspp_gen.process(checkasm_asm_sources)
+    checkasm_asm_objs += gaspp_gen.process(checkasm_asm_sources, extra_args: api_export_flags_asm)
   else
     checkasm_sources += checkasm_asm_sources
   endif
 elif arch_arm
   checkasm_asm_sources = files('arm/checkasm_32.S')
   if use_gaspp
-    checkasm_asm_objs += gaspp_gen.process(checkasm_asm_sources)
+    checkasm_asm_objs += gaspp_gen.process(checkasm_asm_sources, extra_args: api_export_flags_asm)
   else
     checkasm_sources += checkasm_asm_sources
   endif
@@ -186,6 +190,8 @@ checkasm_library = library(meson.project_name(),
   checkasm_sources,
   checkasm_config,
   checkasm_asm_objs,
+  c_args : [api_export_flags],
+  nasm_args : [api_export_flags_asm],
   include_directories: checkasm_inc_dirs,
   dependencies: checkasm_dependencies,
   install: true,
