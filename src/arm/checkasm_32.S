@@ -30,6 +30,12 @@
 
 #include "arm/asm.S"
 
+#ifndef __ARM_ARCH
+#ifdef _M_ARM
+#define __ARM_ARCH _M_ARM
+#endif
+#endif
+
 .macro movrel_local rd, val, offset=0
 #if (__ARM_ARCH >= 7 || defined(__ARM_ARCH_6T2__)) && !defined(PIC)
         movw            \rd, #:lower16:\val+\offset
@@ -144,7 +150,11 @@ function checked_call_\variant, export=1
         blx             r12
 #else
         mov             lr,  pc
-        v4bx            r12
+#if __ARM_ARCH >= 5 || defined(__ARM_ARCH_4T__)
+        bx              r12
+#else
+        mov             pc, r12
+#endif
 #endif
 
         @ Load the number of stack parameters, stack canary and its reference
