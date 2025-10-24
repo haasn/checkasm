@@ -55,6 +55,29 @@ if (host_machine.cpu_family() == 'aarch64' or
     have_elf_aux_info = cc.has_function('elf_aux_info', prefix : '#include <sys/auxv.h>', args : test_args)
 endif
 
+use_gaspp = false
+if ((arch_aarch64 or arch_arm) and
+     cc.get_argument_syntax() == 'msvc' and cc.get_id() != 'clang-cl')
+    gaspp = find_program('gas-preprocessor.pl')
+    use_gaspp = true
+    gaspp_args = [
+            '-as-type', 'armasm',
+            '-arch', host_machine.cpu_family(),
+            '--',
+            arch_aarch64 ? 'armasm64' : 'armasm',
+            '-nologo',
+            '-I@0@'.format(meson.current_source_dir()),
+            '-I@0@'.format(meson.current_build_dir()),
+    ]
+    gaspp_gen = generator(gaspp,
+        output: '@BASENAME@.obj',
+        arguments: gaspp_args + [
+            '@INPUT@',
+            '-c',
+            '-o', '@OUTPUT@'
+        ])
+endif
+
 if host_machine.system() == 'windows'
     if get_option('default_library') != 'static'
         api_export_flags = ['-DCHECKASM_BUILDING_DLL']
@@ -106,10 +129,21 @@ checkasm_sources = files(
   'utils.c',
 )
 
+checkasm_asm_objs = []
 if arch_aarch64
-  checkasm_sources += files('arm/checkasm_64.S')
+  checkasm_asm_sources = files('arm/checkasm_64.S')
+  if use_gaspp
+    checkasm_asm_objs += gaspp_gen.process(checkasm_asm_sources)
+  else
+    checkasm_sources += checkasm_asm_sources
+  endif
 elif arch_arm
-  checkasm_sources += files('arm/checkasm_32.S')
+  checkasm_asm_sources = files('arm/checkasm_32.S')
+  if use_gaspp
+    checkasm_asm_objs += gaspp_gen.process(checkasm_asm_sources)
+  else
+    checkasm_sources += checkasm_asm_sources
+  endif
 elif arch_rv64
   checkasm_sources += files('riscv/checkasm_64.S')
 elif arch_loongarch
@@ -138,6 +172,7 @@ checkasm_dependencies = [
 checkasm_library = library(meson.project_name(),
   checkasm_sources,
   checkasm_config,
+  checkasm_asm_objs,
   include_directories: checkasm_inc_dirs,
   dependencies: checkasm_dependencies,
   install: true,
