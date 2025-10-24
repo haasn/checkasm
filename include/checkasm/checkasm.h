@@ -79,7 +79,7 @@ typedef struct CheckasmConfig {
     char separator;
 
     /* If nonzero, enable benchmarking, with the specified target time (µs)
-     * per function tested, defaulting to 2000 µs if left unset. */
+     * per function tested, defaulting to 1000 µs if left unset. */
     int      bench;
     unsigned bench_usec;
 
