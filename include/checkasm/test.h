@@ -111,8 +111,8 @@ CHECKASM_API void checkasm_checked_call(void *func, ...);
     } while (0)
 
 /* Benchmark the function */
-#ifdef CHECKASM_PERF_START
 CHECKASM_API int  checkasm_bench_func(void);
+#ifdef CHECKASM_PERF_START
 CHECKASM_API int  checkasm_bench_runs(void);
 CHECKASM_API void checkasm_bench_update(int iterations, uint64_t cycles);
 CHECKASM_API void checkasm_bench_finish(void);
