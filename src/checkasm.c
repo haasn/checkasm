@@ -89,15 +89,17 @@ static struct {
     uint64_t               total_cycles;
 
     /* Miscellaneous state */
-    int num_checked;
-    int num_skipped;
-    int num_failed;
-    int suffix_length;
-    int cpu_name_printed;
-    int max_function_name_length;
-    int max_report_name_length;
-    int should_fail;
-    int prev_checked, prev_failed;
+    int    num_checked;
+    int    num_skipped;
+    int    num_failed;
+    int    num_benched;
+    int    suffix_length;
+    int    cpu_name_printed;
+    int    max_function_name_length;
+    int    max_report_name_length;
+    int    should_fail;
+    int    prev_checked, prev_failed;
+    double var_sum, var_max;
 
     /* Runtime constants */
     CheckasmVar nop_cycles;
@@ -315,10 +317,21 @@ void checkasm_bench_finish(void)
         /* Accumulate multiple bench_new() calls */
         v->cycles_prod = checkasm_var_mul(v->cycles_prod, cycles);
         v->nb_bench++;
+
+        /* Keep track of min/max/avg (log) variance */
+        state.var_sum += est_raw.lvar;
+        state.var_max = fmax(state.var_max, est_raw.lvar);
+        state.num_benched++;
     }
 
     checkasm_stats_reset(&state.stats);
     state.total_cycles = 0;
+}
+
+/* Returns the relative standard deviation corresponding to the log variance */
+static double relative_error(double lvar)
+{
+    return sqrt(exp(lvar) - 1.0);
 }
 
 /* Compares a string with a wildcard pattern. */
@@ -581,6 +594,13 @@ int checkasm_run(const CheckasmConfig *config)
                 checkasm_fprintf(stdout, COLOR_GREEN, " (vs ref)\n");
             }
             print_benchs(state.funcs);
+
+            if (cfg.verbose && state.num_benched && !cfg.separator) {
+                printf(" - average timing error: %.3f%% across %d benchmarks "
+                       "(maximum %.3f%%)\n",
+                       100.0 * relative_error(state.var_sum / state.num_benched),
+                       state.num_benched, 100.0 * relative_error(state.var_max));
+            }
         }
     }
 
