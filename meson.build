@@ -35,6 +35,15 @@ project('checkasm', 'c',
 # Project arguments and basic checks
 cc = meson.get_compiler('c')
 
+optional_arguments = []
+
+if cc.get_argument_syntax() == 'msvc'
+    optional_arguments += [
+      '-wd4244', # Silence "C4244: '=': conversion from 'double' to 'uint64_t', possible loss of data"
+    ]
+endif
+add_project_arguments(cc.get_supported_arguments(optional_arguments), language : 'c')
+
 test_args = []
 if host_machine.system() in ['linux', 'gnu', 'emscripten']
   add_project_arguments('-D_GNU_SOURCE', language: 'c')
