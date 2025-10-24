@@ -39,6 +39,7 @@ optional_arguments = []
 
 if cc.get_argument_syntax() == 'msvc'
     optional_arguments += [
+      '-wd4028', # parameter different from declaration
       '-wd4244', # Silence "C4244: '=': conversion from 'double' to 'uint64_t', possible loss of data"
     ]
 endif
