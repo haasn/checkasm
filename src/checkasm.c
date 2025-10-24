@@ -503,7 +503,7 @@ int checkasm_run(const CheckasmConfig *config)
     if (!cfg.seed)
         cfg.seed = (unsigned) checkasm_gettime_nsec();
     if (!cfg.bench_usec)
-        cfg.bench_usec = 2000;
+        cfg.bench_usec = 1000;
 
     if (cfg.bench) {
         if (checkasm_perf_init())
