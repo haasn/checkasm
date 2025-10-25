@@ -311,8 +311,8 @@ void checkasm_bench_finish(void)
     CheckasmFuncVersion *const v = state.current_func_ver;
     if (v && state.total_cycles) {
         const CheckasmVar est_raw = checkasm_stats_estimate(&state.stats);
-        CheckasmVar       cycles  = checkasm_var_sub(est_raw, state.nop_cycles);
-        cycles = checkasm_var_scale(cycles, 1.0 / 32.0); /* 32 calls per sample */
+        const CheckasmVar cycles  = checkasm_var_sub(est_raw, state.nop_cycles);
+
         /* Accumulate multiple bench_new() calls */
         v->cycles_prod = checkasm_var_mul(v->cycles_prod, cycles);
         v->nb_bench++;
@@ -531,10 +531,6 @@ int checkasm_run(const CheckasmConfig *config)
     if (cfg.bench) {
         fprintf(stderr, " - Timing source: %s\n", checkasm_perf.name);
         if (cfg.verbose) {
-            fprintf(stderr, " - Timing overhead: %.1f +/- %.2f %ss per iteration\n",
-                    checkasm_mean(state.nop_cycles), checkasm_stddev(state.nop_cycles),
-                    checkasm_perf.unit);
-
             const CheckasmVar mhz
                 = checkasm_var_div(checkasm_var_const(1e3), state.perf_scale);
             fprintf(stderr,
@@ -542,6 +538,10 @@ int checkasm_run(const CheckasmConfig *config)
                     "MHz)\n",
                     checkasm_mean(state.perf_scale), checkasm_stddev(state.perf_scale),
                     checkasm_perf.unit, checkasm_mean(mhz), checkasm_stddev(mhz));
+
+            fprintf(stderr, " - No-op overhead: %.2f +/- %.3f %ss per call\n",
+                    checkasm_mean(state.nop_cycles), checkasm_stddev(state.nop_cycles),
+                    checkasm_perf.unit);
         }
         fprintf(stderr, " - Bench duration: %d µs per function (%" PRIu64 " %ss)\n",
                 cfg.bench_usec, state.target_cycles, checkasm_perf.unit);

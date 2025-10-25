@@ -138,19 +138,19 @@ CHECKASM_API extern CheckasmPerf checkasm_perf;
         (void) perf;                                                                     \
         int      tcount_trim = 0;                                                        \
         uint64_t tsum_trim   = 0;                                                        \
-        for (int titer = 0; titer < total_count; titer++) {                              \
+        for (int titer = 0; titer < total_count; titer += 32) {                          \
             uint64_t t;                                                                  \
             CHECKASM_PERF_START(t);                                                      \
             CHECKASM_PERF_CALL16(__VA_ARGS__);                                           \
             CHECKASM_PERF_CALL16(__VA_ARGS__);                                           \
             CHECKASM_PERF_STOP(t);                                                       \
-            if (t * tcount_trim <= tsum_trim * 4 && (titer > 0 || total_count < 50)) {   \
+            if (t * tcount_trim <= tsum_trim * 4 && (titer > 0 || total_count < 1000)) { \
                 tsum_trim += t;                                                          \
                 tcount_trim++;                                                           \
             }                                                                            \
         }                                                                                \
         time        = tsum_trim;                                                         \
-        total_count = tcount_trim;                                                       \
+        total_count = tcount_trim << 5;                                                  \
     } while (0)
 
 /* Benchmark the function */
