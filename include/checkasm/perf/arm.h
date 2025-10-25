@@ -43,19 +43,15 @@ static inline uint64_t checkasm_counter(void)
     return cycle_counter;
 }
 
-  #define CHECKASM_PERF_SETUP()
-  #define CHECKASM_PERF_START(t) t = checkasm_counter();
-  #define CHECKASM_PERF_STOP(t)  t = checkasm_counter() - t
-  #define CHECKASM_PERF_NAME     "arm (ccnt)"
-  #define CHECKASM_PERF_UNIT     "cycle"
+  #define CHECKASM_PERF_ASM()    checkasm_counter()
+  #define CHECKASM_PERF_ASM_NAME "arm (ccnt)"
+  #define CHECKASM_PERF_ASM_UNIT "cycle"
 
 #else
 
-  #undef CHECKASM_PERF_SETUP
-  #undef CHECKASM_PERF_START
-  #undef CHECKASM_PERF_STOP
-  #undef CHECKASM_PERF_NAME
-  #undef CHECKASM_PERF_UNIT
+  #undef CHECKASM_PERF_ASM
+  #undef CHECKASM_PERF_ASM_NAME
+  #undef CHECKASM_PERF_ASM_UNIT
 
 #endif /* !defined(_MSC_VER) && __ARM_ARCH >= 7 */
 #endif /* CHECKASM_PERF_ARM_H */
