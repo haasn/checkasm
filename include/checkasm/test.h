@@ -103,14 +103,6 @@ typedef struct CheckasmPerf {
 
 CHECKASM_API extern CheckasmPerf checkasm_perf;
 
-#ifdef CHECKASM_PERF_ASM
-  #define CHECKASM_PERF_START(t) t = CHECKASM_PERF_ASM()
-  #define CHECKASM_PERF_STOP(t)  t = CHECKASM_PERF_ASM() - t
-#else
-  #define CHECKASM_PERF_START(t) t = perf.start()
-  #define CHECKASM_PERF_STOP(t)  t = perf.stop(t)
-#endif
-
 #define CHECKASM_PERF_CALL4(...)                                                         \
     do {                                                                                 \
         int tidx = 0;                                                                    \
@@ -132,18 +124,26 @@ CHECKASM_API extern CheckasmPerf checkasm_perf;
         CHECKASM_PERF_CALL4(__VA_ARGS__);                                                \
     } while (0)
 
-#define CHECKASM_PERF_BENCH(total_count, time, ...)                                      \
+/* Naive loop; used when perf.start/stop() is expected to be slow or imprecise, or when
+ * we have no ASM cycle counters */
+#define CHECKASM_PERF_BENCH_SIMPLE(count, time, ...)                                     \
     do {                                                                                 \
-        const CheckasmPerf perf = checkasm_perf;                                         \
-        (void) perf;                                                                     \
+        time = perf.start();                                                             \
+        for (int tidx = 0; tidx < count; tidx++)                                         \
+            func_new(__VA_ARGS__);                                                       \
+        time = perf.stop(time);                                                          \
+    } while (0)
+
+/* Unrolled loop with inline outlier rejection; used when we have asm cycle counters */
+#define CHECKASM_PERF_BENCH_ASM(total_count, time, ...)                                  \
+    do {                                                                                 \
         int      tcount_trim = 0;                                                        \
         uint64_t tsum_trim   = 0;                                                        \
         for (int titer = 0; titer < total_count; titer += 32) {                          \
-            uint64_t t;                                                                  \
-            CHECKASM_PERF_START(t);                                                      \
+            uint64_t t = CHECKASM_PERF_ASM();                                            \
             CHECKASM_PERF_CALL16(__VA_ARGS__);                                           \
             CHECKASM_PERF_CALL16(__VA_ARGS__);                                           \
-            CHECKASM_PERF_STOP(t);                                                       \
+            t = CHECKASM_PERF_ASM() - t;                                                 \
             if (t * tcount_trim <= tsum_trim * 4 && (titer > 0 || total_count < 1000)) { \
                 tsum_trim += t;                                                          \
                 tcount_trim++;                                                           \
@@ -152,6 +152,28 @@ CHECKASM_API extern CheckasmPerf checkasm_perf;
         time        = tsum_trim;                                                         \
         total_count = tcount_trim << 5;                                                  \
     } while (0)
+
+/* Select the best benchmarking method at runtime */
+#ifdef CHECKASM_PERF_ASM
+  #ifndef CHECKASM_PERF_ASM_USABLE
+    #define CHECKASM_PERF_ASM_USABLE perf.asm_usable
+  #endif
+  #define CHECKASM_PERF_BENCH(count, time, ...)                                          \
+      do {                                                                               \
+          const CheckasmPerf perf = checkasm_perf;                                       \
+          if (CHECKASM_PERF_ASM_USABLE) {                                                \
+              CHECKASM_PERF_BENCH_ASM(count, time, __VA_ARGS__);                         \
+          } else {                                                                       \
+              CHECKASM_PERF_BENCH_SIMPLE(count, time, __VA_ARGS__);                      \
+          }                                                                              \
+      } while (0)
+#else /* !CHECKASM_PERF_ASM */
+  #define CHECKASM_PERF_BENCH(count, time, ...)                                          \
+      do {                                                                               \
+          const CheckasmPerf perf = checkasm_perf;                                       \
+          CHECKASM_PERF_BENCH_SIMPLE(count, time, __VA_ARGS__);                          \
+      } while (0)
+#endif
 
 /* Benchmark the function */
 CHECKASM_API int  checkasm_bench_func(void);
