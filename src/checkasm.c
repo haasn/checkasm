@@ -497,12 +497,12 @@ int checkasm_run(const CheckasmConfig *config)
     if (cfg.bench) {
         if (checkasm_perf_init())
             return 1;
-        state.nop_cycles = checkasm_measure_nop_cycles();
         state.perf_scale = checkasm_measure_perf_scale();
         /* Use the low estimate to compute the number of target cycles, to
          * ensure we reach the required number of cycles with confidence */
         const double low_estimate = checkasm_sample(state.perf_scale, -1.0);
         state.target_cycles       = 1e3 * cfg.bench_usec / low_estimate;
+        state.nop_cycles          = checkasm_measure_nop_cycles(state.target_cycles * 10);
         checkasm_stats_reset(&state.stats);
     }
 
