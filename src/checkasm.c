@@ -529,11 +529,11 @@ int checkasm_run(const CheckasmConfig *config)
         fprintf(stderr, " - CPU: SVE = %d bits\n", sve_len);
 #endif
     if (cfg.bench) {
-        fprintf(stderr, " - Timing source: %s\n", CHECKASM_PERF_NAME);
+        fprintf(stderr, " - Timing source: %s\n", checkasm_perf.name);
         if (cfg.verbose) {
             fprintf(stderr, " - Timing overhead: %.1f +/- %.2f %ss per iteration\n",
                     checkasm_mean(state.nop_cycles), checkasm_stddev(state.nop_cycles),
-                    CHECKASM_PERF_UNIT);
+                    checkasm_perf.unit);
 
             const CheckasmVar mhz
                 = checkasm_var_div(checkasm_var_const(1e3), state.perf_scale);
@@ -541,10 +541,10 @@ int checkasm_run(const CheckasmConfig *config)
                     " - Timing resolution: %.4f +/- %.3f ns/%s (%.0f +/- %.1f "
                     "MHz)\n",
                     checkasm_mean(state.perf_scale), checkasm_stddev(state.perf_scale),
-                    CHECKASM_PERF_UNIT, checkasm_mean(mhz), checkasm_stddev(mhz));
+                    checkasm_perf.unit, checkasm_mean(mhz), checkasm_stddev(mhz));
         }
         fprintf(stderr, " - Bench duration: %d µs per function (%" PRIu64 " %ss)\n",
-                cfg.bench_usec, state.target_cycles, CHECKASM_PERF_UNIT);
+                cfg.bench_usec, state.target_cycles, checkasm_perf.unit);
     }
     fprintf(stderr, " - Random seed: %u\n", cfg.seed);
 
@@ -570,11 +570,11 @@ int checkasm_run(const CheckasmConfig *config)
         if (cfg.bench && state.max_function_name_length) {
             if (cfg.separator && cfg.verbose) {
                 printf("name%csuffix%c%ss%cstddev%cnanoseconds\n", cfg.separator,
-                       cfg.separator, CHECKASM_PERF_UNIT, cfg.separator, cfg.separator);
+                       cfg.separator, checkasm_perf.unit, cfg.separator, cfg.separator);
             } else if (!cfg.separator) {
                 checkasm_fprintf(stdout, COLOR_YELLOW, "Benchmark results:\n");
                 checkasm_fprintf(stdout, COLOR_GREEN, "  name%*ss",
-                                 5 + state.max_function_name_length, CHECKASM_PERF_UNIT);
+                                 5 + state.max_function_name_length, checkasm_perf.unit);
                 if (cfg.verbose) {
                     checkasm_fprintf(stdout, COLOR_GREEN, " +/- stddev %*s", 26,
                                      "time (nanoseconds)");
