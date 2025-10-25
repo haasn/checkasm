@@ -110,28 +110,16 @@ COLD CheckasmVar checkasm_measure_nop_cycles(void)
     void (*const func_new)(void *) = checkasm_noop;
     void *const ptr0 = (void *) 0x1000, *const ptr1 = (void *) 0x2000;
 
-    CHECKASM_PERF_SETUP();
+    const CheckasmPerf perf = checkasm_perf;
+    (void) perf;
 
     for (uint64_t total_nsec = 0; total_nsec < target_nsec;) {
-        const int runs   = stats.next_count;
-        uint64_t  cycles = 0;
-        int       count  = 0;
+        int      count  = stats.next_count;
+        uint64_t cycles = 0;
 
         /* Measure the overhead of the timing code (in cycles) */
         uint64_t nsec = checkasm_gettime_nsec();
-        for (int i = 0; i < runs; i++) {
-            uint64_t t;
-            int      talt;
-            (void) talt;
-            CHECKASM_PERF_START(t);
-            CALL16(alternate(ptr0, ptr1));
-            CALL16(alternate(ptr0, ptr1));
-            CHECKASM_PERF_STOP(t);
-            if (t * count <= cycles * 4 && (i > 0 || runs < 50)) {
-                cycles += t;
-                count++;
-            }
-        }
+        CHECKASM_PERF_BENCH(count, cycles, alternate(ptr0, ptr1));
         nsec = checkasm_gettime_nsec() - nsec;
         checkasm_stats_add(&stats, (CheckasmSample) { cycles, count });
 
@@ -145,6 +133,8 @@ COLD CheckasmVar checkasm_measure_nop_cycles(void)
 
 COLD CheckasmVar checkasm_measure_perf_scale(void)
 {
+    const CheckasmPerf perf = checkasm_perf;
+
     /* Try to make the loop long enough to be measurable, but not too long
      * to avoid being affected by CPU frequency scaling or preemption */
     const uint64_t target_nsec = 100000 / 2; /* 100 us */
@@ -155,8 +145,6 @@ COLD CheckasmVar checkasm_measure_perf_scale(void)
     checkasm_stats_reset(&stats_cycles);
     checkasm_stats_reset(&stats_nsec);
 
-    CHECKASM_PERF_SETUP();
-
     while (stats_cycles.nb_samples < (int) ARRAY_SIZE(stats_cycles.samples)) {
         const int iters = stats_cycles.next_count;
 
@@ -165,10 +153,10 @@ COLD CheckasmVar checkasm_measure_perf_scale(void)
             checkasm_noop(NULL);
 
         uint64_t cycles;
-        CHECKASM_PERF_START(cycles);
+        cycles = perf.start();
         for (int i = 0; i < iters; i++)
             checkasm_noop(NULL);
-        CHECKASM_PERF_STOP(cycles);
+        cycles = perf.stop(cycles);
 
         /* Measure the same loop with wallclock time instead of cycles */
         uint64_t nsec = checkasm_gettime_nsec();
