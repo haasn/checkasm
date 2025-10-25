@@ -26,34 +26,53 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CHECKASM_PERF_LINUX_H
-#define CHECKASM_PERF_LINUX_H
-
 #include <linux/perf_event.h>
 #include <sys/ioctl.h>
+#include <sys/syscall.h>
 #include <unistd.h>
 
-#include "checkasm/attributes.h"
+#include "internal.h"
 
-CHECKASM_API int checkasm_get_perf_sysfd(void);
+static int perf_sysfd;
 
-#define CHECKASM_PERF_SETUP() int sysfd = checkasm_get_perf_sysfd()
+static uint64_t perf_start(void)
+{
+    ioctl(perf_sysfd, PERF_EVENT_IOC_RESET, 0);
+    ioctl(perf_sysfd, PERF_EVENT_IOC_ENABLE, 0);
+    return 0;
+}
 
-#define CHECKASM_PERF_START(t)                                                           \
-    do {                                                                                 \
-        ioctl(sysfd, PERF_EVENT_IOC_RESET, 0);                                           \
-        ioctl(sysfd, PERF_EVENT_IOC_ENABLE, 0);                                          \
-    } while (0)
+static uint64_t perf_stop(uint64_t t)
+{
+    ioctl(perf_sysfd, PERF_EVENT_IOC_DISABLE, 0);
+    int ret = read(perf_sysfd, &t, sizeof(t));
+    (void) ret;
+    return t;
+}
 
-#define CHECKASM_PERF_STOP(t)                                                            \
-    do {                                                                                 \
-        int _ret;                                                                        \
-        ioctl(sysfd, PERF_EVENT_IOC_DISABLE, 0);                                         \
-        _ret = read(sysfd, &t, sizeof(t));                                               \
-        (void) _ret;                                                                     \
-    } while (0)
+COLD int checkasm_perf_init_linux(CheckasmPerf *perf)
+{
+    struct perf_event_attr attr = {
+        .type           = PERF_TYPE_HARDWARE,
+        .size           = sizeof(struct perf_event_attr),
+        .config         = PERF_COUNT_HW_CPU_CYCLES,
+        .disabled       = 1, // start counting only on demand
+        .exclude_kernel = 1,
+        .exclude_hv     = 1,
+#if !ARCH_X86
+        .exclude_guest = 1,
+#endif
+    };
 
-#define CHECKASM_PERF_NAME "linux (perf)"
-#define CHECKASM_PERF_UNIT "tick"
+    perf_sysfd = syscall(SYS_perf_event_open, &attr, 0, -1, -1, 0);
+    if (perf_sysfd == -1) {
+        perror("perf_event_open");
+        return 1;
+    }
 
-#endif /* CHECKASM_PERF_LINUX_H */
+    perf->start = perf_start;
+    perf->stop  = perf_stop;
+    perf->name  = "linux (perf)";
+    perf->unit  = "tick";
+    return 0;
+}

@@ -120,6 +120,7 @@ checkasm_config += configure_file(
 )
 
 # Build definition
+checkasm_asm_objs = []
 checkasm_sources = files(
   'checkasm.c',
   'cpu.c',
@@ -129,7 +130,10 @@ checkasm_sources = files(
   'utils.c',
 )
 
-checkasm_asm_objs = []
+if get_option('linux_perf')
+  checkasm_sources += files('perf/linux.c')
+endif
+
 if arch_aarch64
   checkasm_asm_sources = files('arm/checkasm_64.S')
   if use_gaspp

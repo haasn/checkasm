@@ -39,6 +39,7 @@
 #endif
 
 #include "checkasm/attributes.h"
+#include "checkasm/test.h"
 
 #ifdef __GNUC__
   #define COLD __attribute__((cold))
@@ -87,7 +88,9 @@ typedef struct CheckasmVar {
 } CheckasmVar;
 
 /* Platform specific timing code */
-int         checkasm_perf_init(void);
+int checkasm_perf_init(void);
+int checkasm_perf_init_linux(CheckasmPerf *perf);
+
 CheckasmVar checkasm_measure_nop_cycles(void); /* cycles per iter */
 CheckasmVar checkasm_measure_perf_scale(void); /* ns per cycle */
 void        checkasm_noop(void *);
