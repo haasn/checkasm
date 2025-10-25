@@ -84,11 +84,15 @@ if host_machine.system() == 'windows'
     endif
 endif
 
+have_linux_perf = false
+if host_machine.system() == 'linux'
+  have_linux_perf = cc.has_header_symbol('linux/perf_event.h', 'PERF_COUNT_HW_CPU_CYCLES', args: test_args)
+endif
+
 # Build configuration
 cdata = configuration_data()
 cdata.set('PREFIX',                         cc.symbols_have_underscore_prefix())
-cdata.set10('CONFIG_LINUX_PERF',            get_option('linux_perf'))
-cdata.set10('CONFIG_MACOS_KPERF',           get_option('macos_kperf'))
+cdata.set10('HAVE_LINUX_PERF',              have_linux_perf)
 cdata.set10('ARCH_AARCH64',                 arch_aarch64)
 cdata.set10('ARCH_ARM',                     arch_arm)
 cdata.set10('ARCH_X86',                     arch_x86)
@@ -130,11 +134,11 @@ checkasm_sources = files(
   'utils.c',
 )
 
-if get_option('linux_perf')
+if have_linux_perf
   checkasm_sources += files('perf/linux.c')
 endif
 
-if get_option('macos_kperf')
+if host_machine.system() == 'darwin'
   checkasm_sources += files('perf/macos_kperf.c')
 endif
 
