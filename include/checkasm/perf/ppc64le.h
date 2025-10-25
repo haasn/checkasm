@@ -48,10 +48,8 @@ static inline uint64_t checkasm_mfspr(void)
     return (((uint64_t) tbu) << 32) | (uint64_t) tbl;
 }
 
-#define CHECKASM_PERF_SETUP()
-#define CHECKASM_PERF_START(t) t = checkasm_mfspr();
-#define CHECKASM_PERF_STOP(t)  t = checkasm_mfspr() - t
-#define CHECKASM_PERF_NAME     "ppc64le (mfspr)"
-#define CHECKASM_PERF_UNIT     "tick"
+#define CHECKASM_PERF_ASM()    checkasm_mfspr()
+#define CHECKASM_PERF_ASM_NAME "ppc64le (mfspr)"
+#define CHECKASM_PERF_ASM_UNIT "tick"
 
 #endif /* CHECKASM_PERF_PPC64LE_H */

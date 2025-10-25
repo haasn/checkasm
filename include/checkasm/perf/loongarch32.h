@@ -38,10 +38,8 @@ static inline uint64_t checkasm_rdtimel(void)
     return (uint64_t) a;
 }
 
-#define CHECKASM_PERF_SETUP()
-#define CHECKASM_PERF_START(t) t = checkasm_rdtimel();
-#define CHECKASM_PERF_STOP(t)  t = checkasm_rdtimel() - t
-#define CHECKASM_PERF_NAME     "loongarch32 (rdtimel)"
-#define CHECKASM_PERF_UNIT     "tick"
+#define CHECKASM_PERF_ASM()    checkasm_rdtimel()
+#define CHECKASM_PERF_ASM_NAME "loongarch32 (rdtimel)"
+#define CHECKASM_PERF_ASM_UNIT "tick"
 
 #endif /* CHECKASM_PERF_LOONGARCH32_H */

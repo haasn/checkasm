@@ -99,7 +99,13 @@ typedef struct CheckasmPerf {
 
 CHECKASM_API extern CheckasmPerf checkasm_perf;
 
-#ifndef CHECKASM_PERF_START
+#ifdef CHECKASM_PERF_ASM
+  #define CHECKASM_PERF_SETUP()
+  #define CHECKASM_PERF_START(t) t = CHECKASM_PERF_ASM()
+  #define CHECKASM_PERF_STOP(t)  t = CHECKASM_PERF_ASM() - t
+  #define CHECKASM_PERF_NAME     CHECKASM_PERF_ASM_NAME
+  #define CHECKASM_PERF_UNIT     CHECKASM_PERF_ASM_UNIT
+#else
   #define CHECKASM_PERF_SETUP()  const CheckasmPerf perf = checkasm_perf;
   #define CHECKASM_PERF_START(t) t = perf.start()
   #define CHECKASM_PERF_STOP(t)  t = perf.stop(t)
