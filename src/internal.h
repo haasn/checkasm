@@ -90,6 +90,7 @@ typedef struct CheckasmVar {
 /* Platform specific timing code */
 int checkasm_perf_init(void);
 int checkasm_perf_init_linux(CheckasmPerf *perf);
+int checkasm_perf_init_macos(CheckasmPerf *perf);
 
 CheckasmVar checkasm_measure_nop_cycles(void); /* cycles per iter */
 CheckasmVar checkasm_measure_perf_scale(void); /* ns per cycle */

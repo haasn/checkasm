@@ -134,6 +134,10 @@ if get_option('linux_perf')
   checkasm_sources += files('perf/linux.c')
 endif
 
+if get_option('macos_kperf')
+  checkasm_sources += files('perf/macos_kperf.c')
+endif
+
 if arch_aarch64
   checkasm_asm_sources = files('arm/checkasm_64.S')
   if use_gaspp
