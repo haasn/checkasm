@@ -27,9 +27,6 @@
  */
 
 #include <stdio.h>
-#include <stdlib.h>
-
-#include "config.h"
 
 #include "checkasm/perf.h"
 #include "checkasm/test.h"
@@ -71,12 +68,12 @@ COLD int checkasm_perf_init(void)
     }
 #endif
 
-#if CONFIG_LINUX_PERF
+#if HAVE_LINUX_PERF
     if (!checkasm_perf_init_linux(&checkasm_perf))
         return 0;
 #endif
 
-#if CONFIG_MACOS_KPERF
+#if HAVE_MACOS_KPERF
     if (!checkasm_perf_init_macos(&checkasm_perf))
         return 0;
 #endif
