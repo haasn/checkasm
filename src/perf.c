@@ -36,9 +36,7 @@
 #include "internal.h"
 #include "stats.h"
 
-#if CONFIG_LINUX_PERF
-  #include <sys/syscall.h>
-#elif CONFIG_MACOS_KPERF
+#if CONFIG_MACOS_KPERF
   #include <dlfcn.h>
 #endif
 
@@ -59,38 +57,7 @@ CheckasmPerf checkasm_perf = {
     .unit  = "nsec",
 };
 
-#if CONFIG_LINUX_PERF
-
-static int perf_sysfd;
-
-COLD int checkasm_perf_init(void)
-{
-    struct perf_event_attr attr = {
-        .type           = PERF_TYPE_HARDWARE,
-        .size           = sizeof(struct perf_event_attr),
-        .config         = PERF_COUNT_HW_CPU_CYCLES,
-        .disabled       = 1, // start counting only on demand
-        .exclude_kernel = 1,
-        .exclude_hv     = 1,
-  #if !ARCH_X86
-        .exclude_guest = 1,
-  #endif
-    };
-
-    perf_sysfd = syscall(SYS_perf_event_open, &attr, 0, -1, -1, 0);
-    if (perf_sysfd == -1) {
-        perror("perf_event_open");
-        return 1;
-    }
-    return 0;
-}
-
-int checkasm_get_perf_sysfd(void)
-{
-    return perf_sysfd;
-}
-
-#elif CONFIG_MACOS_KPERF
+#if CONFIG_MACOS_KPERF
 
 static int (*kpc_get_thread_counters)(int, unsigned int, void *);
 
@@ -170,6 +137,11 @@ uint64_t checkasm_kperf_cycles(void)
 
 COLD int checkasm_perf_init(void)
 {
+  #if CONFIG_LINUX_PERF
+    if (!checkasm_perf_init_linux(&checkasm_perf))
+        return 0;
+  #endif
+
     if (!checkasm_save_context(checkasm_context)) {
         uint64_t t;
         (void) t;

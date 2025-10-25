@@ -106,6 +106,10 @@ checkasm_sources = files(
   'utils.c',
 )
 
+if get_option('linux_perf')
+  checkasm_sources += files('perf/linux.c')
+endif
+
 if arch_aarch64
   checkasm_sources += files('arm/checkasm_64.S')
 elif arch_arm
