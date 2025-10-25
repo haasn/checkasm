@@ -111,24 +111,25 @@ CHECKASM_API extern CheckasmPerf checkasm_perf;
   #define CHECKASM_PERF_STOP(t)  t = perf.stop(t)
 #endif
 
-#define CALL4(...)                                                                       \
+#define CHECKASM_PERF_CALL4(...)                                                         \
     do {                                                                                 \
-        talt = 0;                                                                        \
+        int tidx = 0;                                                                    \
         func_new(__VA_ARGS__);                                                           \
-        talt = 1;                                                                        \
+        tidx = 1;                                                                        \
         func_new(__VA_ARGS__);                                                           \
-        talt = 0;                                                                        \
+        tidx = 2;                                                                        \
         func_new(__VA_ARGS__);                                                           \
-        talt = 1;                                                                        \
+        tidx = 3;                                                                        \
         func_new(__VA_ARGS__);                                                           \
+        (void) tidx;                                                                     \
     } while (0)
 
-#define CALL16(...)                                                                      \
+#define CHECKASM_PERF_CALL16(...)                                                        \
     do {                                                                                 \
-        CALL4(__VA_ARGS__);                                                              \
-        CALL4(__VA_ARGS__);                                                              \
-        CALL4(__VA_ARGS__);                                                              \
-        CALL4(__VA_ARGS__);                                                              \
+        CHECKASM_PERF_CALL4(__VA_ARGS__);                                                \
+        CHECKASM_PERF_CALL4(__VA_ARGS__);                                                \
+        CHECKASM_PERF_CALL4(__VA_ARGS__);                                                \
+        CHECKASM_PERF_CALL4(__VA_ARGS__);                                                \
     } while (0)
 
 #define CHECKASM_PERF_BENCH(total_count, time, ...)                                      \
@@ -137,15 +138,13 @@ CHECKASM_API extern CheckasmPerf checkasm_perf;
         (void) perf;                                                                     \
         int      tcount_trim = 0;                                                        \
         uint64_t tsum_trim   = 0;                                                        \
-        for (int ti = 0; ti < total_count; ti++) {                                       \
+        for (int titer = 0; titer < total_count; titer++) {                              \
             uint64_t t;                                                                  \
-            int      talt;                                                               \
-            (void) talt;                                                                 \
             CHECKASM_PERF_START(t);                                                      \
-            CALL16(__VA_ARGS__);                                                         \
-            CALL16(__VA_ARGS__);                                                         \
+            CHECKASM_PERF_CALL16(__VA_ARGS__);                                           \
+            CHECKASM_PERF_CALL16(__VA_ARGS__);                                           \
             CHECKASM_PERF_STOP(t);                                                       \
-            if (t * tcount_trim <= tsum_trim * 4 && (ti > 0 || total_count < 50)) {      \
+            if (t * tcount_trim <= tsum_trim * 4 && (titer > 0 || total_count < 50)) {   \
                 tsum_trim += t;                                                          \
                 tcount_trim++;                                                           \
             }                                                                            \
@@ -173,8 +172,8 @@ CHECKASM_API void checkasm_bench_finish(void);
             checkasm_set_signal_handler_state(0);                                        \
             checkasm_bench_finish();                                                     \
         } else {                                                                         \
-            const int talt = 0;                                                          \
-            (void) talt;                                                                 \
+            const int tidx = 0;                                                          \
+            (void) tidx;                                                                 \
             call_new(__VA_ARGS__);                                                       \
         }                                                                                \
     } while (0)
@@ -182,6 +181,6 @@ CHECKASM_API void checkasm_bench_finish(void);
 /* Alternates between two pointers. Intended to be used within bench_new()
  * calls for functions which modifies their input buffer(s) to ensure that
  * throughput, and not latency, is measured. */
-#define alternate(a, b) (talt ? (b) : (a))
+#define alternate(a, b) ((tidx & 1) ? (b) : (a))
 
 #endif /* CHECKASM_TEST_H */
