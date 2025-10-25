@@ -50,9 +50,7 @@ else
 endif
 
 # Benchmarking / timing subsystem
-if get_option('macos_kperf') and host_machine.system() == 'darwin'
-  perf_header = files('perf/macos_kperf.h')
-elif arch_x86
+if arch_x86
   perf_header = files('perf/x86.h')
 elif arch_aarch64
   if host_machine.system() == 'darwin'
