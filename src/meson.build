@@ -46,11 +46,7 @@ have_pthread_setaffinity_np = cc.has_function('pthread_setaffinity_np',
 
 have_getauxval = false
 have_elf_aux_info = false
-if (host_machine.cpu_family() == 'aarch64' or
-    host_machine.cpu_family().startswith('arm') or
-    host_machine.cpu_family().startswith('loongarch') or
-    host_machine.cpu() == 'ppc64le' or
-    host_machine.cpu_family().startswith('riscv'))
+if (arch_aarch64 or arch_arm or arch_loongarch or arch_ppc64le or arch_riscv)
     have_getauxval = cc.has_function('getauxval', prefix : '#include <sys/auxv.h>', args : test_args)
     have_elf_aux_info = cc.has_function('elf_aux_info', prefix : '#include <sys/auxv.h>', args : test_args)
 endif
