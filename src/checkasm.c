@@ -168,12 +168,27 @@ static inline char separator(CheckasmBenchFormat format)
     }
 }
 
+static void print_json_kde(const int level, const char *key, const char *unit,
+                           const CheckasmVar var)
+{
+    printf("%s\"%s\": { \"unit\": \"%s\", \"mean\": %g, \"stddev\": %g, \"log_mean\": "
+           "%g, \"log_var\": %g },\n",
+           &"          "[10 - level], key, unit, checkasm_mean(var), checkasm_stddev(var),
+           var.lmean, var.lvar);
+}
+
 static void print_bench_header(void)
 {
     const char sep = separator(cfg.bench_format);
     if (sep && cfg.verbose) {
         printf("name%csuffix%c%ss%cstddev%cnanoseconds\n", sep, sep, checkasm_perf.unit,
                sep, sep);
+    } else if (cfg.bench_format == CHECKASM_BENCH_JSON) {
+        printf("{\n"
+               "  \"checkasm\": \"v1.0.0 \",\n");
+        print_json_kde(2, "nopKDE", checkasm_perf.unit, state.nop_cycles);
+        print_json_kde(2, "timingKDE", "nsec/unit", state.perf_scale);
+        printf("  \"functions\": {\n");
     } else if (!sep) {
         checkasm_fprintf(stdout, COLOR_YELLOW, "Benchmark results:\n");
         checkasm_fprintf(stdout, COLOR_GREEN, "  name%*ss",
@@ -188,64 +203,99 @@ static void print_bench_header(void)
 
 static void print_bench_footer(void)
 {
-    if (cfg.verbose) {
+    const double err_rel = relative_error(state.var_sum / state.num_benched);
+    const double err_max = relative_error(state.var_max);
+
+    if (cfg.bench_format == CHECKASM_BENCH_PRETTY && cfg.verbose) {
         printf(" - average timing error: %.3f%% across %d benchmarks "
                "(maximum %.3f%%)\n",
-               100.0 * relative_error(state.var_sum / state.num_benched),
-               state.num_benched, 100.0 * relative_error(state.var_max));
+               100.0 * err_rel, state.num_benched, err_max);
+    } else if (cfg.bench_format == CHECKASM_BENCH_JSON) {
+        printf("  },\n");
+        printf("  \"benchmarks\": %d,\n", state.num_benched);
+        printf("  \"avgErr\": %g,\n", err_rel);
+        printf("  \"maxErr\": %g\n", err_max);
+        printf("}\n");
     }
 }
 
-/* Print benchmark results */
-static void print_bench_funcs(const CheckasmFunc *const f)
+static void print_bench_iter(const CheckasmFunc *const f, int has_more)
 {
-    const char sep = separator(cfg.bench_format);
+    const char sep  = separator(cfg.bench_format);
+    const int  json = cfg.bench_format == CHECKASM_BENCH_JSON;
+    if (!f)
+        return;
 
-    if (f) {
-        print_bench_funcs(f->child[0]);
+    print_bench_iter(f->child[0], 1);
 
-        const CheckasmFuncVersion *ref = &f->versions;
-        const CheckasmFuncVersion *v   = ref;
+    const CheckasmFuncVersion *ref = &f->versions;
+    const CheckasmFuncVersion *v   = ref;
 
-        do {
-            if (v->nb_bench) {
-                const CheckasmVar cycles     = get_cycles(v);
-                const CheckasmVar cycles_ref = get_cycles(ref);
-                const CheckasmVar ratio      = checkasm_var_div(cycles_ref, cycles);
-                const CheckasmVar time       = checkasm_var_mul(cycles, state.perf_scale);
+    int is_first = 1;
+    do {
+        if (v->nb_bench) {
+            const CheckasmVar cycles     = get_cycles(v);
+            const CheckasmVar cycles_ref = get_cycles(ref);
+            const CheckasmVar ratio      = checkasm_var_div(cycles_ref, cycles);
+            const CheckasmVar time       = checkasm_var_mul(cycles, state.perf_scale);
 
-                if (sep) {
-                    printf("%s%c%s%c%.4f%c%.5f%c%.4f\n", f->name, sep, cpu_suffix(v->cpu),
-                           sep, checkasm_mean(cycles), sep, checkasm_stddev(cycles), sep,
-                           checkasm_mean(time));
+            if (json) {
+                if (is_first) {
+                    printf("    \"%s\": {\n", f->name);
+                    printf("      \"versions\": {\n");
+                    is_first = 0;
                 } else {
-                    const int pad = 12 + state.max_function_name_length
-                                  - printf("  %s_%s:", f->name, cpu_suffix(v->cpu));
-                    printf("%*.1f", imax(pad, 0), checkasm_mean(cycles));
-                    if (cfg.verbose) {
-                        printf(" +/- %-7.1f %11.1f ns +/- %-6.1f",
-                               checkasm_stddev(cycles), checkasm_mean(time),
-                               checkasm_stddev(time));
-                    }
-                    if (v != ref && ref->nb_bench) {
-                        const double ratio_lo = checkasm_sample(ratio, -1.0);
-                        const double ratio_hi = checkasm_sample(ratio, 1.0);
-                        const int    color    = ratio_lo >= 10.0 ? COLOR_GREEN
-                                              : ratio_hi >= 1.1 && ratio_lo >= 1.0
-                                                  ? COLOR_DEFAULT
-                                              : ratio_hi >= 1.0 ? COLOR_YELLOW
-                                                                : COLOR_RED;
-                        printf(" (");
-                        checkasm_fprintf(stdout, color, "%5.2fx", checkasm_mean(ratio));
-                        printf(")");
-                    }
-                    printf("\n");
+                    printf("        },\n");
                 }
-            }
-        } while ((v = v->next));
 
-        print_bench_funcs(f->child[1]);
+                printf("        \"%s\": {\n", cpu_suffix(v->cpu));
+                print_json_kde(10, "rawKDE", checkasm_perf.unit, cycles);
+                print_json_kde(10, "timeKDE", "nsec", time);
+                if (v != ref && ref->nb_bench) {
+                    print_json_kde(10, "ratioKDE", "ref/func",
+                                   checkasm_var_div(get_cycles(ref), cycles));
+                }
+                printf("          \"benchmarks\": %d\n", v->nb_bench);
+            } else if (sep) {
+                printf("%s%c%s%c%.4f%c%.5f%c%.4f\n", f->name, sep, cpu_suffix(v->cpu),
+                       sep, checkasm_mean(cycles), sep, checkasm_stddev(cycles), sep,
+                       checkasm_mean(time));
+            } else {
+                const int pad = 12 + state.max_function_name_length
+                              - printf("  %s_%s:", f->name, cpu_suffix(v->cpu));
+                printf("%*.1f", imax(pad, 0), checkasm_mean(cycles));
+                if (cfg.verbose) {
+                    printf(" +/- %-7.1f %11.1f ns +/- %-6.1f", checkasm_stddev(cycles),
+                           checkasm_mean(time), checkasm_stddev(time));
+                }
+                if (v != ref && ref->nb_bench) {
+                    const double ratio_lo = checkasm_sample(ratio, -1.0);
+                    const double ratio_hi = checkasm_sample(ratio, 1.0);
+                    const int    color    = ratio_lo >= 10.0 ? COLOR_GREEN
+                                          : ratio_hi >= 1.1 && ratio_lo >= 1.0 ? COLOR_DEFAULT
+                                          : ratio_hi >= 1.0 ? COLOR_YELLOW
+                                                            : COLOR_RED;
+                    printf(" (");
+                    checkasm_fprintf(stdout, color, "%5.2fx", checkasm_mean(ratio));
+                    printf(")");
+                }
+                printf("\n");
+            }
+        }
+    } while ((v = v->next));
+
+    if (json && !is_first) {
+        printf("        }\n");
+        printf("      }\n");
+        printf("    }%s\n", (has_more || f->child[1]) ? "," : "");
     }
+
+    print_bench_iter(f->child[1], has_more);
+}
+
+static void print_bench_funcs()
+{
+    print_bench_iter(state.funcs, 0);
 }
 
 #define is_digit(x) ((x) >= '0' && (x) <= '9')
@@ -621,7 +671,7 @@ int checkasm_run(const CheckasmConfig *config)
 
         if (state.num_benched) {
             print_bench_header();
-            print_bench_funcs(state.funcs);
+            print_bench_funcs();
             print_bench_footer();
         }
     }
@@ -796,7 +846,7 @@ static void print_usage(const char *const progname)
             "Options:\n"
             "    --affinity=<cpu>           Run the process on CPU <cpu>\n"
             "    --bench -b                 Benchmark the tested functions\n"
-            "    --csv, --tsv               Output results in rows of comma or tab "
+            "    --csv, --tsv, --json       Choose output format for benchmarks\n"
             "separated values.\n"
             "    --function=<pattern> -f    Test only the functions matching "
             "<pattern>\n"
@@ -846,6 +896,8 @@ int checkasm_main(CheckasmConfig *config, int argc, const char *argv[])
             config->bench_format = CHECKASM_BENCH_CSV;
         } else if (!strcmp(argv[1], "--tsv")) {
             config->bench_format = CHECKASM_BENCH_TSV;
+        } else if (!strcmp(argv[1], "--json")) {
+            config->bench_format = CHECKASM_BENCH_JSON;
         } else if (!strncmp(argv[1], "--duration=", 11)) {
             const char *const s = argv[1] + 11;
             if (!parseu(&config->bench_usec, s, 10)) {

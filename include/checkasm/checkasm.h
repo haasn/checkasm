@@ -50,6 +50,7 @@ typedef enum CheckasmBenchFormat {
     CHECKASM_BENCH_PRETTY, // Pretty-printed (colored) text output
     CHECKASM_BENCH_CSV,    // Comma-separated values, with optional header
     CHECKASM_BENCH_TSV,    // Tab-separated values, with optional header
+    CHECKASM_BENCH_JSON,
 } CheckasmBenchFormat;
 
 typedef struct CheckasmConfig {
