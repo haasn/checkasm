@@ -6,8 +6,6 @@
     <div class="no-print">
       <select id="sort-overview" class="select">
         <option value="report-index">index</option>
-        <option value="lex">lexical</option>
-        <option value="colex">colexical</option>
         <option value="duration">time ascending</option>
         <option value="rev-duration">time descending</option>
       </select>
@@ -31,16 +29,6 @@
         <li><em>the x-axis</em> toggles between linear and logarithmic scale</li>
         <li><em>the chevron</em> in the top-right toggles the the legend</li>
         <li><em>a group name in the legend</em> shows/hides that group</li>
-      </ul>
-    </p>
-
-    <p>
-      The overview chart supports the following sort orders:
-      <ul>
-        <li><em>index</em> order is the order as the benchmarks are defined in checkasm</li>
-        <li><em>lexical</em> order sorts <a href="https://en.wikipedia.org/wiki/Lexicographic_order#Motivation_and_definition">groups left-to-right</a>, alphabetically</li>
-        <li><em>colexical</em> order sorts <a href="https://en.wikipedia.org/wiki/Lexicographic_order#Colexicographic_order">groups right-to-left</a>, alphabetically</li>
-        <li><em>time ascending/descending</em> order sorts by the estimated mean execution time</li>
       </ul>
     </p>
 
@@ -92,7 +80,8 @@
       <h1 class="colophon-header">colophon</h1>
       <p>
         This report was created using the <a href="https://code.videolan.org/videolan/checkasm">checkasm</a>
-        assembly testing and performance analysis tool.
+        assembly testing and performance analysis tool. The data analysis and report template was copied from
+        the <a href=" http://hackage.haskell.org/package/criterion">Haskell criterion</a> library.
       </p>
     </div>
   </footer>

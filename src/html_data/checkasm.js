@@ -127,28 +127,6 @@
     return a.reportNumber - b.reportNumber;
   }
 
-  // compares 2 arrays lexicographically
-  function lex(aParts, bParts) {
-    for(var i = 0; i < aParts.length && i < bParts.length; i++) {
-      var x = aParts[i];
-      var y = bParts[i];
-      if (x < y) {
-        return -1;
-      }
-      if (y < x) {
-        return 1;
-      }
-    }
-    return aParts.length - bParts.length;
-  }
-  function lexicalSort(a, b) {
-    return lex(a.groups, b.groups);
-  }
-
-  function reverseLexicalSort(a, b) {
-    return lex(a.groups.slice().reverse(), b.groups.slice().reverse());
-  }
-
   function durationSort(a, b) {
     return a.timeKDE.estPoint - b.timeKDE.estPoint;
   }
@@ -203,8 +181,6 @@
   function overviewData(state, reports) {
     var order = state.order;
     var sorter = order === 'report-index' ? reportSort
-               : order === 'lex'          ? lexicalSort
-               : order === 'colex'        ? reverseLexicalSort
                : order === 'duration'     ? durationSort
                : order === 'rev-duration' ? reverseDurationSort
                : reportSort;
