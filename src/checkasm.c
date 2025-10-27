@@ -41,6 +41,7 @@
 #include "checkasm/checkasm.h"
 #include "checkasm/test.h"
 #include "cpu.h"
+#include "html_data.h"
 #include "internal.h"
 #include "stats.h"
 
@@ -171,25 +172,54 @@ static inline char separator(CheckasmBenchFormat format)
 static void print_json_kde(const int level, const char *key, const char *unit,
                            const CheckasmVar var)
 {
-    printf("%s\"%s\": { \"unit\": \"%s\", \"mean\": %g, \"stddev\": %g, \"log_mean\": "
-           "%g, \"log_var\": %g },\n",
-           &"          "[10 - level], key, unit, checkasm_mean(var), checkasm_stddev(var),
+    printf("%s\"%s\": { "
+           "\"unit\": \"%s\", "
+           "\"estPoint\": %g, "
+           "\"estLower\": %g, "
+           "\"estUpper\": %g, "
+           "\"estStdDev\": %g, "
+           "\"logMean\": %g, "
+           "\"logVar\": %g },\n",
+           &"          "[10 - level], key, unit, checkasm_mean(var),
+           checkasm_sample(var, -1.0), checkasm_sample(var, 1.0), checkasm_stddev(var),
            var.lmean, var.lvar);
 }
 
 static void print_bench_header(void)
 {
-    const char sep = separator(cfg.bench_format);
-    if (sep && cfg.verbose) {
-        printf("name%csuffix%c%ss%cstddev%cnanoseconds\n", sep, sep, checkasm_perf.unit,
-               sep, sep);
-    } else if (cfg.bench_format == CHECKASM_BENCH_JSON) {
+    switch (cfg.bench_format) {
+    case CHECKASM_BENCH_CSV:
+    case CHECKASM_BENCH_TSV:
+        if (cfg.verbose) {
+            const char sep = separator(cfg.bench_format);
+            printf("name%csuffix%c%ss%cstddev%cnanoseconds\n", sep, sep,
+                   checkasm_perf.unit, sep, sep);
+        }
+        break;
+    case CHECKASM_BENCH_HTML:
+        printf("<!doctype html>\n"
+               "<html>\n"
+               "<head>\n"
+               "  <meta charset=\"utf-8\"/>\n"
+               "  <title>checkasm report</title>\n"
+               "  <script type=\"module\">\n"
+               "    %s"
+               "    %s"
+               "  </script>\n"
+               "  <style>\n"
+               "    %s"
+               "  </style>\n"
+               "  <script type=\"application/json\" id=\"report-data\">",
+               checkasm_chart_js, checkasm_js, checkasm_css);
+        /* fall through */
+    case CHECKASM_BENCH_JSON:
         printf("{\n"
                "  \"checkasm\": \"v1.0.0 \",\n");
         print_json_kde(2, "nopKDE", checkasm_perf.unit, state.nop_cycles);
         print_json_kde(2, "timingKDE", "nsec/unit", state.perf_scale);
         printf("  \"functions\": {\n");
-    } else if (!sep) {
+        break;
+    case CHECKASM_BENCH_PRETTY:
         checkasm_fprintf(stdout, COLOR_YELLOW, "Benchmark results:\n");
         checkasm_fprintf(stdout, COLOR_GREEN, "  name%*ss",
                          5 + state.max_function_name_length, checkasm_perf.unit);
@@ -198,6 +228,7 @@ static void print_bench_header(void)
                              "time (nanoseconds)");
         }
         checkasm_fprintf(stdout, COLOR_GREEN, " (vs ref)\n");
+        break;
     }
 }
 
@@ -206,23 +237,41 @@ static void print_bench_footer(void)
     const double err_rel = relative_error(state.var_sum / state.num_benched);
     const double err_max = relative_error(state.var_max);
 
-    if (cfg.bench_format == CHECKASM_BENCH_PRETTY && cfg.verbose) {
-        printf(" - average timing error: %.3f%% across %d benchmarks "
-               "(maximum %.3f%%)\n",
-               100.0 * err_rel, state.num_benched, err_max);
-    } else if (cfg.bench_format == CHECKASM_BENCH_JSON) {
+    switch (cfg.bench_format) {
+    case CHECKASM_BENCH_CSV:
+    case CHECKASM_BENCH_TSV: break;
+    case CHECKASM_BENCH_PRETTY:
+        if (cfg.verbose) {
+            printf(" - average timing error: %.3f%% across %d benchmarks "
+                   "(maximum %.3f%%)\n",
+                   100.0 * err_rel, state.num_benched, err_max);
+        }
+        break;
+    case CHECKASM_BENCH_HTML:
+    case CHECKASM_BENCH_JSON:
         printf("  },\n");
         printf("  \"benchmarks\": %d,\n", state.num_benched);
         printf("  \"avgErr\": %g,\n", err_rel);
         printf("  \"maxErr\": %g\n", err_max);
         printf("}\n");
+        if (cfg.bench_format == CHECKASM_BENCH_HTML) {
+            printf("  </script>\n"
+                   "  <meta name=\"viewport\" content=\"width=device-width, "
+                   "initial-scale=1\">\n"
+                   "</head>\n"
+                   "%s"
+                   "</html>\n",
+                   checkasm_html_body);
+        }
+        break;
     }
 }
 
 static void print_bench_iter(const CheckasmFunc *const f, int has_more)
 {
     const char sep  = separator(cfg.bench_format);
-    const int  json = cfg.bench_format == CHECKASM_BENCH_JSON;
+    const int  json = cfg.bench_format == CHECKASM_BENCH_JSON
+                  || cfg.bench_format == CHECKASM_BENCH_HTML;
     if (!f)
         return;
 
@@ -846,7 +895,8 @@ static void print_usage(const char *const progname)
             "Options:\n"
             "    --affinity=<cpu>           Run the process on CPU <cpu>\n"
             "    --bench -b                 Benchmark the tested functions\n"
-            "    --csv, --tsv, --json       Choose output format for benchmarks\n"
+            "    --csv, --tsv, --json,      Choose output format for benchmarks\n"
+            "    --html\n"
             "separated values.\n"
             "    --function=<pattern> -f    Test only the functions matching "
             "<pattern>\n"
@@ -898,6 +948,8 @@ int checkasm_main(CheckasmConfig *config, int argc, const char *argv[])
             config->bench_format = CHECKASM_BENCH_TSV;
         } else if (!strcmp(argv[1], "--json")) {
             config->bench_format = CHECKASM_BENCH_JSON;
+        } else if (!strcmp(argv[1], "--html")) {
+            config->bench_format = CHECKASM_BENCH_HTML;
         } else if (!strncmp(argv[1], "--duration=", 11)) {
             const char *const s = argv[1] + 11;
             if (!parseu(&config->bench_usec, s, 10)) {

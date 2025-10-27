@@ -51,6 +51,7 @@ typedef enum CheckasmBenchFormat {
     CHECKASM_BENCH_CSV,    // Comma-separated values, with optional header
     CHECKASM_BENCH_TSV,    // Tab-separated values, with optional header
     CHECKASM_BENCH_JSON,
+    CHECKASM_BENCH_HTML,
 } CheckasmBenchFormat;
 
 typedef struct CheckasmConfig {
