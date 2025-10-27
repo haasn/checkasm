@@ -46,6 +46,12 @@ typedef struct CheckasmTest {
     void (*func)(void);
 } CheckasmTest;
 
+typedef enum CheckasmBenchFormat {
+    CHECKASM_BENCH_PRETTY, // Pretty-printed (colored) text output
+    CHECKASM_BENCH_CSV,    // Comma-separated values, with optional header
+    CHECKASM_BENCH_TSV,    // Tab-separated values, with optional header
+} CheckasmBenchFormat;
+
 typedef struct CheckasmConfig {
     /* List of CPU flags understood by the implementation. These will be tested
      * in incremental order, each test run inheriting any active flags from
@@ -75,13 +81,13 @@ typedef struct CheckasmConfig {
     /* If nonzero, enable verbose printing of failing test data. */
     int verbose;
 
-    /* If set, outputs benchmark numbers separated by this character */
-    char separator;
-
     /* If nonzero, enable benchmarking, with the specified target time (µs)
      * per function tested, defaulting to 1000 µs if left unset. */
     int      bench;
     unsigned bench_usec;
+
+    /* Output format for benchmark info */
+    CheckasmBenchFormat bench_format;
 
     /* If nonzero, use the specified seed for random number generation. */
     unsigned seed;
