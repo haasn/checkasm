@@ -52,7 +52,7 @@
 #endif
 
 #ifndef __has_attribute
-#define __has_attribute(x) 0
+  #define __has_attribute(x) 0
 #endif
 
 #ifdef _MSC_VER
