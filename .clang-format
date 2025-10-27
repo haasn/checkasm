@@ -14,6 +14,7 @@ AlignOperands: AlignAfterOperator
 AlignEscapedNewlines: Right
 AlignAfterOpenBracket: Align
 AlignArrayOfStructures: Left
+AlignTrailingComments: true
 ---
 Language: C
 PointerAlignment: Right
