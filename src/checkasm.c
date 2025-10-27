@@ -153,6 +153,12 @@ static CheckasmVar get_cycles(const CheckasmFuncVersion *const v)
                        : checkasm_var_const(0.0);
 }
 
+/* Returns the relative standard deviation corresponding to the log variance */
+static double relative_error(double lvar)
+{
+    return sqrt(exp(lvar) - 1.0);
+}
+
 static inline char separator(CheckasmBenchFormat format)
 {
     switch (format) {
@@ -162,13 +168,41 @@ static inline char separator(CheckasmBenchFormat format)
     }
 }
 
+static void print_bench_header(void)
+{
+    const char sep = separator(cfg.bench_format);
+    if (sep && cfg.verbose) {
+        printf("name%csuffix%c%ss%cstddev%cnanoseconds\n", sep, sep, checkasm_perf.unit,
+               sep, sep);
+    } else if (!sep) {
+        checkasm_fprintf(stdout, COLOR_YELLOW, "Benchmark results:\n");
+        checkasm_fprintf(stdout, COLOR_GREEN, "  name%*ss",
+                         5 + state.max_function_name_length, checkasm_perf.unit);
+        if (cfg.verbose) {
+            checkasm_fprintf(stdout, COLOR_GREEN, " +/- stddev %*s", 26,
+                             "time (nanoseconds)");
+        }
+        checkasm_fprintf(stdout, COLOR_GREEN, " (vs ref)\n");
+    }
+}
+
+static void print_bench_footer(void)
+{
+    if (cfg.verbose && state.num_benched) {
+        printf(" - average timing error: %.3f%% across %d benchmarks "
+               "(maximum %.3f%%)\n",
+               100.0 * relative_error(state.var_sum / state.num_benched),
+               state.num_benched, 100.0 * relative_error(state.var_max));
+    }
+}
+
 /* Print benchmark results */
-static void print_benchs(const CheckasmFunc *const f)
+static void print_bench_funcs(const CheckasmFunc *const f)
 {
     const char sep = separator(cfg.bench_format);
 
     if (f) {
-        print_benchs(f->child[0]);
+        print_bench_funcs(f->child[0]);
 
         const CheckasmFuncVersion *ref = &f->versions;
         const CheckasmFuncVersion *v   = ref;
@@ -210,7 +244,7 @@ static void print_benchs(const CheckasmFunc *const f)
             }
         } while ((v = v->next));
 
-        print_benchs(f->child[1]);
+        print_bench_funcs(f->child[1]);
     }
 }
 
@@ -338,12 +372,6 @@ void checkasm_bench_finish(void)
 
     checkasm_stats_reset(&state.stats);
     state.total_cycles = 0;
-}
-
-/* Returns the relative standard deviation corresponding to the log variance */
-static double relative_error(double lvar)
-{
-    return sqrt(exp(lvar) - 1.0);
 }
 
 /* Compares a string with a wildcard pattern. */
@@ -592,28 +620,9 @@ int checkasm_run(const CheckasmConfig *config)
             fprintf(stderr, "checkasm: no tests to perform%s\n", skipped);
 
         if (cfg.bench && state.max_function_name_length) {
-            const char sep = separator(cfg.bench_format);
-            if (sep && cfg.verbose) {
-                printf("name%csuffix%c%ss%cstddev%cnanoseconds\n", sep, sep,
-                       checkasm_perf.unit, sep, sep);
-            } else if (!sep) {
-                checkasm_fprintf(stdout, COLOR_YELLOW, "Benchmark results:\n");
-                checkasm_fprintf(stdout, COLOR_GREEN, "  name%*ss",
-                                 5 + state.max_function_name_length, checkasm_perf.unit);
-                if (cfg.verbose) {
-                    checkasm_fprintf(stdout, COLOR_GREEN, " +/- stddev %*s", 26,
-                                     "time (nanoseconds)");
-                }
-                checkasm_fprintf(stdout, COLOR_GREEN, " (vs ref)\n");
-            }
-            print_benchs(state.funcs);
-
-            if (cfg.verbose && state.num_benched) {
-                printf(" - average timing error: %.3f%% across %d benchmarks "
-                       "(maximum %.3f%%)\n",
-                       100.0 * relative_error(state.var_sum / state.num_benched),
-                       state.num_benched, 100.0 * relative_error(state.var_max));
-            }
+            print_bench_header();
+            print_bench_funcs(state.funcs);
+            print_bench_footer();
         }
     }
 
