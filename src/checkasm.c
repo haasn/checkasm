@@ -188,7 +188,7 @@ static void print_bench_header(void)
 
 static void print_bench_footer(void)
 {
-    if (cfg.verbose && state.num_benched) {
+    if (cfg.verbose) {
         printf(" - average timing error: %.3f%% across %d benchmarks "
                "(maximum %.3f%%)\n",
                100.0 * relative_error(state.var_sum / state.num_benched),
@@ -619,7 +619,7 @@ int checkasm_run(const CheckasmConfig *config)
         else
             fprintf(stderr, "checkasm: no tests to perform%s\n", skipped);
 
-        if (cfg.bench && state.max_function_name_length) {
+        if (state.num_benched) {
             print_bench_header();
             print_bench_funcs(state.funcs);
             print_bench_footer();
