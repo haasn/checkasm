@@ -104,15 +104,6 @@ static double sample_mean(const CheckasmSample s)
     return (double) s.sum / s.count;
 }
 
-/* Compare by mean value */
-static int cmp_samples(const void *a, const void *b)
-{
-    const CheckasmSample sa = *(const CheckasmSample *) a;
-    const CheckasmSample sb = *(const CheckasmSample *) b;
-    const uint64_t       xa = sa.sum * sb.count, xb = sb.sum * sa.count;
-    return (xa < xb) ? -1 : (xa > xb);
-}
-
 int checkasm_stats_count_total(const CheckasmStats *const stats)
 {
     int total = 0;
@@ -125,8 +116,6 @@ CheckasmVar checkasm_stats_estimate(CheckasmStats *const stats)
 {
     if (!stats->nb_samples)
         return checkasm_var_const(0.0);
-
-    qsort(stats->samples, stats->nb_samples, sizeof(CheckasmSample), cmp_samples);
 
     /* Compute mean and variance */
     double sum = 0.0, sum2 = 0.0;
