@@ -94,7 +94,7 @@ static copy_func *get_copy_x86(void)
 }
 
 #if ARCH_X86_64
-  #if _WIN32
+  #ifdef _WIN32
     #define NUM_SAFE 7
   #else
     #define NUM_SAFE 9
