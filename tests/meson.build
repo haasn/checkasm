@@ -23,6 +23,14 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+optional_arguments = []
+if cc.get_argument_syntax() != 'msvc'
+    optional_arguments += [
+      '-Wno-unused-parameter',
+    ]
+endif
+extra_arguments = cc.get_supported_arguments(optional_arguments)
+
 checkasm_test_sources = files(
   'checkasm.c',
   'generic.c'
@@ -45,7 +53,7 @@ endif
 checkasm_test = executable('checkasm',
   checkasm_test_sources,
   checkasm_config,
-  c_args: ['-Wno-unused-parameter', '-Wno-unused-local-typedef'],
+  c_args: extra_arguments,
   objects: checkasm_library.extract_all_objects(recursive: true),
   # Also link against checkasm dependencies to make extracted objects happy
   dependencies: checkasm_dependencies + checkasm_dep,
