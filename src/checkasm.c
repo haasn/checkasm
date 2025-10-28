@@ -155,6 +155,12 @@ static CheckasmVar get_cycles(const CheckasmFuncVersion *const v)
                        : checkasm_var_const(0.0);
 }
 
+/* Returns the relative standard deviation corresponding to the log variance */
+static double relative_error(double lvar)
+{
+    return sqrt(exp(lvar) - 1.0);
+}
+
 static inline char separator(CheckasmFormat format)
 {
     switch (format) {
@@ -164,60 +170,105 @@ static inline char separator(CheckasmFormat format)
     }
 }
 
-/* Print benchmark results */
-static void print_benchs(const CheckasmFunc *const f)
+static void print_bench_header(void)
+{
+    switch (cfg.format) {
+    case CHECKASM_FORMAT_TSV:
+    case CHECKASM_FORMAT_CSV:
+        if (cfg.verbose) {
+            const char sep = separator(cfg.format);
+            printf("name%csuffix%c%ss%cstddev%cnanoseconds\n", sep, sep,
+                   checkasm_perf.unit, sep, sep);
+        }
+        break;
+    case CHECKASM_FORMAT_PRETTY:
+        checkasm_fprintf(stdout, COLOR_YELLOW, "Benchmark results:\n");
+        checkasm_fprintf(stdout, COLOR_GREEN, "  name%*ss",
+                         5 + state.max_function_name_length, checkasm_perf.unit);
+        if (cfg.verbose) {
+            checkasm_fprintf(stdout, COLOR_GREEN, " +/- stddev %*s", 26,
+                             "time (nanoseconds)");
+        }
+        checkasm_fprintf(stdout, COLOR_GREEN, " (vs ref)\n");
+        break;
+    }
+}
+
+static void print_bench_footer(void)
+{
+    switch (cfg.format) {
+    case CHECKASM_FORMAT_TSV:
+    case CHECKASM_FORMAT_CSV: break;
+    case CHECKASM_FORMAT_PRETTY:
+        if (cfg.verbose) {
+            printf(" - average timing error: %.3f%% across %d benchmarks "
+                   "(maximum %.3f%%)\n",
+                   100.0 * relative_error(state.var_sum / state.num_benched),
+                   state.num_benched, 100.0 * relative_error(state.var_max));
+        }
+        break;
+    }
+}
+
+static void print_bench_iter(const CheckasmFunc *const f)
 {
     const char sep = separator(cfg.format);
+    if (!f)
+        return;
 
-    if (f) {
-        print_benchs(f->child[0]);
+    print_bench_iter(f->child[0]);
 
-        const CheckasmFuncVersion *ref = &f->versions;
-        const CheckasmFuncVersion *v   = ref;
+    const CheckasmFuncVersion *ref = &f->versions;
+    const CheckasmFuncVersion *v   = ref;
 
-        do {
-            if (v->nb_bench) {
-                const CheckasmVar cycles     = get_cycles(v);
-                const CheckasmVar cycles_ref = get_cycles(ref);
-                const CheckasmVar ratio      = checkasm_var_div(cycles_ref, cycles);
-                const CheckasmVar time       = checkasm_var_mul(cycles, state.perf_scale);
+    do {
+        if (v->nb_bench) {
+            const CheckasmVar cycles     = get_cycles(v);
+            const CheckasmVar cycles_ref = get_cycles(ref);
+            const CheckasmVar ratio      = checkasm_var_div(cycles_ref, cycles);
+            const CheckasmVar time       = checkasm_var_mul(cycles, state.perf_scale);
 
-                switch (cfg.format) {
-                case CHECKASM_FORMAT_TSV:
-                case CHECKASM_FORMAT_CSV:
-                    printf("%s%c%s%c%.4f%c%.5f%c%.4f\n", f->name, sep, cpu_suffix(v->cpu),
-                           sep, checkasm_mean(cycles), sep, checkasm_stddev(cycles), sep,
-                           checkasm_mean(time));
-                    break;
-                case CHECKASM_FORMAT_PRETTY:;
-                    const int pad = 12 + state.max_function_name_length
-                                  - printf("  %s_%s:", f->name, cpu_suffix(v->cpu));
-                    printf("%*.1f", imax(pad, 0), checkasm_mean(cycles));
-                    if (cfg.verbose) {
-                        printf(" +/- %-7.1f %11.1f ns +/- %-6.1f",
-                               checkasm_stddev(cycles), checkasm_mean(time),
-                               checkasm_stddev(time));
-                    }
-                    if (v != ref && ref->nb_bench) {
-                        const double ratio_lo = checkasm_sample(ratio, -1.0);
-                        const double ratio_hi = checkasm_sample(ratio, 1.0);
-                        const int    color    = ratio_lo >= 10.0 ? COLOR_GREEN
-                                              : ratio_hi >= 1.1 && ratio_lo >= 1.0
-                                                  ? COLOR_DEFAULT
-                                              : ratio_hi >= 1.0 ? COLOR_YELLOW
-                                                                : COLOR_RED;
-                        printf(" (");
-                        checkasm_fprintf(stdout, color, "%5.2fx", checkasm_mean(ratio));
-                        printf(")");
-                    }
-                    printf("\n");
-                    break;
+            switch (cfg.format) {
+            case CHECKASM_FORMAT_TSV:
+            case CHECKASM_FORMAT_CSV:
+                printf("%s%c%s%c%.4f%c%.5f%c%.4f\n", f->name, sep, cpu_suffix(v->cpu),
+                       sep, checkasm_mean(cycles), sep, checkasm_stddev(cycles), sep,
+                       checkasm_mean(time));
+                break;
+            case CHECKASM_FORMAT_PRETTY:;
+                const int pad = 12 + state.max_function_name_length
+                              - printf("  %s_%s:", f->name, cpu_suffix(v->cpu));
+                printf("%*.1f", imax(pad, 0), checkasm_mean(cycles));
+                if (cfg.verbose) {
+                    printf(" +/- %-7.1f %11.1f ns +/- %-6.1f", checkasm_stddev(cycles),
+                           checkasm_mean(time), checkasm_stddev(time));
                 }
+                if (v != ref && ref->nb_bench) {
+                    const double ratio_lo = checkasm_sample(ratio, -1.0);
+                    const double ratio_hi = checkasm_sample(ratio, 1.0);
+                    const int    color    = ratio_lo >= 10.0 ? COLOR_GREEN
+                                          : ratio_hi >= 1.1 && ratio_lo >= 1.0 ? COLOR_DEFAULT
+                                          : ratio_hi >= 1.0 ? COLOR_YELLOW
+                                                            : COLOR_RED;
+                    printf(" (");
+                    checkasm_fprintf(stdout, color, "%5.2fx", checkasm_mean(ratio));
+                    printf(")");
+                }
+                printf("\n");
+                break;
             }
-        } while ((v = v->next));
+        }
+    } while ((v = v->next));
 
-        print_benchs(f->child[1]);
-    }
+    print_bench_iter(f->child[1]);
+}
+
+/* Print benchmark results */
+static void print_benchmarks()
+{
+    print_bench_header();
+    print_bench_iter(state.funcs);
+    print_bench_footer();
 }
 
 #define is_digit(x) ((x) >= '0' && (x) <= '9')
@@ -340,12 +391,6 @@ void checkasm_bench_finish(void)
 
     checkasm_stats_reset(&state.stats);
     state.total_cycles = 0;
-}
-
-/* Returns the relative standard deviation corresponding to the log variance */
-static double relative_error(double lvar)
-{
-    return sqrt(exp(lvar) - 1.0);
 }
 
 /* Compares a string with a wildcard pattern. */
@@ -593,43 +638,8 @@ int checkasm_run(const CheckasmConfig *config)
         else
             fprintf(stderr, "checkasm: no tests to perform%s\n", skipped);
 
-        if (state.num_benched) {
-            switch (cfg.format) {
-            case CHECKASM_FORMAT_TSV:
-            case CHECKASM_FORMAT_CSV:
-                if (cfg.verbose) {
-                    const char sep = separator(cfg.format);
-                    printf("name%csuffix%c%ss%cstddev%cnanoseconds\n", sep, sep,
-                           checkasm_perf.unit, sep, sep);
-                }
-                break;
-            case CHECKASM_FORMAT_PRETTY:
-                checkasm_fprintf(stdout, COLOR_YELLOW, "Benchmark results:\n");
-                checkasm_fprintf(stdout, COLOR_GREEN, "  name%*ss",
-                                 5 + state.max_function_name_length, checkasm_perf.unit);
-                if (cfg.verbose) {
-                    checkasm_fprintf(stdout, COLOR_GREEN, " +/- stddev %*s", 26,
-                                     "time (nanoseconds)");
-                }
-                checkasm_fprintf(stdout, COLOR_GREEN, " (vs ref)\n");
-                break;
-            }
-
-            print_benchs(state.funcs);
-
-            switch (cfg.format) {
-            case CHECKASM_FORMAT_TSV:
-            case CHECKASM_FORMAT_CSV: break;
-            case CHECKASM_FORMAT_PRETTY:
-                if (cfg.verbose) {
-                    printf(" - average timing error: %.3f%% across %d benchmarks "
-                           "(maximum %.3f%%)\n",
-                           100.0 * relative_error(state.var_sum / state.num_benched),
-                           state.num_benched, 100.0 * relative_error(state.var_max));
-                }
-                break;
-            }
-        }
+        if (state.num_benched)
+            print_benchmarks();
     }
 
     destroy_func_tree(state.funcs);
