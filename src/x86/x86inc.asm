@@ -818,6 +818,11 @@ BRANCH_INSTR jz, je, jnz, jne, jl, jle, jnl, jnle, jg, jge, jng, jnge, ja, jae, 
     cglobal_internal 1, %1 %+ SUFFIX, %2
 %endmacro
 %macro cvisible 1-2+ "" ; name, [PROLOGUE args]
+%if WIN32
+%ifdef BUILDING_DLL
+    EXPORT mangle(public_prefix %+ _ %+ %1)
+%endif
+%endif
     cglobal_internal 0, %1 %+ SUFFIX, %2
 %endmacro
 %macro cglobal_internal 2-3+
