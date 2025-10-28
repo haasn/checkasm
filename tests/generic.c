@@ -46,8 +46,8 @@ void checkasm_test_copy(copy_func fun, const char *name)
 
     declare_func(void, uint8_t *dest, const uint8_t *src, size_t n);
 
-    for (size_t w = 1; w <= WIDTH; w *= 2) {
-        if (check_func(fun, "%s_%zu", name, w)) {
+    for (int w = 1; w <= WIDTH; w *= 2) {
+        if (check_func(fun, "%s_%d", name, w)) {
             CLEAR_PIXEL_RECT(c_dst);
             CLEAR_PIXEL_RECT(a_dst);
 
