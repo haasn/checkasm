@@ -591,7 +591,7 @@ int checkasm_run(const CheckasmConfig *config)
         else
             fprintf(stderr, "checkasm: no tests to perform%s\n", skipped);
 
-        if (cfg.bench && state.max_function_name_length) {
+        if (state.num_benched) {
             switch (cfg.bench_format) {
             case CHECKASM_BENCH_TSV:
             case CHECKASM_BENCH_CSV:
@@ -619,7 +619,7 @@ int checkasm_run(const CheckasmConfig *config)
             case CHECKASM_BENCH_TSV:
             case CHECKASM_BENCH_CSV: break;
             case CHECKASM_BENCH_PRETTY:
-                if (cfg.verbose && state.num_benched) {
+                if (cfg.verbose) {
                     printf(" - average timing error: %.3f%% across %d benchmarks "
                            "(maximum %.3f%%)\n",
                            100.0 * relative_error(state.var_sum / state.num_benched),
