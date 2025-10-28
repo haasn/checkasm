@@ -92,10 +92,8 @@ COLD int checkasm_perf_init(void)
 }
 
 /* Measure the overhead of the timing code */
-COLD CheckasmVar checkasm_measure_nop_cycles(void)
+COLD CheckasmVar checkasm_measure_nop_cycles(uint64_t target_cycles)
 {
-    const uint64_t target_nsec = 10000000; /* 10 ms */
-
     CheckasmStats stats;
     checkasm_stats_reset(&stats);
 
@@ -105,18 +103,16 @@ COLD CheckasmVar checkasm_measure_nop_cycles(void)
     const CheckasmPerf perf = checkasm_perf;
     (void) perf;
 
-    for (uint64_t total_nsec = 0; total_nsec < target_nsec;) {
+    for (uint64_t total_cycles = 0; total_cycles < target_cycles;) {
         int      count  = stats.next_count;
         uint64_t cycles = 0;
 
         /* Measure the overhead of the timing code (in cycles) */
-        uint64_t nsec = checkasm_gettime_nsec();
         CHECKASM_PERF_BENCH(count, cycles, alternate(ptr0, ptr1));
-        nsec = checkasm_gettime_nsec() - nsec;
-        checkasm_stats_add(&stats, (CheckasmSample) { cycles, count });
+        total_cycles += cycles;
 
-        total_nsec += nsec;
-        checkasm_stats_count_grow(&stats, nsec, target_nsec);
+        checkasm_stats_add(&stats, (CheckasmSample) { cycles, count });
+        checkasm_stats_count_grow(&stats, cycles, target_cycles);
     }
 
     return checkasm_stats_estimate(&stats);
