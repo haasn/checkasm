@@ -108,6 +108,10 @@ COLD CheckasmVar checkasm_measure_nop_cycles(uint64_t target_cycles)
         int      count  = stats.next_count;
         uint64_t cycles = 0;
 
+        /* Spin up the CPU */
+        for (int i = 0; i < 100; i++)
+            checkasm_noop(NULL);
+
         /* Measure the overhead of the timing code (in cycles) */
         CHECKASM_PERF_BENCH(count, cycles, alternate(ptr0, ptr1));
         total_cycles += cycles;
