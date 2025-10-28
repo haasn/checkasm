@@ -92,11 +92,17 @@ static inline void checkasm_stats_add(CheckasmStats *const stats, const Checkasm
     }
 }
 
-/* Increase number of data points exponentially, with 1/8 = ~12% growth */
-static inline void checkasm_stats_count_grow(CheckasmStats *const stats)
+static inline void checkasm_stats_count_grow(CheckasmStats *const stats, uint64_t cycles,
+                                             uint64_t target_cycles)
 {
-    stats->next_count = ((stats->next_count << 3) + stats->next_count + 7) >> 3;
-    stats->next_count = imin(stats->next_count, 1 << 28);
+    if (cycles < target_cycles >> 10) { /* sum[(1+1/64)^n | n < 200] */
+        /* Function is very fast, increase iteration count dramatically */
+        stats->next_count <<= 1;
+    } else {
+        /* Grow more slowly at 1/64 = ~1.5% growth */
+        stats->next_count = ((stats->next_count << 6) + stats->next_count + 63) >> 6;
+        stats->next_count = imin(stats->next_count, 1 << 25);
+    }
 }
 
 int checkasm_stats_count_total(const CheckasmStats *stats);

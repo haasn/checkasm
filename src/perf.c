@@ -116,8 +116,7 @@ COLD CheckasmVar checkasm_measure_nop_cycles(void)
         checkasm_stats_add(&stats, (CheckasmSample) { cycles, count });
 
         total_nsec += nsec;
-        if (nsec < target_nsec >> 7)
-            checkasm_stats_count_grow(&stats);
+        checkasm_stats_count_grow(&stats, nsec, target_nsec);
     }
 
     return checkasm_stats_estimate(&stats);
@@ -158,9 +157,7 @@ COLD CheckasmVar checkasm_measure_perf_scale(void)
 
         checkasm_stats_add(&stats_cycles, (CheckasmSample) { cycles, iters });
         checkasm_stats_add(&stats_nsec, (CheckasmSample) { nsec, iters });
-
-        if (nsec < target_nsec)
-            checkasm_stats_count_grow(&stats_cycles);
+        checkasm_stats_count_grow(&stats_cycles, nsec, target_nsec);
     }
 
     CheckasmVar est_cycles = checkasm_stats_estimate(&stats_cycles);
