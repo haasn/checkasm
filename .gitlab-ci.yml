@@ -263,17 +263,25 @@ test-debian-aarch64-clang-18:
         - cd build && ninja
         - meson test -v
 
-test-macos:
+.test-macos-common:
     stage: test
-    tags:
-        - amd64
-        - macos
     script:
         - meson setup build --buildtype release
                             -Ddefault_library=both
                             --werror
         - cd build && ninja
         - meson test -v
+
+test-macos-x86_64:
+    extends: .test-macos-common
+    tags:
+        - amd64
+        - macos
+
+test-macos-arm64:
+    extends: .test-macos-common
+    tags:
+        - macos-xcode15
 
 test-debian-armv7:
     extends: .debian-armv7-common
