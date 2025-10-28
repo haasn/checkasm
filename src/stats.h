@@ -107,19 +107,6 @@ static inline void checkasm_stats_count_grow(CheckasmStats *const stats, uint64_
 
 int checkasm_stats_count_total(const CheckasmStats *stats);
 
-typedef struct CheckasmDistribution {
-    double min, max;
-    double median;
-    double q1, q3; /* 25% and 75% quantiles */
-
-    /* Total number of outliers (as a fraction of the total) */
-    double outliers;
-
-    /* Breakdown into categories */
-    double low_mild, low_extreme;
-    double high_mild, high_extreme;
-} CheckasmDistribution;
-
 CheckasmVar checkasm_stats_estimate(CheckasmStats *stats);
 
 #endif /* CHECKASM_STATS_H */
