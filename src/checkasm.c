@@ -71,11 +71,11 @@ typedef struct CheckasmFuncVersion {
 /* Binary search tree node */
 typedef struct CheckasmFunc {
     struct CheckasmFunc *child[2];
-    struct CheckasmFunc *prev; /* previous function in current section */
+    struct CheckasmFunc *prev; /* previous function in current report */
     CheckasmFuncVersion  versions;
     uint8_t              color; /* 0 = red, 1 = black */
     const char          *test_name;
-    char                *section;
+    char                *report_name;
     char                 name[];
 } CheckasmFunc;
 
@@ -128,7 +128,7 @@ static void destroy_func_tree(CheckasmFunc *const f)
 
         destroy_func_tree(f->child[0]);
         destroy_func_tree(f->child[1]);
-        free(f->section);
+        free(f->report_name);
         free(f);
     }
 }
@@ -173,24 +173,30 @@ static inline char separator(CheckasmBenchFormat format)
     }
 }
 
-static void print_json_kde(const int level, const char *key, const char *unit,
-                           const CheckasmVar var)
+static void json_var(CheckasmJson *json, const char *key, const char *unit,
+                     const CheckasmVar var)
 {
-    printf("%s\"%s\": { "
-           "\"unit\": \"%s\", "
-           "\"estPoint\": %g, "
-           "\"estLower\": %g, "
-           "\"estUpper\": %g, "
-           "\"estStdDev\": %g, "
-           "\"logMean\": %g, "
-           "\"logVar\": %g },\n",
-           &"          "[10 - level], key, unit, checkasm_mean(var),
-           checkasm_sample(var, -1.0), checkasm_sample(var, 1.0), checkasm_stddev(var),
-           var.lmean, var.lvar);
+    checkasm_json_push(json, key);
+    checkasm_json(json, "unit", "%s", unit);
+    checkasm_json(json, "estPoint", "%g", checkasm_mean(var));
+    checkasm_json(json, "estLower", "%g", checkasm_sample(var, -1.0));
+    checkasm_json(json, "estUpper", "%g", checkasm_sample(var, 1.0));
+    checkasm_json(json, "estStdDev", "%g", checkasm_stddev(var));
+    checkasm_json(json, "logMean", "%g", var.lmean);
+    checkasm_json(json, "logVar", "%g", var.lvar);
+    checkasm_json_pop(json);
 }
 
-static void print_bench_header(void)
+struct IterState {
+    const char  *test;
+    const char  *report;
+    CheckasmJson json;
+};
+
+static void print_bench_header(struct IterState *const iter)
 {
+    CheckasmJson *const json = &iter->json;
+
     switch (cfg.bench_format) {
     case CHECKASM_BENCH_CSV:
     case CHECKASM_BENCH_TSV:
@@ -217,11 +223,12 @@ static void print_bench_header(void)
                checkasm_chart_js, checkasm_js, checkasm_css);
         /* fall through */
     case CHECKASM_BENCH_JSON:
-        printf("{\n"
-               "  \"checkasm\": \"v1.0.0 \",\n");
-        print_json_kde(2, "nopKDE", checkasm_perf.unit, state.nop_cycles);
-        print_json_kde(2, "timingKDE", "nsec/unit", state.perf_scale);
-        printf("  \"functions\": {\n");
+        checkasm_json_push(json, NULL);
+        checkasm_json(json, "checkasm", "%s", "v1.0.0");
+        checkasm_json(json, "benchmarks", "%d", state.num_benched);
+        json_var(json, "nopTime", checkasm_perf.unit, state.nop_cycles);
+        json_var(json, "perfScale", "nsec/unit", state.perf_scale);
+        checkasm_json_push(json, "reports");
         break;
     case CHECKASM_BENCH_PRETTY:
         checkasm_fprintf(stdout, COLOR_YELLOW, "Benchmark results:\n");
@@ -236,10 +243,11 @@ static void print_bench_header(void)
     }
 }
 
-static void print_bench_footer(void)
+static void print_bench_footer(struct IterState *const iter)
 {
-    const double err_rel = relative_error(state.var_sum / state.num_benched);
-    const double err_max = relative_error(state.var_max);
+    const double        err_rel = relative_error(state.var_sum / state.num_benched);
+    const double        err_max = relative_error(state.var_max);
+    CheckasmJson *const json    = &iter->json;
 
     switch (cfg.bench_format) {
     case CHECKASM_BENCH_CSV:
@@ -253,11 +261,15 @@ static void print_bench_footer(void)
         break;
     case CHECKASM_BENCH_HTML:
     case CHECKASM_BENCH_JSON:
-        printf("  },\n");
-        printf("  \"benchmarks\": %d,\n", state.num_benched);
-        printf("  \"avgErr\": %g,\n", err_rel);
-        printf("  \"maxErr\": %g\n", err_max);
-        printf("}\n");
+        if (iter->report)
+            checkasm_json_pop(json); /* close report */
+        if (iter->test)
+            checkasm_json_pop(json); /* close test */
+        checkasm_json_pop(json);     /* close reports */
+        checkasm_json(json, "averageError", "%g", err_rel);
+        checkasm_json(json, "maximumError", "%g", err_max);
+        checkasm_json_pop(json); /* close root */
+
         if (cfg.bench_format == CHECKASM_BENCH_HTML) {
             printf("  </script>\n"
                    "  <meta name=\"viewport\" content=\"width=device-width, "
@@ -271,20 +283,22 @@ static void print_bench_footer(void)
     }
 }
 
-static void print_bench_iter(const CheckasmFunc *const f, int has_more)
+static void print_bench_iter(const CheckasmFunc *const f, struct IterState *const iter)
 {
-    const char sep  = separator(cfg.bench_format);
-    const int  json = cfg.bench_format == CHECKASM_BENCH_JSON
-                  || cfg.bench_format == CHECKASM_BENCH_HTML;
+    CheckasmJson *const json = &iter->json;
+    const char          sep  = separator(cfg.bench_format);
     if (!f)
         return;
 
-    print_bench_iter(f->child[0], 1);
+    print_bench_iter(f->child[0], iter);
 
     const CheckasmFuncVersion *ref = &f->versions;
     const CheckasmFuncVersion *v   = ref;
 
-    int is_first = 1;
+    /* Defer pushing the function header until we know that we have at least one
+     * benchmark to report */
+    int json_func_pushed = 0;
+
     do {
         if (v->nb_bench) {
             const CheckasmVar cycles     = get_cycles(v);
@@ -292,28 +306,50 @@ static void print_bench_iter(const CheckasmFunc *const f, int has_more)
             const CheckasmVar ratio      = checkasm_var_div(cycles_ref, cycles);
             const CheckasmVar time       = checkasm_var_mul(cycles, state.perf_scale);
 
-            if (json) {
-                if (is_first) {
-                    printf("    \"%s\": {\n", f->name);
-                    printf("      \"versions\": {\n");
-                    is_first = 0;
-                } else {
-                    printf("        },\n");
+            switch (cfg.bench_format) {
+            case CHECKASM_BENCH_HTML:
+            case CHECKASM_BENCH_JSON:
+                if (!json_func_pushed) {
+                    /* Print new test block if it changed */
+                    if (iter->test != f->test_name) { /* these are not allocated */
+                        if (iter->test) {
+                            checkasm_json_pop(json); /* close report */
+                            checkasm_json_pop(json); /* close test */
+                        }
+                        checkasm_json_push(json, f->test_name);
+                        iter->test   = f->test_name;
+                        iter->report = NULL;
+                    }
+
+                    /* Print new report block if it changed */
+                    if (!iter->report || strcmp(iter->report, f->report_name)) {
+                        if (iter->report)
+                            checkasm_json_pop(json); /* close report */
+                        checkasm_json_push(json, f->report_name);
+                        iter->report = f->report_name;
+                    }
+
+                    checkasm_json_push(json, f->name);
+                    json_func_pushed = 1;
                 }
 
-                printf("        \"%s\": {\n", cpu_suffix(v->cpu));
-                print_json_kde(10, "rawKDE", checkasm_perf.unit, cycles);
-                print_json_kde(10, "timeKDE", "nsec", time);
+                checkasm_json_push(json, cpu_suffix(v->cpu));
+                checkasm_json(json, "benchmarks", "%d", v->nb_bench);
+                json_var(json, "cycles", checkasm_perf.unit, cycles);
+                json_var(json, "time", "nsec", time);
                 if (v != ref && ref->nb_bench) {
-                    print_json_kde(10, "ratioKDE", "ref/func",
-                                   checkasm_var_div(get_cycles(ref), cycles));
+                    json_var(json, "ratio", "ref/func",
+                             checkasm_var_div(get_cycles(ref), cycles));
                 }
-                printf("          \"benchmarks\": %d\n", v->nb_bench);
-            } else if (sep) {
+                checkasm_json_pop(json); /* close version */
+                break;
+            case CHECKASM_BENCH_CSV:
+            case CHECKASM_BENCH_TSV:
                 printf("%s%c%s%c%.4f%c%.5f%c%.4f\n", f->name, sep, cpu_suffix(v->cpu),
                        sep, checkasm_mean(cycles), sep, checkasm_stddev(cycles), sep,
                        checkasm_mean(time));
-            } else {
+                break;
+            case CHECKASM_BENCH_PRETTY:;
                 const int pad = 12 + state.max_function_name_length
                               - printf("  %s_%s:", f->name, cpu_suffix(v->cpu));
                 printf("%*.1f", imax(pad, 0), checkasm_mean(cycles));
@@ -333,22 +369,24 @@ static void print_bench_iter(const CheckasmFunc *const f, int has_more)
                     printf(")");
                 }
                 printf("\n");
+                break;
             }
         }
     } while ((v = v->next));
 
-    if (json && !is_first) {
-        printf("        }\n");
-        printf("      }\n");
-        printf("    }%s\n", (has_more || f->child[1]) ? "," : "");
-    }
+    if (json_func_pushed)
+        checkasm_json_pop(json); /* close function */
 
-    print_bench_iter(f->child[1], has_more);
+    print_bench_iter(f->child[1], iter);
 }
 
-static void print_bench_funcs()
+static void print_benchmarks()
 {
-    print_bench_iter(state.funcs, 0);
+    struct IterState iter = { .json.file = stdout };
+    print_bench_header(&iter);
+    print_bench_iter(state.funcs, &iter);
+    print_bench_footer(&iter);
+    assert(iter.json.level == 0);
 }
 
 #define is_digit(x) ((x) >= '0' && (x) <= '9')
@@ -724,11 +762,8 @@ int checkasm_run(const CheckasmConfig *config)
         else
             fprintf(stderr, "checkasm: no tests to perform%s\n", skipped);
 
-        if (state.num_benched) {
-            print_bench_header();
-            print_bench_funcs();
-            print_bench_footer();
-        }
+        if (state.num_benched)
+            print_benchmarks();
     }
 
     destroy_func_tree(state.funcs);
@@ -841,11 +876,11 @@ void checkasm_report(const char *const name, ...)
 {
     static int    prev_checked, prev_failed;
     static size_t max_length;
-    char         *section_name = "";
+    char         *report_name = "";
 
     va_list arg;
     va_start(arg, name);
-    int ok = vasprintf(&section_name, name, arg);
+    int ok = vasprintf(&report_name, name, arg);
     va_end(arg);
 
     const int new_checked = state.num_checked - prev_checked;
@@ -854,7 +889,7 @@ void checkasm_report(const char *const name, ...)
         assert(!state.skip_tests);
 
         print_cpu_name();
-        pad_length -= fprintf(stderr, " - %s.%s", state.current_test_name, section_name);
+        pad_length -= fprintf(stderr, " - %s.%s", state.current_test_name, report_name);
         fprintf(stderr, "%*c", imax(pad_length, 0) + 2, '[');
 
         if (state.should_fail) {
@@ -879,22 +914,22 @@ void checkasm_report(const char *const name, ...)
     } else if (!state.cpu) {
         /* Calculate the amount of padding required
          * to make the output vertically aligned */
-        size_t length = strlen(state.current_test_name) + strlen(section_name);
+        size_t length = strlen(state.current_test_name) + strlen(report_name);
         if (length > max_length)
             max_length = length;
     }
 
-    /* Store the section name for future reporting */
+    /* Store the report name for future reporting */
     CheckasmFunc *func = state.current_func;
     while (func) {
-        if (!func->section)
-            func->section = strdup(section_name);
+        if (!func->report_name)
+            func->report_name = strdup(report_name);
         func = func->prev;
     }
 
     if (ok)
-        free(section_name);
-    state.current_func = NULL; /* reset current function for new section */
+        free(report_name);
+    state.current_func = NULL; /* reset current function for new report */
 }
 
 #if ARCH_ARM

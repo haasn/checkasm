@@ -26,6 +26,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <assert.h>
 #include <math.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -167,6 +168,52 @@ static int get_terminal_width(void)
         return w.ws_col;
 #endif
     return 80;
+}
+
+void checkasm_json(CheckasmJson *json, const char *key, const char *const fmt, ...)
+{
+    assert(key);
+    assert(json->level > 0);
+    fputs(json->nonempty ? ",\n" : "\n", json->file);
+    for (int i = 0; i < json->level; i++)
+        fputc(' ', json->file);
+
+    va_list ap;
+    va_start(ap, fmt);
+    fprintf(json->file, "\"%s\": \"", key);
+    vfprintf(json->file, fmt, ap);
+    fputc('"', json->file);
+    va_end(ap);
+    json->nonempty = 1;
+}
+
+void checkasm_json_push(CheckasmJson *json, const char *const key)
+{
+    if (key) {
+        fputs(json->nonempty ? ",\n" : "\n", json->file);
+        for (int i = 0; i < json->level; i++)
+            fputc(' ', json->file);
+        fprintf(json->file, "\"%s\": {", key);
+    } else {
+        assert(json->level == 0);
+        fputc('{', json->file);
+    }
+
+    json->level += 2;
+    json->nonempty = 0;
+}
+
+void checkasm_json_pop(CheckasmJson *json)
+{
+    assert(json->level >= 2);
+    json->level -= 2;
+    if (json->nonempty) {
+        fputc('\n', json->file);
+        for (int i = 0; i < json->level; i++)
+            fputc(' ', json->file);
+    }
+    fputc('}', json->file);
+    json->nonempty = 1;
 }
 
 /* float compare support code */
