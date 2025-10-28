@@ -625,20 +625,10 @@
   }
 
   function mkScatter(report) {
-
-    // collect the measured value for a given regression
-    function getMeasured(key) {
-      var ix = report.reportKeys.indexOf(key);
-      return report.reportMeasured.map(function(x) {
-        return x[ix];
-      });
-    }
-
     var canvas = document.createElement('canvas');
-    var times = getMeasured("time");
-    var iters = getMeasured("iters");
+    var times = report.samples.map(x => x.cycles);
+    var iters = report.samples.map(x => x.count);
     var lastIter = iters[iters.length - 1];
-    var olsTime = report.reportAnalysis.anRegress[0].regCoeffs.iters;
     var dataPoints = times.map(function(time, i) {
       return {
         x: iters[i],
@@ -656,51 +646,7 @@
           pointHitRadius: 8,
           borderColor: colors[1],
           backgroundColor: '#fff',
-        },
-          {
-            data: [
-              {x: 0, y: 0 },
-              { x: lastIter, y: olsTime.estPoint * lastIter }
-            ],
-            label: 'regression',
-            type: 'line',
-            backgroundColor: "#00000000",
-            borderColor: colors[0],
-            pointRadius: 0,
-          },
-          {
-            data: [{
-              x: 0,
-              y: 0
-            }, {
-              x: lastIter,
-              y: (olsTime.estPoint - olsTime.estError.confIntLDX) * lastIter,
-            }],
-            label: 'lower',
-            type: 'line',
-            fill: 1,
-            borderWidth: 0,
-            pointRadius: 0,
-            borderColor: '#00000000',
-            backgroundColor: colors[0] + '33',
-          },
-          {
-            data: [{
-              x: 0,
-              y: 0
-            }, {
-              x: lastIter,
-              y: (olsTime.estPoint + olsTime.estError.confIntUDX) * lastIter,
-            }],
-            label: 'upper',
-            type: 'line',
-            fill: 1,
-            borderWidth: 0,
-            borderColor: '#00000000',
-            pointRadius: 0,
-            backgroundColor: colors[0] + '33',
-          },
-        ],
+        }],
       },
       options: {
         title: {
@@ -873,15 +819,19 @@
           Object.values(func.versions).forEach(version => {
             var id = slugify([testName, reportName, version.reportName]);
             var kde = elem('div', { className: 'kde' }, []);
+            var scatter = elem('div', { className: 'scatter' }, []);
             funcDiv.appendChild(elem('h3', { id: id }, [
               elem('a', { href: '#' + id }, [version.reportName])]));
             funcDiv.appendChild(kde);
+            funcDiv.appendChild(scatter);
             funcDiv.appendChild(mkTable(version));
 
-            /* Load KDE lazily on demand */
+            /* Load KDE and scatterplot lazily on demand */
             details.addEventListener('toggle', () => {
-              if (details.open && kde.childElementCount === 0)
+              if (details.open && kde.childElementCount === 0) {
                 kde.appendChild(mkKDE(version));
+                scatter.appendChild(mkScatter(version));
+              }
             });
           });
         });

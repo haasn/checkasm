@@ -91,11 +91,11 @@ typedef struct CheckasmJson {
     int   nonempty;
 } CheckasmJson;
 
-void checkasm_json(CheckasmJson *json, const char *key, const char *const fmt, ...)
+void checkasm_json(CheckasmJson *json, const char *key, const char *fmt, ...)
     ATTR_FORMAT_PRINTF(3, 4);
-void checkasm_json_str(CheckasmJson *json, const char *key, const char *const str);
-void checkasm_json_push(CheckasmJson *json, const char *const key);
-void checkasm_json_pop(CheckasmJson *json);
+void checkasm_json_str(CheckasmJson *json, const char *key, const char *str);
+void checkasm_json_push(CheckasmJson *json, const char *const key, char type);
+void checkasm_json_pop(CheckasmJson *json, char type);
 
 /* Platform specific signal handling */
 void checkasm_set_signal_handlers(void);

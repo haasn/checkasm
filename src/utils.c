@@ -208,23 +208,23 @@ void checkasm_json_str(CheckasmJson *json, const char *key, const char *str)
     json->nonempty = 1;
 }
 
-void checkasm_json_push(CheckasmJson *json, const char *const key)
+void checkasm_json_push(CheckasmJson *json, const char *const key, const char type)
 {
+    fputs(json->nonempty ? ",\n" : "\n", json->file);
+    for (int i = 0; i < json->level; i++)
+        fputc(' ', json->file);
+
     if (key) {
-        fputs(json->nonempty ? ",\n" : "\n", json->file);
-        for (int i = 0; i < json->level; i++)
-            fputc(' ', json->file);
-        fprintf(json->file, "\"%s\": {", key);
+        fprintf(json->file, "\"%s\": %c", key, type);
     } else {
-        assert(json->level == 0);
-        fputc('{', json->file);
+        fputc(type, json->file);
     }
 
     json->level += 2;
     json->nonempty = 0;
 }
 
-void checkasm_json_pop(CheckasmJson *json)
+void checkasm_json_pop(CheckasmJson *json, char type)
 {
     assert(json->level >= 2);
     json->level -= 2;
@@ -233,7 +233,7 @@ void checkasm_json_pop(CheckasmJson *json)
         for (int i = 0; i < json->level; i++)
             fputc(' ', json->file);
     }
-    fputc('}', json->file);
+    fputc(type, json->file);
     json->nonempty = 1;
 }
 
