@@ -105,11 +105,11 @@
     return logaxis ? 'logarithmic' : 'linear';
   }
 
-  /* Adds indices and full names to each report, and flattens to a single list */
+  /* Adds indices and full names to each report, and flattens to a list of lists */
   function processReports(reportData) {
     var reports = [];
 
-    Object.entries(reportData.functions).forEach(([funcName, func], funcIdx) => {
+    Object.entries(reportData.reports).forEach(([testName, test], testIdx) => {
       var funcGroups = funcName.split('_');
       Object.entries(func.versions).forEach(([suffix, report]) => {
         report.groups = funcGroups.concat([suffix]);
@@ -800,8 +800,20 @@
     var overviewLineHeight = 16 * 1.25;
     overview.style.height =
       String(overviewLineHeight * reportData.length + 36) + 'px';
-    overview.appendChild(mkOverview(reportData.slice()));
 
+    reportData.forEach(function (test, i) {
+      var id = 'test_' + String(i);
+      overview.appendChild(mkOverview(test.slice()));
+      overview.appendChild(
+        elem('div', {id: id, className: 'report-details'}, [
+          elem('h1', {}, [elem('a', {href: '#' + id}, [report.groups.join('_')])]),
+          elem('div', {className: 'kde'}, [mkKDE(report)]),
+          //elem('div', {className: 'scatter'}, [mkScatter(report)]),
+          mkTable(report)
+        ]));
+    });
+
+    /*
     var reports = document.getElementById('reports');
     reportData.forEach(function(report, i) {
       var id = 'report_' + String(i);
@@ -809,9 +821,10 @@
         elem('div', {id: id, className: 'report-details'}, [
           elem('h1', {}, [elem('a', {href: '#' + id}, [report.groups.join('_')])]),
           elem('div', {className: 'kde'}, [mkKDE(report)]),
-          /*elem('div', {className: 'scatter'}, [mkScatter(report)]),*/
+          //elem('div', {className: 'scatter'}, [mkScatter(report)]),
           mkTable(report)
         ]));
     });
+    */
   }, false);
 })();

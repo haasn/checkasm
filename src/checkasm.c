@@ -228,7 +228,7 @@ static void print_bench_header(struct IterState *const iter)
         checkasm_json(json, "benchmarks", "%d", state.num_benched);
         json_var(json, "nopTime", checkasm_perf.unit, state.nop_cycles);
         json_var(json, "perfScale", "nsec/unit", state.perf_scale);
-        checkasm_json_push(json, "reports");
+        checkasm_json_push(json, "tests");
         break;
     case CHECKASM_BENCH_PRETTY:
         checkasm_fprintf(stdout, COLOR_YELLOW, "Benchmark results:\n");
@@ -265,7 +265,7 @@ static void print_bench_footer(struct IterState *const iter)
             checkasm_json_pop(json); /* close report */
         if (iter->test)
             checkasm_json_pop(json); /* close test */
-        checkasm_json_pop(json);     /* close reports */
+        checkasm_json_pop(json);     /* close tests */
         checkasm_json(json, "averageError", "%g", err_rel);
         checkasm_json(json, "maximumError", "%g", err_max);
         checkasm_json_pop(json); /* close root */
