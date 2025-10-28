@@ -96,6 +96,7 @@ COLD CheckasmVar checkasm_measure_nop_cycles(uint64_t target_cycles)
 {
     CheckasmStats stats;
     checkasm_stats_reset(&stats);
+    stats.next_count = 128; /* ensure we use ASM timers if available */
 
     void (*const func_new)(void *) = checkasm_noop;
     void *const ptr0 = (void *) 0x1000, *const ptr1 = (void *) 0x2000;
