@@ -48,6 +48,10 @@
   #include <sys/ioctl.h>
 #endif
 
+#if defined(__APPLE__) && defined(__MACH__)
+  #include <mach/mach_time.h>
+#endif
+
 #include "checkasm/test.h"
 #include "checkasm/utils.h"
 #include "internal.h"
@@ -66,6 +70,13 @@ static ALWAYS_INLINE uint64_t gettime_nsec(void)
         QueryPerformanceFrequency(&freq);
     QueryPerformanceCounter(&ts);
     return UINT64_C(1000000000) * ts.QuadPart / freq.QuadPart;
+#elif defined(__APPLE__) && defined(__MACH__)
+    static mach_timebase_info_data_t tb_info;
+    if (!tb_info.denom) {
+        if (mach_timebase_info(&tb_info) != KERN_SUCCESS)
+            return -1;
+    }
+    return mach_absolute_time() * tb_info.numer / tb_info.denom;
 #else
     struct timespec ts;
   #ifdef CLOCK_MONOTONIC_RAW
