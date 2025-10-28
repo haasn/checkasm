@@ -99,19 +99,6 @@ CheckasmVar checkasm_var_div(CheckasmVar a, CheckasmVar b)
     };
 }
 
-static double sample_mean(const CheckasmSample s)
-{
-    return (double) s.sum / s.count;
-}
-
-int checkasm_stats_count_total(const CheckasmStats *const stats)
-{
-    int total = 0;
-    for (int i = 0; i < stats->nb_samples; i++)
-        total += stats->samples[i].count;
-    return total;
-}
-
 CheckasmVar checkasm_stats_estimate(CheckasmStats *const stats)
 {
     if (!stats->nb_samples)
@@ -119,15 +106,16 @@ CheckasmVar checkasm_stats_estimate(CheckasmStats *const stats)
 
     /* Compute mean and variance */
     double sum = 0.0, sum2 = 0.0;
+    int    count = 0;
     for (int i = 0; i < stats->nb_samples; i++) {
         const CheckasmSample s = stats->samples[i];
-        const double         x = log(sample_mean(s));
+        const double         x = log(s.sum) - log(s.count);
         sum += x * s.count;
         sum2 += x * x * s.count;
+        count += s.count;
     }
 
-    const int    count = checkasm_stats_count_total(stats);
-    const double mean  = sum / count;
+    const double mean = sum / count;
     return (CheckasmVar) {
         .lmean = mean,
         .lvar  = sum2 / count - mean * mean,

@@ -105,8 +105,6 @@ static inline void checkasm_stats_count_grow(CheckasmStats *const stats, uint64_
     }
 }
 
-int checkasm_stats_count_total(const CheckasmStats *stats);
-
 CheckasmVar checkasm_stats_estimate(CheckasmStats *stats);
 
 #endif /* CHECKASM_STATS_H */
