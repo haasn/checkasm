@@ -219,7 +219,7 @@ static void print_bench_header(struct IterState *const iter)
                "  <style>\n"
                "    %s"
                "  </style>\n"
-               "  <script type=\"application/json\" id=\"report-data\">",
+               "  <script type=\"application/json\" id=\"report-data\">\n",
                checkasm_chart_js, checkasm_js, checkasm_css);
         /* fall through */
     case CHECKASM_BENCH_JSON:
@@ -228,7 +228,7 @@ static void print_bench_header(struct IterState *const iter)
         checkasm_json(json, "benchmarks", "%d", state.num_benched);
         json_var(json, "nopTime", checkasm_perf.unit, state.nop_cycles);
         json_var(json, "perfScale", "nsec/unit", state.perf_scale);
-        checkasm_json_push(json, "tests");
+        checkasm_json_push(json, "functions");
         break;
     case CHECKASM_BENCH_PRETTY:
         checkasm_fprintf(stdout, COLOR_YELLOW, "Benchmark results:\n");
@@ -261,11 +261,7 @@ static void print_bench_footer(struct IterState *const iter)
         break;
     case CHECKASM_BENCH_HTML:
     case CHECKASM_BENCH_JSON:
-        if (iter->report)
-            checkasm_json_pop(json); /* close report */
-        if (iter->test)
-            checkasm_json_pop(json); /* close test */
-        checkasm_json_pop(json);     /* close tests */
+        checkasm_json_pop(json); /* close functions */
         checkasm_json(json, "averageError", "%g", err_rel);
         checkasm_json(json, "maximumError", "%g", err_max);
         checkasm_json_pop(json); /* close root */
@@ -310,26 +306,11 @@ static void print_bench_iter(const CheckasmFunc *const f, struct IterState *cons
             case CHECKASM_BENCH_HTML:
             case CHECKASM_BENCH_JSON:
                 if (!json_func_pushed) {
-                    /* Print new test block if it changed */
-                    if (iter->test != f->test_name) { /* these are not allocated */
-                        if (iter->test) {
-                            checkasm_json_pop(json); /* close report */
-                            checkasm_json_pop(json); /* close test */
-                        }
-                        checkasm_json_push(json, f->test_name);
-                        iter->test   = f->test_name;
-                        iter->report = NULL;
-                    }
-
-                    /* Print new report block if it changed */
-                    if (!iter->report || strcmp(iter->report, f->report_name)) {
-                        if (iter->report)
-                            checkasm_json_pop(json); /* close report */
-                        checkasm_json_push(json, f->report_name);
-                        iter->report = f->report_name;
-                    }
-
                     checkasm_json_push(json, f->name);
+                    checkasm_json(json, "testName", "%s", f->test_name);
+                    if (f->report_name)
+                        checkasm_json(json, "reportName", "%s", f->report_name);
+                    checkasm_json_push(json, "versions");
                     json_func_pushed = 1;
                 }
 
@@ -374,8 +355,10 @@ static void print_bench_iter(const CheckasmFunc *const f, struct IterState *cons
         }
     } while ((v = v->next));
 
-    if (json_func_pushed)
+    if (json_func_pushed) {
+        checkasm_json_pop(json); /* close versions */
         checkasm_json_pop(json); /* close function */
+    }
 
     print_bench_iter(f->child[1], iter);
 }

@@ -105,22 +105,25 @@
     return logaxis ? 'logarithmic' : 'linear';
   }
 
-  /* Adds indices and full names to each report, and flattens to a list of lists */
+  /* Adds indices and full names to each report, and group by testName */
   function processReports(reportData) {
-    var reports = [];
+    var tests = [];
 
-    Object.entries(reportData.reports).forEach(([testName, test], testIdx) => {
-      var funcGroups = funcName.split('_');
-      Object.entries(func.versions).forEach(([suffix, report]) => {
-        report.groups = funcGroups.concat([suffix]);
-        report.groupNumber = funcIdx;
-        report.reportName = funcName + '_' + suffix;
-        report.reportNumber = reports.length;
-        reports.push(report);
+    Object.entries(reportData.functions).forEach(([funcName, func]) => {
+      if (!tests[func.testName])
+        tests[func.testName] = { funcIdx: 0, reports: [] };
+      var test = tests[func.testName]
+      Object.entries(func.versions).forEach(([suffix, version]) => {
+        version.groups = [func.testName, func.reportName, funcName, suffix];
+        version.groupNumber = test.funcIdx;
+        version.reportName = funcName + '_' + suffix;
+        version.reportNumber = test.reports.length;
+        test.reports.push(version);
       });
+      test.funcIdx += 1;
     });
 
-    return reports;
+    return tests;
   }
 
   function reportSort(a, b) {
@@ -128,7 +131,7 @@
   }
 
   function durationSort(a, b) {
-    return a.timeKDE.estPoint - b.timeKDE.estPoint;
+    return a.time.estPoint - b.time.estPoint;
   }
   function reverseDurationSort(a,b) {
     return -durationSort(a,b);
@@ -188,19 +191,19 @@
       return !state.hidden[report.groupNumber];
     }).slice().sort(sorter);
     var data = sortedReports.map(function(report) {
-      return report.timeKDE.estPoint;
+      return report.time.estPoint;
     });
     var labels = sortedReports.map(function(report) {
-      return report.groups.join('_');
+      return report.groups.join(' / ');
     });
     var upperBound = function(report) {
-      return report.timeKDE.estUpper;
+      return report.time.estUpper;
     };
     var errorBars = sortedReports.map(function(report) {
-      var est = report.timeKDE.estPoint;
+      var est = report.time.estPoint;
       return {
-        minus: est - report.timeKDE.estLower,
-        plus: report.timeKDE.estUpper - est,
+        minus: est - report.time.estLower,
+        plus: report.time.estUpper - est,
         color: errorColors[report.groupNumber % errorColors.length]
       };
     });
@@ -361,7 +364,6 @@
       legend: false,
     };
 
-
     var data = overviewData(state, reports);
     var chart = new Chart(canvas.getContext('2d'), {
       type: 'horizontalBar',
@@ -431,7 +433,7 @@
                 var index = groups.indexOf(report.groupNumber);
                 if (index === -1) {
                   groups.push(report.groupNumber);
-                  var groupName = report.groups.slice(0,report.groups.length-1).join('_');
+                  var groupName = report.groups.slice(0,report.groups.length-1).join(' / ');
                   groupNames.push(groupName);
                 }
               });
@@ -478,7 +480,7 @@
 
   function mkKDE(report) {
     var canvas = document.createElement('canvas');
-    var reportKDE = report.rawKDE;
+    var reportKDE = report.cycles;
     var mean = reportKDE.estPoint;
     var mu = reportKDE.logMean;
     var sigma = Math.sqrt(reportKDE.logVar);
@@ -534,7 +536,7 @@
       options: {
         title: {
           display: true,
-          text: report.groups.join('_') + ' — time densities',
+          text: report.groups.join(' / ') + ' — time densities',
         },
         elements: {
           point: {
@@ -674,7 +676,7 @@
       options: {
         title: {
           display: true,
-          text: report.groups.join('_') + ' — time per iteration',
+          text: report.groups.join(' / ') + ' — time per iteration',
         },
         scales: {
           yAxes: [{
@@ -750,20 +752,20 @@
     var timep4 = function(t) {
       return formatTime(t, 3)
     };
-    var rawp4 = function(c) {
-      return formatUnit(c, report.rawKDE.unit + 's', 3);
+    var cyclesp4 = function(c) {
+      return formatUnit(c, report.cycles.unit + 's', 3);
     }
     var rows = [
       Object.assign({
-        label: 'Raw execution time',
-        formatter: rawp4
+        label: 'Execution cycles',
+        formatter: cyclesp4
       },
-        bounds(report.rawKDE)),
+        bounds(report.cycles)),
       Object.assign({
-        label: 'Converted execution time',
+        label: 'Execution time',
         formatter: timep4
       },
-        bounds(report.timeKDE)),
+        bounds(report.time)),
     ];
     return elem('table', {
       className: 'analysis'
@@ -795,22 +797,20 @@
   document.addEventListener('DOMContentLoaded', function() {
     var rawJSON = document.getElementById('report-data').text;
     var reportData = processReports(JSON.parse(rawJSON));
+    console.log(reportData);
 
     var overview = document.getElementById('overview-chart');
     var overviewLineHeight = 16 * 1.25;
-    overview.style.height =
-      String(overviewLineHeight * reportData.length + 36) + 'px';
 
-    reportData.forEach(function (test, i) {
+    Object.entries(reportData).forEach(([testName, test], i) => {
       var id = 'test_' + String(i);
-      overview.appendChild(mkOverview(test.slice()));
-      overview.appendChild(
-        elem('div', {id: id, className: 'report-details'}, [
-          elem('h1', {}, [elem('a', {href: '#' + id}, [report.groups.join('_')])]),
-          elem('div', {className: 'kde'}, [mkKDE(report)]),
-          //elem('div', {className: 'scatter'}, [mkScatter(report)]),
-          mkTable(report)
-        ]));
+      var height = overviewLineHeight * test.reports.length + 36;
+      overview.appendChild(elem('div', { id: id }, [
+        elem('h2', {}, [elem('a', {href: '#' + id}, [testName])]),
+        elem('div', {style: 'height: ' + String(height) + 'px'}, [
+          mkOverview(test.reports.slice())
+        ])
+      ]));
     });
 
     /*
