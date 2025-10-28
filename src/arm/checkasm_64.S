@@ -94,7 +94,7 @@ endconst
 
 #define CLOBBER_STACK ((8*MAX_ARGS + 15) & ~15)
 
-function stack_clobber, export=1
+function stack_clobber, export=1, visible=1
         mov             x3,  sp
         mov             x2,  #CLOBBER_STACK
 1:
@@ -108,7 +108,7 @@ endfunc
 // + 16 for stack canary reference
 #define ARG_STACK ((8*(MAX_ARGS - 8) + 15) & ~15 + 16)
 
-function checked_call, export=1
+function checked_call, export=1, visible=1
         stp             x29, x30, [sp, #-16]!
         mov             x29, sp
         stp             x19, x20, [sp, #-16]!
