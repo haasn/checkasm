@@ -53,10 +53,11 @@ div.scatter, div.kde {
   content:"\2039";
 }
 
-select {
+select, button {
   outline: none;
-  border:none;
+  border: none;
   background: transparent;
+  margin-left: 2em;
 }
 
 footer .content {
@@ -86,7 +87,7 @@ table.analysis .low, table.analysis .high {
   opacity: 0.5;
 }
 .report-details {
-  margin: 2em 0;
+  margin: 1em 0;
   page-break-inside: avoid;
 }
 a, a:hover, a:visited, a:active {
@@ -98,9 +99,19 @@ h1.title {
 }
 h1 {
   font-weight: 400;
+  margin-bottom: 0.2em;
 }
 #overview-chart {
   width: 100%; /*height is determined by number of rows in JavaScript */
+}
+summary {
+    font-size: 1.17em;
+    font-weight: bold;
+    cursor: pointer;
+    color: #309ef2;
+}
+.report-details summary {
+    font-size: 1.5em;
 }
 footer {
   background: #777777;

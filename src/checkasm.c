@@ -177,7 +177,7 @@ static void json_var(CheckasmJson *json, const char *key, const char *unit,
                      const CheckasmVar var)
 {
     checkasm_json_push(json, key);
-    checkasm_json(json, "unit", "%s", unit);
+    checkasm_json_str(json, "unit", unit);
     checkasm_json(json, "estPoint", "%g", checkasm_mean(var));
     checkasm_json(json, "estLower", "%g", checkasm_sample(var, -1.0));
     checkasm_json(json, "estUpper", "%g", checkasm_sample(var, 1.0));
@@ -224,7 +224,7 @@ static void print_bench_header(struct IterState *const iter)
         /* fall through */
     case CHECKASM_BENCH_JSON:
         checkasm_json_push(json, NULL);
-        checkasm_json(json, "checkasm", "%s", "v1.0.0");
+        checkasm_json_str(json, "checkasm", "v1.0.0");
         checkasm_json(json, "benchmarks", "%d", state.num_benched);
         json_var(json, "nopTime", checkasm_perf.unit, state.nop_cycles);
         json_var(json, "perfScale", "nsec/unit", state.perf_scale);
@@ -307,9 +307,9 @@ static void print_bench_iter(const CheckasmFunc *const f, struct IterState *cons
             case CHECKASM_BENCH_JSON:
                 if (!json_func_pushed) {
                     checkasm_json_push(json, f->name);
-                    checkasm_json(json, "testName", "%s", f->test_name);
-                    if (f->report_name)
-                        checkasm_json(json, "reportName", "%s", f->report_name);
+                    checkasm_json_str(json, "testName", f->test_name);
+                    checkasm_json_str(json, "reportName",
+                                      f->report_name ? f->report_name : "unknown");
                     checkasm_json_push(json, "versions");
                     json_func_pushed = 1;
                 }

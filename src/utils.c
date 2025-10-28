@@ -180,10 +180,31 @@ void checkasm_json(CheckasmJson *json, const char *key, const char *const fmt, .
 
     va_list ap;
     va_start(ap, fmt);
-    fprintf(json->file, "\"%s\": \"", key);
+    fprintf(json->file, "\"%s\": ", key);
     vfprintf(json->file, fmt, ap);
-    fputc('"', json->file);
     va_end(ap);
+    json->nonempty = 1;
+}
+
+void checkasm_json_str(CheckasmJson *json, const char *key, const char *str)
+{
+    assert(key);
+    assert(json->level > 0);
+    fputs(json->nonempty ? ",\n" : "\n", json->file);
+    for (int i = 0; i < json->level; i++)
+        fputc(' ', json->file);
+
+    fprintf(json->file, "\"%s\": \"", key);
+    while (*str) {
+        switch (*str) {
+        case '\\': fputs("\\\\", json->file); break;
+        case '"':  fputs("\\\"", json->file); break;
+        case '\n': fputs("\\n", json->file); break;
+        default:   fputc(*str, json->file); break;
+        }
+        str++;
+    }
+    fputc('"', json->file);
     json->nonempty = 1;
 }
 

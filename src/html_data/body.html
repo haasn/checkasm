@@ -4,17 +4,20 @@
     <p class="no-print"><a href="#grokularation">want to understand this report?</a></p>
     <h1 id="overview"><a href="#overview">overview</a></h1>
     <div class="no-print">
-      <select id="sort-overview" class="select">
-        <option value="report-index">index</option>
-        <option value="duration">time ascending</option>
-        <option value="rev-duration">time descending</option>
-      </select>
+      <button id="toggleOverview">Collapse All</button>
       <span class="overview-info">
+        <select id="sort-overview" class="select">
+          <option value="report-index">index</option>
+          <option value="lex">name</option>
+          <option value="colex">suffix</option>
+          <option value="duration">time ascending</option>
+          <option value="rev-duration">time descending</option>
+        </select>
         <a href="#controls-explanation" class="info" title="click bar/label to zoom; x-axis to toggle logarithmic scale; background to reset">&#9432;</a>
         <a id="legend-toggle" class="chevron button"></a>
       </span>
     </div>
-    <aside id="overview-chart"></aside>
+    <aside id="overview-charts"></aside>
     <main id="reports"></main>
   </div>
 

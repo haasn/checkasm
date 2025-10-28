@@ -87,12 +87,13 @@ void checkasm_fprintf(FILE *const f, const int color, const char *const fmt, ...
 /* Light-weight helper for printing nested JSON objects */
 typedef struct CheckasmJson {
     FILE *file;
-    int level;
-    int nonempty;
+    int   level;
+    int   nonempty;
 } CheckasmJson;
 
 void checkasm_json(CheckasmJson *json, const char *key, const char *const fmt, ...)
     ATTR_FORMAT_PRINTF(3, 4);
+void checkasm_json_str(CheckasmJson *json, const char *key, const char *const str);
 void checkasm_json_push(CheckasmJson *json, const char *const key);
 void checkasm_json_pop(CheckasmJson *json);
 
@@ -109,7 +110,7 @@ int checkasm_perf_init_linux(CheckasmPerf *perf);
 int checkasm_perf_init_macos(CheckasmPerf *perf);
 
 CheckasmVar checkasm_measure_nop_cycles(uint64_t target_cycles); /* cycles per iter */
-CheckasmVar checkasm_measure_perf_scale(void); /* ns per cycle */
+CheckasmVar checkasm_measure_perf_scale(void);                   /* ns per cycle */
 void        checkasm_noop(void *);
 
 /* Miscellaneous helpers */

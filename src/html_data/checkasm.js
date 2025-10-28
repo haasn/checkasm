@@ -105,22 +105,28 @@
     return logaxis ? 'logarithmic' : 'linear';
   }
 
-  /* Adds indices and full names to each report, and group by testName */
+  /* Adds indices and full names to each report, and group */
   function processReports(reportData) {
-    var tests = [];
+    var tests = {};
 
     Object.entries(reportData.functions).forEach(([funcName, func]) => {
+      /* Group by test name */
       if (!tests[func.testName])
-        tests[func.testName] = { funcIdx: 0, reports: [] };
-      var test = tests[func.testName]
+        tests[func.testName] = {};
+      var reports = tests[func.testName];
+      /* Group by report name */
+      if (!reports[func.reportName])
+        reports[func.reportName] = { numVersions: 0, functions: {} };
+      var report = reports[func.reportName];
       Object.entries(func.versions).forEach(([suffix, version]) => {
-        version.groups = [func.testName, func.reportName, funcName, suffix];
-        version.groupNumber = test.funcIdx;
+        /* Group versions by function */
+        version.groups = [funcName, suffix];
+        version.groupNumber = Object.keys(report.functions).length;
         version.reportName = funcName + '_' + suffix;
-        version.reportNumber = test.reports.length;
-        test.reports.push(version);
+        version.reportNumber = report.numVersions;
+        report.numVersions += 1;
       });
-      test.funcIdx += 1;
+      report.functions[funcName] = func;
     });
 
     return tests;
@@ -135,6 +141,27 @@
   }
   function reverseDurationSort(a,b) {
     return -durationSort(a,b);
+  }
+
+  const collator = new Intl.Collator(undefined, {numeric: true, sensitivity: 'base'});
+
+  // compares 2 arrays lexicographically
+  function lex(aParts, bParts) {
+    for(var i = 0; i < aParts.length && i < bParts.length; i++) {
+      var x = aParts[i];
+      var y = bParts[i];
+      var comp = collator.compare(x, y);
+      if (comp)
+        return comp;
+    }
+    return aParts.length - bParts.length;
+  }
+  function lexicalSort(a, b) {
+    return lex(a.groups, b.groups);
+  }
+
+  function reverseLexicalSort(a, b) {
+    return lex(a.groups.slice().reverse(), b.groups.slice().reverse());
   }
 
   function timeUnits(secs) {
@@ -184,6 +211,8 @@
   function overviewData(state, reports) {
     var order = state.order;
     var sorter = order === 'report-index' ? reportSort
+               : order === 'lex'          ? lexicalSort
+               : order === 'colex'        ? reverseLexicalSort
                : order === 'duration'     ? durationSort
                : order === 'rev-duration' ? reverseDurationSort
                : reportSort;
@@ -194,7 +223,7 @@
       return report.time.estPoint;
     });
     var labels = sortedReports.map(function(report) {
-      return report.groups.join(' / ');
+      return report.reportName;
     });
     var upperBound = function(report) {
       return report.time.estUpper;
@@ -497,7 +526,7 @@
     for (let i = 0; i < numPoints; i++) {
       const x = minVal + i * step;
       const y = Math.exp(-0.5 * Math.pow((Math.log(x) - mu) / sigma, 2));
-      data.push({ x: x, y: y });
+      data.push({ x: x * scale, y: y });
     }
 
     var chart = new Chart(canvas.getContext('2d'), {
@@ -794,37 +823,87 @@
       }))
     ]);
   }
+
+  function slugify(groups) {
+    return groups.join('_').toLowerCase()
+      .replace(/\s+/g, '_')           // Replace spaces with _
+      .replace(/[^\w\-]+/g, '')       // Remove all non-word chars
+  }
+
   document.addEventListener('DOMContentLoaded', function() {
     var rawJSON = document.getElementById('report-data').text;
     var reportData = processReports(JSON.parse(rawJSON));
-    console.log(reportData);
 
-    var overview = document.getElementById('overview-chart');
+    var overview = document.getElementById('overview-charts');
+    var reports = document.getElementById('reports');
     var overviewLineHeight = 16 * 1.25;
 
-    Object.entries(reportData).forEach(([testName, test], i) => {
-      var id = 'test_' + String(i);
-      var height = overviewLineHeight * test.reports.length + 36;
-      overview.appendChild(elem('div', { id: id }, [
-        elem('h2', {}, [elem('a', {href: '#' + id}, [testName])]),
-        elem('div', {style: 'height: ' + String(height) + 'px'}, [
-          mkOverview(test.reports.slice())
-        ])
-      ]));
+    Object.entries(reportData).forEach(([testName, testData], testNumber) => {
+      var tid = slugify([testName]);
+      var testOverview = elem('div', { id: tid }, [
+        elem('h2', {}, [elem('a', { href: '#' + tid }, [testName])])
+      ]);
+      overview.appendChild(testOverview);
+
+      Object.entries(testData).forEach(([reportName, report]) => {
+        var height = overviewLineHeight * report.numVersions + 36;
+        testOverview.appendChild(elem('details', { class: 'group-summary', open }, [
+          elem('summary', {}, [reportName]),
+          elem('p', { style: 'height: ' + String(height) + 'px' }, [
+            mkOverview(Object.values(report.functions).flatMap(f => Object.values(f.versions)))
+          ])
+        ]));
+
+        var rid = slugify([testName, reportName]);
+        var toggleReport = elem('button', {}, ['Expand All']);
+        var reportDiv = elem('div', { id: rid }, [
+          elem('h1', {}, [elem('a', { href: '#' + rid }, [[testName, reportName].join(' / ')])]),
+          toggleReport
+        ]);
+        reports.appendChild(reportDiv);
+
+        Object.entries(report.functions).forEach(([funcName, func]) => {
+          var funcDiv = elem('div', {}, []);
+          var details = elem('details', { className: 'report-details' }, [
+            elem('summary', {}, [funcName]),
+            elem('p', {}, [funcDiv]),
+          ]);
+          reportDiv.appendChild(details)
+
+          Object.values(func.versions).forEach(version => {
+            var id = slugify([testName, reportName, version.reportName]);
+            var kde = elem('div', { className: 'kde' }, []);
+            funcDiv.appendChild(elem('h3', { id: id }, [
+              elem('a', { href: '#' + id }, [version.reportName])]));
+            funcDiv.appendChild(kde);
+            funcDiv.appendChild(mkTable(version));
+
+            /* Load KDE lazily on demand */
+            details.addEventListener('toggle', () => {
+              if (details.open && kde.childElementCount === 0)
+                kde.appendChild(mkKDE(version));
+            });
+          });
+        });
+
+        const reportDetails = reportDiv.querySelectorAll('details');
+        toggleReport.state = false;
+        toggleReport.addEventListener('click', () => {
+          toggleReport.state = !toggleReport.state;
+          toggleReport.textContent = toggleReport.state ? 'Collapse All' : 'Expand All';
+          reportDetails.forEach(d => d.open = toggleReport.state);
+        });
+      });
     });
 
-    /*
-    var reports = document.getElementById('reports');
-    reportData.forEach(function(report, i) {
-      var id = 'report_' + String(i);
-      reports.appendChild(
-        elem('div', {id: id, className: 'report-details'}, [
-          elem('h1', {}, [elem('a', {href: '#' + id}, [report.groups.join('_')])]),
-          elem('div', {className: 'kde'}, [mkKDE(report)]),
-          //elem('div', {className: 'scatter'}, [mkScatter(report)]),
-          mkTable(report)
-        ]));
+    const overviewDetails = overview.querySelectorAll('details');
+    var toggleOverview = document.getElementById('toggleOverview');
+    toggleOverview.state = true;
+    toggleOverview.addEventListener('click', () => {
+      toggleOverview.state = !toggleOverview.state;
+      toggleOverview.textContent = toggleOverview.state ? 'Collapse All' : 'Expand All';
+      overviewDetails.forEach(d => d.open = toggleOverview.state);
     });
-    */
+
   }, false);
 })();
