@@ -66,7 +66,7 @@ CheckasmVar checkasm_var_inv(CheckasmVar a);
 
 /* Statistical analysis helpers */
 typedef struct CheckasmSample {
-    uint64_t sum; /* batched sum of data points */
+    uint64_t sum;   /* batched sum of data points */
     int      count; /* number of data points in batch */
 } CheckasmSample;
 
@@ -99,14 +99,11 @@ static inline void checkasm_stats_add(CheckasmStats *const stats, const Checkasm
 static inline void checkasm_stats_count_grow(CheckasmStats *const stats,
                                              const uint64_t time, const uint64_t budget)
 {
-    /* Try and record at least 400 data points for each function if possible */
-    const int samples_wanted = 400 - stats->nb_samples;
-
     /* If the time spent is dramatically lower than the budget, double it */
     if (time < budget >> 11) { /* sum[(1+1/128)^n | n < 400] = ~2048 */
         stats->next_count <<= 1;
-    } else if (samples_wanted <= 0 || time * samples_wanted < budget) {
-        /* Otherwise, grow slowly at a ~1% rate as long as we don't exceed our budget */
+    } else {
+        /* Otherwise, grow slowly at a ~1% rate */
         const int target_count = GROW_EXP(stats->next_count, 7);
         stats->next_count      = imin(target_count, 1 << 24);
     }
@@ -114,19 +111,13 @@ static inline void checkasm_stats_count_grow(CheckasmStats *const stats,
 
 int checkasm_stats_count_total(const CheckasmStats *stats);
 
-typedef struct CheckasmDistribution {
-    double min, max;
-    double median;
-    double q1, q3; /* 25% and 75% quantiles */
-
-    /* Total number of outliers (as a fraction of the total) */
-    double outliers;
-
-    /* Breakdown into categories */
-    double low_mild, low_extreme;
-    double high_mild, high_extreme;
-} CheckasmDistribution;
-
 CheckasmVar checkasm_stats_estimate(CheckasmStats *stats);
+
+typedef struct CheckasmRegression {
+    CheckasmVar slope;
+    CheckasmVar r2;
+} CheckasmRegression;
+
+CheckasmRegression checkasm_stats_regress(CheckasmStats *stats);
 
 #endif /* CHECKASM_STATS_H */

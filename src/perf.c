@@ -125,7 +125,7 @@ COLD CheckasmVar checkasm_measure_nop_cycles(uint64_t target_cycles)
         checkasm_stats_count_grow(&stats, cycles, target_cycles - total_cycles);
     }
 
-    return checkasm_stats_estimate(&stats);
+    return checkasm_stats_regress(&stats).slope;
 }
 
 COLD CheckasmVar checkasm_measure_perf_scale(void)
@@ -170,7 +170,7 @@ COLD CheckasmVar checkasm_measure_perf_scale(void)
             break;
     }
 
-    CheckasmVar est_cycles = checkasm_stats_estimate(&stats_cycles);
-    CheckasmVar est_nsec   = checkasm_stats_estimate(&stats_nsec);
-    return checkasm_var_div(est_nsec, est_cycles);
+    CheckasmRegression est_cycles = checkasm_stats_regress(&stats_cycles);
+    CheckasmRegression est_nsec   = checkasm_stats_regress(&stats_nsec);
+    return checkasm_var_div(est_nsec.slope, est_cycles.slope);
 }

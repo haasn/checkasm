@@ -69,10 +69,20 @@
 
     <ul>
       <li>
-        <em>Execution cycles</em> captures data from the underlying hardware counter.
+        <em>Adjusted cycles</em> captures data from the underlying hardware counter, with the no-op overhead subtracted.
       </li>
       <li>
-        <em>Execution time</em> is the result of normalizing the raw HW cycle count by the estimated tick frequency, and includes extra variance from the uncertainty of the estimation.
+        <em>Adjusted time</em> is the result of normalizing the adjusted cycle count by the estimated tick frequency, and includes extra variance from the uncertainty of the tick rate estimation.
+      </li>
+      <li>
+        <em>OLS regression</em> indicates the total time estimated for a single loop iteration using an ordinary least-squares regression model.
+        This number is more accurate than the <em>adjusted</em> estimate above it, as it more effectively eliminates measurement overhead and other constant factors, however
+        it does not subtract the no-op overhead.
+      </li>
+      <li>
+        <em>R<sup>2</sup>; goodness-of-fit</em> is a measure of how accurately the linear regression model fits the observed measurements.
+        If the measurements are not too noisy, R<sup>2</sup>; should lie between 0.99 and 1, indicating an excellent fit.
+        If the number is below 0.99, something is confounding the accuracy of the linear model.
       </li>
     </ul>
 

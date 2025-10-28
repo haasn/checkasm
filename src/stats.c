@@ -133,3 +133,54 @@ CheckasmVar checkasm_stats_estimate(CheckasmStats *const stats)
         .lvar  = sum2 / count - mean * mean,
     };
 }
+
+static inline CheckasmVar normal_var(double mean, double var)
+{
+    double lvar = log(1.0 + var / (mean * mean));
+    return (CheckasmVar) {
+        .lmean = log(mean) - 0.5 * lvar,
+        .lvar  = lvar,
+    };
+}
+
+CheckasmRegression checkasm_stats_regress(CheckasmStats *stats)
+{
+    const int n = stats->nb_samples;
+    if (n <= 2) {
+        return (CheckasmRegression) { checkasm_var_const(0.0), checkasm_var_const(0.0) };
+    }
+
+    /* Least squares linear regression to find slope through origin */
+    double sum_xy = 0.0, sum_x2 = 0.0, sum_y2 = 0.0;
+    for (int i = 0; i < stats->nb_samples; i++) {
+        const CheckasmSample s = stats->samples[i];
+
+        const double x = s.count;
+        const double y = s.sum;
+        sum_x2 += x * x;
+        sum_xy += x * y;
+        sum_y2 += y * y;
+    };
+
+    const double slope = sum_xy / sum_x2;
+
+    /* Compute residual variance */
+    double residual = 0.0;
+    for (int i = 0; i < stats->nb_samples; i++) {
+        const CheckasmSample s = stats->samples[i];
+
+        const double x   = s.count;
+        const double y   = s.sum;
+        const double res = y - slope * x;
+        residual += res * res;
+    }
+
+    const double s2        = residual / (n - 1);
+    const double slope_var = s2 / sum_x2;
+    const double r2        = (sum_xy * sum_xy) / (sum_x2 * sum_y2);
+    const double r2_var    = 4.0 * r2 * (1.0 - r2) * (1.0 - r2) / (n - 2);
+    return (CheckasmRegression) {
+        .slope = normal_var(slope, slope_var),
+        .r2    = normal_var(r2, r2_var),
+    };
+}

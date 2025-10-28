@@ -207,6 +207,16 @@
     return formatUnit(secs * scale, units[1], precision);
   }
 
+  function formatCycles(cycles, unit, precision) {
+    if (unit === "nsec") {
+      return formatTime(cycles, precision);
+    } else {
+      var units = rawUnits(cycles);
+      var scale = units[0];
+      return formatUnit(cycles * scale, units[1] + unit + 's', precision);
+    }
+  }
+
   // pure function that produces the 'data' object of the overview chart
   function overviewData(state, reports) {
     var order = state.order;
@@ -626,10 +636,11 @@
 
   function mkScatter(report) {
     var canvas = document.createElement('canvas');
-    var times = report.samples.map(x => x.cycles);
+    var cycles = report.samples.map(x => x.cycles);
     var iters = report.samples.map(x => x.count);
     var lastIter = iters[iters.length - 1];
-    var dataPoints = times.map(function(time, i) {
+    var slope = report.regression.slope;
+    var dataPoints = cycles.map(function(time, i) {
       return {
         x: iters[i],
         y: time
@@ -646,12 +657,46 @@
           pointHitRadius: 8,
           borderColor: colors[1],
           backgroundColor: '#fff',
+        }, {
+          data: [
+            { x: 0, y: 0 },
+            { x: lastIter, y: slope.estPoint * lastIter }
+          ],
+          label: 'regression',
+          type: 'line',
+          backgroundColor: "#00000000",
+          borderColor: colors[0],
+          pointRadius: 0,
+        }, {
+          data: [
+            { x: 0, y: 0 },
+            { x: lastIter, y: slope.estLower * lastIter }
+          ],
+          label: 'lower',
+          type: 'line',
+          fill: 1,
+          borderWidth: 0,
+          pointRadius: 0,
+          borderColor: '#00000000',
+          backgroundColor: colors[0] + '33',
+        }, {
+          data: [
+            { x: 0, y: 0 },
+            { x: lastIter, y: slope.estUpper * lastIter }
+          ],
+          label: 'upper',
+          type: 'line',
+          fill: 1,
+          borderWidth: 0,
+          borderColor: '#00000000',
+          pointRadius: 0,
+          backgroundColor: colors[0] + '33',
         }],
       },
       options: {
         title: {
           display: true,
-          text: report.groups.join(' / ') + ' — time per iteration',
+          text: report.groups.join(' / ') + ' — ' + slope.unit + 's per iteration',
         },
         scales: {
           yAxes: [{
@@ -659,11 +704,11 @@
             type: 'linear',
             scaleLabel: {
               display: false,
-              labelString: 'Time'
+              labelString: slope.unit + 's'
             },
             ticks: {
               callback: function(value, index, values) {
-                return formatTime(value);
+                return formatCycles(value, slope.unit, 3);
               },
             }
           }],
@@ -687,8 +732,8 @@
           callbacks: {
             label: function(ttitem, ttdata) {
               var iters = ttitem.xLabel;
-              var duration = ttitem.yLabel;
-              return formatTime(duration, 3) + ' / ' +
+              var cycles = ttitem.yLabel;
+              return formatCycles(cycles, slope.unit, 3) + ' / ' +
                 iters.toLocaleString() + ' iters';
             },
           },
@@ -715,11 +760,11 @@
     return node;
   }
 
-  function bounds(kde) {
+  function bounds(val) {
     return {
-      low: kde.estLower,
-      mean: kde.estPoint,
-      high: kde.estUpper,
+      low: val.estLower,
+      mean: val.estPoint,
+      high: val.estUpper,
     };
   }
 
@@ -728,20 +773,31 @@
       return formatTime(t, 3)
     };
     var cyclesp4 = function(c) {
-      return formatUnit(c, report.cycles.unit + 's', 3);
+      return formatCycles(c, report.cycles.unit, 3);
     }
+    var idp4 = function(t) {
+      return t.toPrecision(3);
+    };
     var rows = [
       Object.assign({
-        label: 'Execution cycles',
+        label: 'Adjusted cycles',
         formatter: cyclesp4
-      },
-        bounds(report.cycles)),
+      }, bounds(report.cycles)),
       Object.assign({
-        label: 'Execution time',
+        label: 'Adjusted time',
         formatter: timep4
-      },
-        bounds(report.time)),
+      }, bounds(report.time)),
     ];
+    if (report.regression) {
+      rows.push(Object.assign({
+        label: 'OLS regression',
+        formatter: cyclesp4
+      }, bounds(report.regression.slope)));
+      rows.push(Object.assign({
+        label: 'R² goodness-of-fit',
+        formatter: idp4
+      }, bounds(report.regression.r2)));
+    }
     return elem('table', {
       className: 'analysis'
     }, [
@@ -830,7 +886,8 @@
             details.addEventListener('toggle', () => {
               if (details.open && kde.childElementCount === 0) {
                 kde.appendChild(mkKDE(version));
-                scatter.appendChild(mkScatter(version));
+                if (version.samples)
+                  scatter.appendChild(mkScatter(version));
               }
             });
           });

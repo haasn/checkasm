@@ -179,7 +179,8 @@ static void json_var(CheckasmJson *json, const char *key, const char *unit,
                      const CheckasmVar var)
 {
     checkasm_json_push(json, key, '{');
-    checkasm_json_str(json, "unit", unit);
+    if (unit)
+        checkasm_json_str(json, "unit", unit);
     checkasm_json(json, "estPoint", "%g", checkasm_mean(var));
     checkasm_json(json, "estLower", "%g", checkasm_sample(var, -1.0));
     checkasm_json(json, "estUpper", "%g", checkasm_sample(var, 1.0));
@@ -334,6 +335,12 @@ static void print_bench_iter(const CheckasmFunc *const f, struct IterState *cons
                         checkasm_json_pop(json, '}');
                     }
                     checkasm_json_pop(json, ']');
+
+                    CheckasmRegression reg = checkasm_stats_regress(v->stats);
+                    checkasm_json_push(json, "regression", '{');
+                    json_var(json, "slope", checkasm_perf.unit, reg.slope);
+                    json_var(json, "r2", NULL, reg.r2);
+                    checkasm_json_pop(json, '}');
                 }
                 checkasm_json_pop(json, '}'); /* close version */
                 break;
@@ -511,6 +518,7 @@ void checkasm_bench_finish(void)
         if (cfg.bench_format == CHECKASM_BENCH_HTML) {
             if (v->nb_bench > 1) {
                 free(v->stats); /* TODO: handle multiple bench_new() calls */
+                v->stats = NULL;
             } else {
                 assert(!v->stats);
                 v->stats = malloc(sizeof(*v->stats));
