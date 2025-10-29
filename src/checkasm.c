@@ -101,11 +101,14 @@ static struct {
     int    prev_checked, prev_failed;
     double var_sum, var_max;
 
-    /* Runtime constants */
+    /* Timing code measurements (aggregated over multiple trials) */
     CheckasmVar nop_cycles;
     CheckasmVar perf_scale;
-    uint64_t    target_cycles;
-    int         skip_tests;
+    int         nb_perf;
+
+    /* Runtime constants */
+    uint64_t target_cycles;
+    int      skip_tests;
 } state;
 
 CheckasmCpu checkasm_get_cpu_flags(void)
@@ -449,6 +452,15 @@ static void check_cpu_flag(const CheckasmCpuInfo *cpu)
             state.current_test_name = cfg.tests[i].name;
             state.should_fail       = 0; // reset between tests
             cfg.tests[i].func();
+
+            if (cfg.bench) {
+                /* Measure NOP and perf scale after each test+CPU flag configuration */
+                CheckasmVar nop_cycles = checkasm_measure_nop_cycles(state.target_cycles);
+                CheckasmVar perf_scale = checkasm_measure_perf_scale();
+                state.nop_cycles       = checkasm_var_mul(state.nop_cycles, nop_cycles);
+                state.perf_scale       = checkasm_var_mul(state.perf_scale, perf_scale);
+                state.nb_perf++;
+            }
         }
     }
 }
@@ -586,7 +598,8 @@ int checkasm_run(const CheckasmConfig *config)
          * ensure we reach the required number of cycles with confidence */
         const double low_estimate = checkasm_sample(state.perf_scale, -1.0);
         state.target_cycles       = 1e3 * cfg.bench_usec / low_estimate;
-        state.nop_cycles          = checkasm_measure_nop_cycles(state.target_cycles * 10);
+        state.nop_cycles          = checkasm_measure_nop_cycles(state.target_cycles);
+        state.nb_perf             = 1;
         checkasm_stats_reset(&state.stats);
     }
 
@@ -620,11 +633,12 @@ int checkasm_run(const CheckasmConfig *config)
                 = checkasm_var_div(checkasm_var_const(1e3), state.perf_scale);
             fprintf(stderr,
                     " - Timing resolution: %.4f +/- %.3f ns/%s (%.0f +/- %.1f "
-                    "MHz)\n",
+                    "MHz) (provisional)\n",
                     checkasm_mean(state.perf_scale), checkasm_stddev(state.perf_scale),
                     checkasm_perf.unit, checkasm_mean(mhz), checkasm_stddev(mhz));
 
-            fprintf(stderr, " - No-op overhead: %.2f +/- %.3f %ss per call\n",
+            fprintf(stderr,
+                    " - No-op overhead: %.2f +/- %.3f %ss per call (provisional)\n",
                     checkasm_mean(state.nop_cycles), checkasm_stddev(state.nop_cycles),
                     checkasm_perf.unit);
         }
@@ -652,8 +666,11 @@ int checkasm_run(const CheckasmConfig *config)
         else
             fprintf(stderr, "checkasm: no tests to perform%s\n", skipped);
 
-        if (state.num_benched)
+        if (state.num_benched) {
+            state.nop_cycles = checkasm_var_pow(state.nop_cycles, 1.0 / state.nb_perf);
+            state.perf_scale = checkasm_var_pow(state.perf_scale, 1.0 / state.nb_perf);
             print_benchmarks();
+        }
     }
 
     destroy_func_tree(state.funcs);
