@@ -148,9 +148,12 @@ static const char *cpu_suffix(const CheckasmCpuInfo *cpu)
 
 static CheckasmVar get_cycles(const CheckasmFuncVersion *const v)
 {
+    if (!v->nb_bench)
+        return checkasm_var_const(0.0);
+
     /* Gives the geometric mean across all bench_new() invocations */
-    return v->nb_bench ? checkasm_var_pow(v->cycles_prod, 1.0 / v->nb_bench)
-                       : checkasm_var_const(0.0);
+    const CheckasmVar cycles = checkasm_var_pow(v->cycles_prod, 1.0 / v->nb_bench);
+    return checkasm_var_sub(cycles, state.nop_cycles);
 }
 
 /* Returns the relative standard deviation corresponding to the log variance */
@@ -374,16 +377,15 @@ void checkasm_bench_finish(void)
 {
     CheckasmFuncVersion *const v = state.current_func_ver;
     if (v && state.total_cycles) {
-        const CheckasmVar est_raw = checkasm_stats_estimate(&state.stats);
-        const CheckasmVar cycles  = checkasm_var_sub(est_raw, state.nop_cycles);
+        const CheckasmVar cycles = checkasm_stats_estimate(&state.stats);
 
         /* Accumulate multiple bench_new() calls */
         v->cycles_prod = checkasm_var_mul(v->cycles_prod, cycles);
         v->nb_bench++;
 
         /* Keep track of min/max/avg (log) variance */
-        state.var_sum += est_raw.lvar;
-        state.var_max = fmax(state.var_max, est_raw.lvar);
+        state.var_sum += cycles.lvar;
+        state.var_max = fmax(state.var_max, cycles.lvar);
         state.num_benched++;
     }
 
