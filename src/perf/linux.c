@@ -33,7 +33,7 @@
 
 #include "internal.h"
 
-static int perf_sysfd;
+static int perf_sysfd = -1;
 
 static uint64_t perf_start(void)
 {
@@ -64,10 +64,12 @@ COLD int checkasm_perf_init_linux(CheckasmPerf *perf)
 #endif
     };
 
-    perf_sysfd = syscall(SYS_perf_event_open, &attr, 0, -1, -1, 0);
     if (perf_sysfd == -1) {
-        perror("perf_event_open");
-        return 1;
+        perf_sysfd = syscall(SYS_perf_event_open, &attr, 0, -1, -1, 0);
+        if (perf_sysfd == -1) {
+            perror("perf_event_open");
+            return 1;
+        }
     }
 
     perf->start = perf_start;
