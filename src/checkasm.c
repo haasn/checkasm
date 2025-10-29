@@ -148,11 +148,13 @@ static const char *cpu_suffix(const CheckasmCpuInfo *cpu)
     return cpu ? cpu->suffix : "c";
 }
 
-static CheckasmVar get_cycles(const CheckasmFuncVersion *const v)
+static CheckasmVar get_avg_cycles(const CheckasmFuncVersion *const v)
 {
+    if (!v->nb_bench)
+        return checkasm_var_const(0.0);
+
     /* Gives the geometric mean across all bench_new() invocations */
-    return v->nb_bench ? checkasm_var_pow(v->cycles_prod, 1.0 / v->nb_bench)
-                       : checkasm_var_const(0.0);
+    return checkasm_var_pow(v->cycles_prod, 1.0 / v->nb_bench);
 }
 
 /* Returns the relative standard deviation corresponding to the log variance */
@@ -223,8 +225,10 @@ static void print_bench_iter(const CheckasmFunc *const f)
 
     do {
         if (v->nb_bench) {
-            const CheckasmVar cycles     = get_cycles(v);
-            const CheckasmVar cycles_ref = get_cycles(ref);
+            const CheckasmVar raw        = get_avg_cycles(v);
+            const CheckasmVar raw_ref    = get_avg_cycles(ref);
+            const CheckasmVar cycles     = checkasm_var_sub(raw, state.nop_cycles);
+            const CheckasmVar cycles_ref = checkasm_var_sub(raw_ref, state.nop_cycles);
             const CheckasmVar ratio      = checkasm_var_div(cycles_ref, cycles);
             const CheckasmVar time       = checkasm_var_mul(cycles, state.perf_scale);
 
@@ -376,16 +380,15 @@ void checkasm_bench_finish(void)
 {
     CheckasmFuncVersion *const v = state.current_func_ver;
     if (v && state.total_cycles) {
-        const CheckasmVar est_raw = checkasm_stats_estimate(&state.stats);
-        const CheckasmVar cycles  = checkasm_var_sub(est_raw, state.nop_cycles);
+        const CheckasmVar cycles = checkasm_stats_estimate(&state.stats);
 
         /* Accumulate multiple bench_new() calls */
         v->cycles_prod = checkasm_var_mul(v->cycles_prod, cycles);
         v->nb_bench++;
 
         /* Keep track of min/max/avg (log) variance */
-        state.var_sum += est_raw.lvar;
-        state.var_max = fmax(state.var_max, est_raw.lvar);
+        state.var_sum += cycles.lvar;
+        state.var_max = fmax(state.var_max, cycles.lvar);
         state.num_benched++;
     }
 
