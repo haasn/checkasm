@@ -69,8 +69,11 @@ typedef struct CheckasmFuncVersion {
 /* Binary search tree node */
 typedef struct CheckasmFunc {
     struct CheckasmFunc *child[2];
+    struct CheckasmFunc *prev; /* previous function in current report group */
     CheckasmFuncVersion  versions;
     uint8_t              color; /* 0 = red, 1 = black */
+    const char          *test_name;
+    char                *report_name;
     char                 name[];
 } CheckasmFunc;
 
@@ -127,6 +130,7 @@ static void destroy_func_tree(CheckasmFunc *const f)
 
         destroy_func_tree(f->child[0]);
         destroy_func_tree(f->child[1]);
+        free(f->report_name);
         free(f);
     }
 }
@@ -349,6 +353,10 @@ static CheckasmFunc *get_func(CheckasmFunc **const root, const char *const name)
         /* Allocate and insert a new node into the tree */
         const size_t name_length = strlen(name) + 1;
         f = *root = checkasm_malloc(offsetof(CheckasmFunc, name) + name_length);
+        /* Associate this function with each other function that was last used
+         * as part of the same report group */
+        f->prev      = state.current_func;
+        f->test_name = state.current_test_name;
         memcpy(f->name, name, name_length);
     }
 
@@ -777,17 +785,20 @@ void checkasm_should_fail(int s)
  * the last time this function was called */
 void checkasm_report(const char *const name, ...)
 {
+    char report_name[256];
+
+    va_list arg;
+    va_start(arg, name);
+    vsnprintf(report_name, sizeof(report_name), name, arg);
+    va_end(arg);
+
     const int new_checked = state.num_checked - state.prev_checked;
     if (new_checked) {
-        int     pad_length = (int) state.max_report_name_length + 4;
-        va_list arg;
+        int pad_length = (int) state.max_report_name_length + 4;
         assert(!state.skip_tests);
 
         print_cpu_name();
-        pad_length -= fprintf(stderr, " - %s.", state.current_test_name);
-        va_start(arg, name);
-        pad_length -= vfprintf(stderr, name, arg);
-        va_end(arg);
+        pad_length -= fprintf(stderr, " - %s.%s", state.current_test_name, report_name);
         fprintf(stderr, "%*c", imax(pad_length, 0) + 2, '[');
 
         if (state.should_fail) {
@@ -812,16 +823,20 @@ void checkasm_report(const char *const name, ...)
     } else if (!state.cpu) {
         /* Calculate the amount of padding required
          * to make the output vertically aligned */
-        int     length = (int) strlen(state.current_test_name);
-        va_list arg;
-
-        va_start(arg, name);
-        length += vsnprintf(NULL, 0, name, arg);
-        va_end(arg);
-
+        int length = (int) strlen(state.current_test_name) + strlen(report_name);
         if (length > state.max_report_name_length)
             state.max_report_name_length = length;
     }
+
+    /* Store the report name with each function in this report group */
+    CheckasmFunc *func = state.current_func;
+    while (func) {
+        if (!func->report_name)
+            func->report_name = strdup(report_name);
+        func = func->prev;
+    }
+
+    state.current_func = NULL; /* reset current function for new report */
 }
 
 #if ARCH_ARM
