@@ -51,6 +51,7 @@ typedef enum CheckasmFormat {
     CHECKASM_FORMAT_CSV,    // Comma-separated values, with optional header
     CHECKASM_FORMAT_TSV,    // Tab-separated values, with optional header
     CHECKASM_FORMAT_JSON,   // JSON structured output, with all measurement data
+    CHECKASM_FORMAT_HTML,   // Interactive HTML report
 } CheckasmFormat;
 
 typedef struct CheckasmConfig {

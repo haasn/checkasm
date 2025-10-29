@@ -41,6 +41,7 @@
 #include "checkasm/checkasm.h"
 #include "checkasm/test.h"
 #include "cpu.h"
+#include "html_data.h"
 #include "internal.h"
 #include "stats.h"
 
@@ -236,6 +237,22 @@ static void print_bench_header(struct IterState *const iter)
                    checkasm_stddev(nop_cycles), sep, checkasm_mode(nop_time));
         }
         break;
+    case CHECKASM_FORMAT_HTML:
+        printf("<!doctype html>\n"
+               "<html>\n"
+               "<head>\n"
+               "  <meta charset=\"utf-8\"/>\n"
+               "  <title>checkasm report</title>\n"
+               "  <script type=\"module\">\n"
+               "    %s"
+               "    %s"
+               "  </script>\n"
+               "  <style>\n"
+               "    %s"
+               "  </style>\n"
+               "  <script type=\"application/json\" id=\"report-data\">\n",
+               checkasm_chart_js, checkasm_js, checkasm_css);
+        /* fall through */
     case CHECKASM_FORMAT_JSON:
         checkasm_json_push(json, NULL, '{');
         checkasm_json_str(json, "checkasmVersion", CHECKASM_VERSION);
@@ -299,11 +316,22 @@ static void print_bench_footer(struct IterState *const iter)
                    100.0 * err_rel, state.num_benched, err_max);
         }
         break;
+    case CHECKASM_FORMAT_HTML:
     case CHECKASM_FORMAT_JSON:
         checkasm_json_pop(json, '}'); /* close functions */
         checkasm_json(json, "averageError", "%g", err_rel);
         checkasm_json(json, "maximumError", "%g", err_max);
         checkasm_json_pop(json, '}'); /* close root */
+
+        if (cfg.format == CHECKASM_FORMAT_HTML) {
+            printf("  </script>\n"
+                   "  <meta name=\"viewport\" content=\"width=device-width, "
+                   "initial-scale=1\">\n"
+                   "</head>\n"
+                   "%s"
+                   "</html>\n",
+                   checkasm_html_body);
+        }
         break;
     }
 }
@@ -338,6 +366,7 @@ static void print_bench_iter(const CheckasmFunc *const f, struct IterState *cons
             const CheckasmVar time       = checkasm_var_mul(cycles, perf_scale);
 
             switch (cfg.format) {
+            case CHECKASM_FORMAT_HTML:
             case CHECKASM_FORMAT_JSON:
                 if (!json_func_pushed) {
                     checkasm_json_push(json, f->name, '{');
@@ -696,6 +725,13 @@ void checkasm_list_functions(const CheckasmConfig *config)
 
 int checkasm_run(const CheckasmConfig *config)
 {
+#if !HAVE_HTML_DATA
+    if (cfg.format == CHECKASM_FORMAT_HTML) {
+        fprintf(stderr, "checkasm: built without HTML support\n");
+        return 1;
+    }
+#endif
+
     memset(&state, 0, sizeof(state));
     state.cpu_flags = initial_cpu_flags(config);
     cfg             = *config;
@@ -970,7 +1006,8 @@ static void print_usage(const char *const progname)
             "Options:\n"
             "    --affinity=<cpu>           Run the process on CPU <cpu>\n"
             "    --bench -b                 Benchmark the tested functions\n"
-            "    --csv, --tsv, --json       Choose output format for benchmarks\n"
+            "    --csv, --tsv, --json,      Choose output format for benchmarks\n"
+            "    --html\n"
             "separated values.\n"
             "    --function=<pattern> -f    Test only the functions matching "
             "<pattern>\n"
@@ -1022,6 +1059,13 @@ int checkasm_main(CheckasmConfig *config, int argc, const char *argv[])
             config->format = CHECKASM_FORMAT_TSV;
         } else if (!strcmp(argv[1], "--json")) {
             config->format = CHECKASM_FORMAT_JSON;
+        } else if (!strcmp(argv[1], "--html")) {
+#if HAVE_HTML_DATA
+            config->format = CHECKASM_FORMAT_HTML;
+#else
+            fprintf(stderr, "checkasm: built without HTML support\n");
+            return 1;
+#endif
         } else if (!strncmp(argv[1], "--duration=", 11)) {
             const char *const s = argv[1] + 11;
             if (!parseu(&config->bench_usec, s, 10)) {

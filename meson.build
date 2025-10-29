@@ -43,7 +43,12 @@ if cc.get_argument_syntax() == 'msvc'
       '-wd4244', # Silence "C4244: '=': conversion from 'double' to 'uint64_t', possible loss of data"
       '-wd4996', # use of POSIX functions
     ]
+else
+    optional_arguments += [
+      '-Wno-c23-extensions' # silence use of #embed
+    ]
 endif
+
 add_project_arguments(cc.get_supported_arguments(optional_arguments), language : 'c')
 
 test_args = []
