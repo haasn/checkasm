@@ -105,19 +105,20 @@ CheckasmVar checkasm_stats_estimate(CheckasmStats *const stats)
         return checkasm_var_const(0.0);
 
     /* Compute mean and variance */
-    double sum = 0.0, sum2 = 0.0;
+    double sum = 0.0, sum2 = 0.0, sum_w2 = 0.0;
     int    count = 0;
     for (int i = 0; i < stats->nb_samples; i++) {
         const CheckasmSample s = stats->samples[i];
         const double         x = log(s.sum) - log(s.count);
         sum += x * s.count;
         sum2 += x * x * s.count;
+        sum_w2 += s.count * s.count;
         count += s.count;
     }
 
     const double mean = sum / count;
     return (CheckasmVar) {
         .lmean = mean,
-        .lvar  = sum2 / count - mean * mean,
+        .lvar  = (sum2 - count * mean * mean) / (count - sum_w2 / count),
     };
 }
