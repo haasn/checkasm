@@ -39,6 +39,7 @@
 #define KPC_MASK                    (KPC_CLASS_CONFIGURABLE_MASK | KPC_CLASS_FIXED_MASK)
 
 static int (*kpc_get_thread_counters)(int, unsigned int, void *);
+static int kperf_init;
 
 static inline uint64_t kperf_cycles(void)
 {
@@ -62,6 +63,9 @@ static uint64_t perf_stop(uint64_t t)
 COLD int checkasm_perf_init_macos(CheckasmPerf *perf)
 {
     uint64_t config[COUNTERS_COUNT] = { 0 };
+
+    if (kperf_init)
+        goto done;
 
     void *kperf
         = dlopen("/System/Library/PrivateFrameworks/kperf.framework/kperf", RTLD_LAZY);
@@ -111,6 +115,8 @@ COLD int checkasm_perf_init_macos(CheckasmPerf *perf)
         return 1;
     }
 
+    kperf_init = 1;
+done:
     perf->start = perf_start;
     perf->stop  = perf_stop;
     perf->name  = "macOS (kperf)";
