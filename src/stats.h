@@ -33,21 +33,30 @@
 
 #include "internal.h"
 
-static inline double checkasm_stddev(const CheckasmVar x)
+/* Sample the PDF of a random variable at the given quantile */
+static inline double checkasm_sample(const CheckasmVar x, const double q)
 {
-    return exp(x.lmean + 0.5 * x.lvar) * sqrt(exp(x.lvar) - 1.0);
+    return exp(x.lmean + q * sqrt(x.lvar));
 }
 
-/* Returns the point estimate of a random variable at the given sigma level;
- * sigma=0.0 gives the mean, sigma=1.0 gives the 1 sigma upper bound, etc. */
-static inline double checkasm_sample(const CheckasmVar x, const double sigma)
+static inline double checkasm_median(const CheckasmVar x)
 {
-    return exp(x.lmean + sigma * sqrt(x.lvar));
+    return exp(x.lmean);
+}
+
+static inline double checkasm_mode(const CheckasmVar x)
+{
+    return exp(x.lmean - x.lvar);
 }
 
 static inline double checkasm_mean(const CheckasmVar x)
 {
-    return checkasm_sample(x, 0.0);
+    return exp(x.lmean + 0.5 * x.lvar);
+}
+
+static inline double checkasm_stddev(const CheckasmVar x)
+{
+    return exp(x.lmean + 0.5 * x.lvar) * sqrt(exp(x.lvar) - 1.0);
 }
 
 static inline CheckasmVar checkasm_var_const(double x)

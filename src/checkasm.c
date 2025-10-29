@@ -186,8 +186,8 @@ static void print_bench_header(void)
             const char sep = separator(cfg.bench_format);
             printf("name%csuffix%c%ss%cstddev%cnanoseconds\n", sep, sep,
                    checkasm_perf.unit, sep, sep);
-            printf("nop%c%c%.4f%c%.5f%c%.4f\n", sep, sep, checkasm_mean(nop_cycles), sep,
-                   checkasm_stddev(nop_cycles), sep, checkasm_mean(nop_time));
+            printf("nop%c%c%.4f%c%.5f%c%.4f\n", sep, sep, checkasm_mode(nop_cycles), sep,
+                   checkasm_stddev(nop_cycles), sep, checkasm_mode(nop_time));
         }
         break;
     case CHECKASM_BENCH_PRETTY:
@@ -201,8 +201,8 @@ static void print_bench_header(void)
         checkasm_fprintf(stdout, COLOR_GREEN, " (vs ref)\n");
         if (cfg.verbose) {
             printf("  nop:%*.1f +/- %-7.1f %11.1f ns +/- %-6.1f\n",
-                   6 + state.max_function_name_length, checkasm_mean(nop_cycles),
-                   checkasm_stddev(nop_cycles), checkasm_mean(nop_time),
+                   6 + state.max_function_name_length, checkasm_mode(nop_cycles),
+                   checkasm_stddev(nop_cycles), checkasm_mode(nop_time),
                    checkasm_stddev(nop_time));
         }
         break;
@@ -247,16 +247,16 @@ static void print_bench_iter(const CheckasmFunc *const f)
             case CHECKASM_BENCH_TSV:
             case CHECKASM_BENCH_CSV:
                 printf("%s%c%s%c%.4f%c%.5f%c%.4f\n", f->name, sep, cpu_suffix(v->cpu),
-                       sep, checkasm_mean(cycles), sep, checkasm_stddev(cycles), sep,
-                       checkasm_mean(time));
+                       sep, checkasm_mode(cycles), sep, checkasm_stddev(cycles), sep,
+                       checkasm_mode(time));
                 break;
             case CHECKASM_BENCH_PRETTY:;
                 const int pad = 12 + state.max_function_name_length
                               - printf("  %s_%s:", f->name, cpu_suffix(v->cpu));
-                printf("%*.1f", imax(pad, 0), checkasm_mean(cycles));
+                printf("%*.1f", imax(pad, 0), checkasm_mode(cycles));
                 if (cfg.verbose) {
                     printf(" +/- %-7.1f %11.1f ns +/- %-6.1f", checkasm_stddev(cycles),
-                           checkasm_mean(time), checkasm_stddev(time));
+                           checkasm_mode(time), checkasm_stddev(time));
                 }
                 if (v != ref && ref->nb_bench) {
                     const double ratio_lo = checkasm_sample(ratio, -1.0);
@@ -266,7 +266,7 @@ static void print_bench_iter(const CheckasmFunc *const f)
                                           : ratio_hi >= 1.0 ? COLOR_YELLOW
                                                             : COLOR_RED;
                     printf(" (");
-                    checkasm_fprintf(stdout, color, "%5.2fx", checkasm_mean(ratio));
+                    checkasm_fprintf(stdout, color, "%5.2fx", checkasm_mode(ratio));
                     printf(")");
                 }
                 printf("\n");
@@ -628,8 +628,8 @@ int checkasm_run(const CheckasmConfig *config)
             fprintf(stderr,
                     " - Timing resolution: %.4f +/- %.3f ns/%s (%.0f +/- %.1f "
                     "MHz)\n",
-                    checkasm_mean(state.perf_scale), checkasm_stddev(state.perf_scale),
-                    checkasm_perf.unit, checkasm_mean(mhz), checkasm_stddev(mhz));
+                    checkasm_mode(state.perf_scale), checkasm_stddev(state.perf_scale),
+                    checkasm_perf.unit, checkasm_mode(mhz), checkasm_stddev(mhz));
         }
         fprintf(stderr, " - Bench duration: %d µs per function (%" PRIu64 " %ss)\n",
                 cfg.bench_usec, state.target_cycles, checkasm_perf.unit);
