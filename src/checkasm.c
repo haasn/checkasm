@@ -65,6 +65,9 @@ typedef struct CheckasmFuncVersion {
     CheckasmVar cycles_prod;
     int         nb_bench;
     int         ok;
+
+    CheckasmStats *stats;     /* copy of raw measurement data, only for JSON output */
+    CheckasmVar    stats_est; /* estimate of this specific stats instance */
 } CheckasmFuncVersion;
 
 /* Binary search tree node */
@@ -124,6 +127,7 @@ static void destroy_func_tree(CheckasmFunc *const f)
         CheckasmFuncVersion *v = f->versions.next;
         while (v) {
             CheckasmFuncVersion *next = v->next;
+            free(v->stats);
             free(v);
             v = next;
         }
@@ -333,6 +337,17 @@ static void print_bench_iter(const CheckasmFunc *const f, struct IterState *cons
                 json_var(json, "adjustedTime", "nsec", time);
                 if (v != ref && ref->nb_bench)
                     json_var(json, "ratio", NULL, checkasm_var_div(cycles_ref, cycles));
+                if (v->stats) {
+                    json_var(json, "regressionSlope", checkasm_perf.unit, v->stats_est);
+                    checkasm_json_push(json, "rawData", '[');
+                    for (int i = 0; i < v->stats->nb_samples; i++) {
+                        const CheckasmSample s = v->stats->samples[i];
+                        checkasm_json(json, NULL,
+                                      "{ \"iters\": %d, \"cycles\": %" PRIu64 " }",
+                                      s.count, s.sum);
+                    }
+                    checkasm_json_pop(json, ']');
+                }
                 checkasm_json_pop(json, '}'); /* close version */
                 break;
             case CHECKASM_BENCH_TSV:
@@ -502,6 +517,16 @@ void checkasm_bench_finish(void)
         state.var_sum += cycles.lvar;
         state.var_max = fmax(state.var_max, cycles.lvar);
         state.num_benched++;
+
+        if (cfg.bench_format == CHECKASM_BENCH_JSON) {
+            /* Copy raw measurement data for later reporting */
+            CheckasmStats *stats = malloc(sizeof(*stats));
+            if (stats) {
+                free(v->stats); /* TODO: can we somehow aggregate this instead? */
+                v->stats     = memcpy(stats, &state.stats, sizeof(*stats));
+                v->stats_est = cycles;
+            }
+        }
     }
 
     checkasm_stats_reset(&state.stats);
