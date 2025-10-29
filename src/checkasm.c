@@ -174,6 +174,9 @@ static inline char separator(CheckasmFormat format)
 
 static void print_bench_header(void)
 {
+    const CheckasmVar nop_cycles = state.nop_cycles;
+    const CheckasmVar nop_time   = checkasm_var_mul(nop_cycles, state.perf_scale);
+
     switch (cfg.format) {
     case CHECKASM_FORMAT_TSV:
     case CHECKASM_FORMAT_CSV:
@@ -181,6 +184,8 @@ static void print_bench_header(void)
             const char sep = separator(cfg.format);
             printf("name%csuffix%c%ss%cstddev%cnanoseconds\n", sep, sep,
                    checkasm_perf.unit, sep, sep);
+            printf("nop%c%c%.4f%c%.5f%c%.4f\n", sep, sep, checkasm_mean(nop_cycles), sep,
+                   checkasm_stddev(nop_cycles), sep, checkasm_mean(nop_time));
         }
         break;
     case CHECKASM_FORMAT_PRETTY:
@@ -192,6 +197,12 @@ static void print_bench_header(void)
                              "time (nanoseconds)");
         }
         checkasm_fprintf(stdout, COLOR_GREEN, " (vs ref)\n");
+        if (cfg.verbose) {
+            printf("  nop:%*.1f +/- %-7.1f %11.1f ns +/- %-6.1f\n",
+                   6 + state.max_function_name_length, checkasm_mean(nop_cycles),
+                   checkasm_stddev(nop_cycles), checkasm_mean(nop_time),
+                   checkasm_stddev(nop_time));
+        }
         break;
     }
 }
