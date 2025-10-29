@@ -82,6 +82,19 @@ void checkasm_setup_fprintf(FILE *const f);
 void checkasm_fprintf(FILE *const f, const int color, const char *const fmt, ...)
     ATTR_FORMAT_PRINTF(3, 4);
 
+/* Light-weight helper for printing nested JSON objects */
+typedef struct CheckasmJson {
+    FILE *file;
+    int   level;
+    int   nonempty;
+} CheckasmJson;
+
+void checkasm_json(CheckasmJson *json, const char *key, const char *fmt, ...)
+    ATTR_FORMAT_PRINTF(3, 4);
+void checkasm_json_str(CheckasmJson *json, const char *key, const char *str);
+void checkasm_json_push(CheckasmJson *json, const char *const key, char type);
+void checkasm_json_pop(CheckasmJson *json, char type);
+
 /* Platform specific signal handling */
 void checkasm_set_signal_handlers(void);
 
