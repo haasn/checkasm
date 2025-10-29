@@ -153,14 +153,13 @@ static const char *cpu_suffix(const CheckasmCpuInfo *cpu)
     return cpu ? cpu->suffix : "c";
 }
 
-static CheckasmVar get_cycles(const CheckasmFuncVersion *const v)
+static CheckasmVar get_avg_cycles(const CheckasmFuncVersion *const v)
 {
     if (!v->nb_bench)
         return checkasm_var_const(0.0);
 
     /* Gives the geometric mean across all bench_new() invocations */
-    const CheckasmVar cycles = checkasm_var_pow(v->cycles_prod, 1.0 / v->nb_bench);
-    return checkasm_var_sub(cycles, state.nop_cycles);
+    return checkasm_var_pow(v->cycles_prod, 1.0 / v->nb_bench);
 }
 
 /* Returns the relative standard deviation corresponding to the log variance */
@@ -178,10 +177,34 @@ static inline char separator(CheckasmBenchFormat format)
     }
 }
 
-static void print_bench_header(void)
+static void json_var(CheckasmJson *json, const char *key, const char *unit,
+                     const CheckasmVar var)
 {
-    const CheckasmVar nop_cycles = state.nop_cycles;
-    const CheckasmVar nop_time   = checkasm_var_mul(nop_cycles, state.perf_scale);
+    checkasm_json_push(json, key, '{');
+    if (unit)
+        checkasm_json_str(json, "unit", unit);
+    checkasm_json(json, "mode", "%g", checkasm_mode(var));
+    checkasm_json(json, "median", "%g", checkasm_median(var));
+    checkasm_json(json, "mean", "%g", checkasm_mean(var));
+    checkasm_json(json, "lowerCI", "%g", checkasm_sample(var, -1.96));
+    checkasm_json(json, "upperCI", "%g", checkasm_sample(var, 1.96));
+    checkasm_json(json, "stdDev", "%g", checkasm_stddev(var));
+    checkasm_json(json, "logMean", "%g", var.lmean);
+    checkasm_json(json, "logVar", "%g", var.lvar);
+    checkasm_json_pop(json, '}');
+}
+
+struct IterState {
+    const char  *test;
+    const char  *report;
+    CheckasmJson json;
+};
+
+static void print_bench_header(struct IterState *const iter)
+{
+    const CheckasmVar   nop_cycles = state.nop_cycles;
+    const CheckasmVar   nop_time   = checkasm_var_mul(nop_cycles, state.perf_scale);
+    CheckasmJson *const json       = &iter->json;
 
     switch (cfg.bench_format) {
     case CHECKASM_BENCH_TSV:
@@ -193,6 +216,33 @@ static void print_bench_header(void)
             printf("nop%c%c%.4f%c%.5f%c%.4f\n", sep, sep, checkasm_mode(nop_cycles), sep,
                    checkasm_stddev(nop_cycles), sep, checkasm_mode(nop_time));
         }
+        break;
+    case CHECKASM_BENCH_JSON:
+        checkasm_json_push(json, NULL, '{');
+        checkasm_json_str(json, "checkasmVersion", CHECKASM_VERSION);
+        checkasm_json(json, "numChecked", "%d", state.num_checked);
+        checkasm_json(json, "numFailed", "%d", state.num_failed);
+        checkasm_json(json, "numSkipped", "%d", state.num_skipped);
+        checkasm_json(json, "targetCycles", "%" PRIu64, state.target_cycles);
+        checkasm_json(json, "numBenchmarks", "%d", state.num_benched);
+        checkasm_json_push(json, "cpuFlags", '{');
+        for (int i = 0; i < cfg.nb_cpu_flags; i++) {
+            const CheckasmCpu flag = cfg.cpu_flags[i].flag;
+            checkasm_json_push(json, cfg.cpu_flags[i].suffix, '{');
+            checkasm_json_str(json, "name", cfg.cpu_flags[i].name);
+            checkasm_json(json, "available", (cfg.cpu & flag) == flag ? "true" : "false");
+            checkasm_json_pop(json, '}');
+        }
+        checkasm_json_pop(json, '}'); /* close cpuFlags */
+        checkasm_json_push(json, "tests", '[');
+        for (int i = 0; i < cfg.nb_tests; i++)
+            checkasm_json_str(json, NULL, cfg.tests[i].name);
+        checkasm_json_pop(json, ']'); /* close tests */
+        checkasm_json(json, "nopBenchmarks", "%d", state.nb_nops);
+        json_var(json, "nopCycles", checkasm_perf.unit, nop_cycles);
+        json_var(json, "nopTime", checkasm_perf.unit, nop_time);
+        json_var(json, "perfScale", "nsec/unit", state.perf_scale);
+        checkasm_json_push(json, "functions", '{');
         break;
     case CHECKASM_BENCH_PRETTY:
         checkasm_fprintf(stdout, COLOR_YELLOW, "Benchmark results:\n");
@@ -213,8 +263,12 @@ static void print_bench_header(void)
     }
 }
 
-static void print_bench_footer(void)
+static void print_bench_footer(struct IterState *const iter)
 {
+    const double        err_rel = relative_error(state.var_sum / state.num_benched);
+    const double        err_max = relative_error(state.var_max);
+    CheckasmJson *const json    = &iter->json;
+
     switch (cfg.bench_format) {
     case CHECKASM_BENCH_TSV:
     case CHECKASM_BENCH_CSV: break;
@@ -222,32 +276,65 @@ static void print_bench_footer(void)
         if (cfg.verbose) {
             printf(" - average timing error: %.3f%% across %d benchmarks "
                    "(maximum %.3f%%)\n",
-                   100.0 * relative_error(state.var_sum / state.num_benched),
-                   state.num_benched, 100.0 * relative_error(state.var_max));
+                   100.0 * err_rel, state.num_benched, err_max);
         }
+        break;
+    case CHECKASM_BENCH_JSON:
+        checkasm_json_pop(json, '}'); /* close functions */
+        checkasm_json(json, "averageError", "%g", err_rel);
+        checkasm_json(json, "maximumError", "%g", err_max);
+        checkasm_json_pop(json, '}'); /* close root */
         break;
     }
 }
 
-static void print_bench_iter(const CheckasmFunc *const f)
+static void print_bench_iter(const CheckasmFunc *const f, struct IterState *const iter)
 {
-    const char sep = separator(cfg.bench_format);
+    CheckasmJson *const json = &iter->json;
+    const char          sep  = separator(cfg.bench_format);
     if (!f)
         return;
 
-    print_bench_iter(f->child[0]);
+    print_bench_iter(f->child[0], iter);
 
     const CheckasmFuncVersion *ref = &f->versions;
     const CheckasmFuncVersion *v   = ref;
 
+    /* Defer pushing the function header until we know that we have at least one
+     * benchmark to report */
+    int json_func_pushed = 0;
+
     do {
         if (v->nb_bench) {
-            const CheckasmVar cycles     = get_cycles(v);
-            const CheckasmVar cycles_ref = get_cycles(ref);
+            const CheckasmVar raw        = get_avg_cycles(v);
+            const CheckasmVar raw_ref    = get_avg_cycles(ref);
+            const CheckasmVar cycles     = checkasm_var_sub(raw, state.nop_cycles);
+            const CheckasmVar cycles_ref = checkasm_var_sub(raw_ref, state.nop_cycles);
             const CheckasmVar ratio      = checkasm_var_div(cycles_ref, cycles);
+            const CheckasmVar raw_time   = checkasm_var_mul(raw, state.perf_scale);
             const CheckasmVar time       = checkasm_var_mul(cycles, state.perf_scale);
 
             switch (cfg.bench_format) {
+            case CHECKASM_BENCH_JSON:
+                if (!json_func_pushed) {
+                    checkasm_json_push(json, f->name, '{');
+                    checkasm_json_str(json, "testName", f->test_name);
+                    checkasm_json_str(json, "reportName",
+                                      f->report_name ? f->report_name : "unknown");
+                    checkasm_json_push(json, "versions", '{');
+                    json_func_pushed = 1;
+                }
+
+                checkasm_json_push(json, cpu_suffix(v->cpu), '{');
+                checkasm_json(json, "numBenchmarks", "%d", v->nb_bench);
+                json_var(json, "rawCycles", checkasm_perf.unit, raw);
+                json_var(json, "rawTime", "nsec", raw_time);
+                json_var(json, "adjustedCycles", checkasm_perf.unit, cycles);
+                json_var(json, "adjustedTime", "nsec", time);
+                if (v != ref && ref->nb_bench)
+                    json_var(json, "ratio", NULL, checkasm_var_div(cycles_ref, cycles));
+                checkasm_json_pop(json, '}'); /* close version */
+                break;
             case CHECKASM_BENCH_TSV:
             case CHECKASM_BENCH_CSV:
                 printf("%s%c%s%c%.4f%c%.5f%c%.4f\n", f->name, sep, cpu_suffix(v->cpu),
@@ -279,15 +366,21 @@ static void print_bench_iter(const CheckasmFunc *const f)
         }
     } while ((v = v->next));
 
-    print_bench_iter(f->child[1]);
+    if (json_func_pushed) {
+        checkasm_json_pop(json, '}'); /* close versions */
+        checkasm_json_pop(json, '}'); /* close function */
+    }
+
+    print_bench_iter(f->child[1], iter);
 }
 
-/* Print benchmark results */
 static void print_benchmarks()
 {
-    print_bench_header();
-    print_bench_iter(state.funcs);
-    print_bench_footer();
+    struct IterState iter = { .json.file = stdout };
+    print_bench_header(&iter);
+    print_bench_iter(state.funcs, &iter);
+    print_bench_footer(&iter);
+    assert(iter.json.level == 0);
 }
 
 #define is_digit(x) ((x) >= '0' && (x) <= '9')
@@ -845,7 +938,7 @@ static void print_usage(const char *const progname)
             "Options:\n"
             "    --affinity=<cpu>           Run the process on CPU <cpu>\n"
             "    --bench -b                 Benchmark the tested functions\n"
-            "    --csv, --tsv               Output results in rows of comma or tab "
+            "    --csv, --tsv, --json       Choose output format for benchmarks\n"
             "separated values.\n"
             "    --function=<pattern> -f    Test only the functions matching "
             "<pattern>\n"
@@ -895,6 +988,8 @@ int checkasm_main(CheckasmConfig *config, int argc, const char *argv[])
             config->bench_format = CHECKASM_BENCH_CSV;
         } else if (!strcmp(argv[1], "--tsv")) {
             config->bench_format = CHECKASM_BENCH_TSV;
+        } else if (!strcmp(argv[1], "--json")) {
+            config->bench_format = CHECKASM_BENCH_JSON;
         } else if (!strncmp(argv[1], "--duration=", 11)) {
             const char *const s = argv[1] + 11;
             if (!parseu(&config->bench_usec, s, 10)) {

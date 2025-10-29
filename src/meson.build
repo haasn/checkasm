@@ -91,6 +91,7 @@ have_macos_kperf = host_machine.system() == 'darwin' and arch_aarch64
 # Build configuration
 cdata = configuration_data()
 cdata.set('PREFIX',                         cc.symbols_have_underscore_prefix())
+cdata.set_quoted('CHECKASM_VERSION',        meson.project_version())
 cdata.set10('ARCH_AARCH64',                 arch_aarch64)
 cdata.set10('ARCH_ARM',                     arch_arm)
 cdata.set10('ARCH_X86',                     arch_x86)
