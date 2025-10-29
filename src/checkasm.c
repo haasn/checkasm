@@ -173,6 +173,9 @@ static inline char separator(CheckasmBenchFormat format)
 
 static void print_bench_header(void)
 {
+    const CheckasmVar nop_cycles = state.nop_cycles;
+    const CheckasmVar nop_time   = checkasm_var_mul(nop_cycles, state.perf_scale);
+
     switch (cfg.bench_format) {
     case CHECKASM_BENCH_TSV:
     case CHECKASM_BENCH_CSV:
@@ -180,6 +183,8 @@ static void print_bench_header(void)
             const char sep = separator(cfg.bench_format);
             printf("name%csuffix%c%ss%cstddev%cnanoseconds\n", sep, sep,
                    checkasm_perf.unit, sep, sep);
+            printf("nop%c%c%.4f%c%.5f%c%.4f\n", sep, sep, checkasm_mean(nop_cycles), sep,
+                   checkasm_stddev(nop_cycles), sep, checkasm_mean(nop_time));
         }
         break;
     case CHECKASM_BENCH_PRETTY:
@@ -191,6 +196,12 @@ static void print_bench_header(void)
                              "time (nanoseconds)");
         }
         checkasm_fprintf(stdout, COLOR_GREEN, " (vs ref)\n");
+        if (cfg.verbose) {
+            printf("  nop:%*.1f +/- %-7.1f %11.1f ns +/- %-6.1f\n",
+                   6 + state.max_function_name_length, checkasm_mean(nop_cycles),
+                   checkasm_stddev(nop_cycles), checkasm_mean(nop_time),
+                   checkasm_stddev(nop_time));
+        }
         break;
     }
 }
@@ -609,10 +620,6 @@ int checkasm_run(const CheckasmConfig *config)
                     "MHz)\n",
                     checkasm_mean(state.perf_scale), checkasm_stddev(state.perf_scale),
                     checkasm_perf.unit, checkasm_mean(mhz), checkasm_stddev(mhz));
-
-            fprintf(stderr, " - No-op overhead: %.2f +/- %.3f %ss per call\n",
-                    checkasm_mean(state.nop_cycles), checkasm_stddev(state.nop_cycles),
-                    checkasm_perf.unit);
         }
         fprintf(stderr, " - Bench duration: %d µs per function (%" PRIu64 " %ss)\n",
                 cfg.bench_usec, state.target_cycles, checkasm_perf.unit);
