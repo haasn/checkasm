@@ -128,9 +128,9 @@ CHECKASM_API void checkasm_empty_mmx(void);
     }
 
 #if defined(__GNUC__) || defined(__clang__)
-#define checkasm_emms() __asm__ volatile("emms" ::: "memory")
+  #define checkasm_emms() __asm__ volatile("emms" ::: "memory")
 #else
-#define checkasm_emms() checkasm_empty_mmx()
+  #define checkasm_emms() checkasm_empty_mmx()
 #endif
 
 #define checkasm_clear_cpu_state()                                                       \

@@ -66,7 +66,7 @@ CheckasmVar checkasm_var_inv(CheckasmVar a);
 
 /* Statistical analysis helpers */
 typedef struct CheckasmSample {
-    uint64_t sum; /* batched sum of data points */
+    uint64_t sum;   /* batched sum of data points */
     int      count; /* number of data points in batch */
 } CheckasmSample;
 
