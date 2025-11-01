@@ -26,6 +26,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <limits.h>
 #include <stdio.h>
 
 #include "checkasm/perf.h"
@@ -132,14 +133,12 @@ COLD CheckasmVar checkasm_measure_perf_scale(void)
     const uint64_t target_nsec = 100000; /* 100 us */
 
     /* Estimate the time per loop iteration in two different ways */
-    CheckasmStats stats_cycles;
-    CheckasmStats stats_nsec;
-    checkasm_stats_reset(&stats_cycles);
-    checkasm_stats_reset(&stats_nsec);
-    stats_cycles.next_count = 100;
+    CheckasmStats stats;
+    checkasm_stats_reset(&stats);
+    stats.next_count = 100;
 
-    while (stats_cycles.nb_samples < (int) ARRAY_SIZE(stats_cycles.samples)) {
-        const int iters = stats_cycles.next_count;
+    while (stats.nb_samples < (int) ARRAY_SIZE(stats.samples)) {
+        const int iters = stats.next_count;
 
         /* Warm up the CPU a tiny bit */
         for (int i = 0; i < 100; i++)
@@ -157,15 +156,12 @@ COLD CheckasmVar checkasm_measure_perf_scale(void)
             checkasm_noop(NULL);
         nsec = checkasm_gettime_nsec() - nsec;
 
-        checkasm_stats_add(&stats_cycles, (CheckasmSample) { cycles, iters });
-        checkasm_stats_add(&stats_nsec, (CheckasmSample) { nsec, iters });
-        checkasm_stats_count_grow(&stats_cycles, nsec, target_nsec);
-
+        assert(cycles <= INT_MAX);
+        checkasm_stats_add(&stats, (CheckasmSample) { nsec, (int) cycles });
+        checkasm_stats_count_grow(&stats, nsec, target_nsec);
         if (nsec > target_nsec)
             break;
     }
 
-    CheckasmVar est_cycles = checkasm_stats_estimate(&stats_cycles);
-    CheckasmVar est_nsec   = checkasm_stats_estimate(&stats_nsec);
-    return checkasm_var_div(est_nsec, est_cycles);
+    return checkasm_stats_estimate(&stats);
 }
