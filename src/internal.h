@@ -35,6 +35,7 @@
 
 #include "checkasm/attributes.h"
 #include "checkasm/test.h"
+#include "stats.h"
 
 #ifdef __GNUC__
   #define COLD __attribute__((cold))
@@ -83,10 +84,6 @@ void checkasm_fprintf(FILE *const f, const int color, const char *const fmt, ...
 
 /* Platform specific signal handling */
 void checkasm_set_signal_handlers(void);
-
-typedef struct CheckasmVar {
-    double lmean, lvar; /* log mean and variance */
-} CheckasmVar;
 
 /* Platform specific timing code */
 int checkasm_perf_init(void);

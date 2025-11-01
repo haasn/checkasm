@@ -31,7 +31,9 @@
 #include <math.h>
 #include <stdint.h>
 
-#include "internal.h"
+typedef struct CheckasmVar {
+    double lmean, lvar; /* log mean and variance */
+} CheckasmVar;
 
 /* Sample the PDF of a random variable at the given quantile */
 static inline double checkasm_sample(const CheckasmVar x, const double q)
@@ -82,7 +84,8 @@ typedef struct CheckasmSample {
 typedef struct CheckasmStats {
     /* With a ~12% exponential growth on the number of data points per sample,
      * 256 samples can effectively represent many billions of data points */
-    CheckasmSample samples[256];
+#define CHECKASM_STATS_SAMPLES 256
+    CheckasmSample samples[CHECKASM_STATS_SAMPLES];
     int            nb_samples;
     int            next_count;
 } CheckasmStats;
@@ -96,7 +99,7 @@ static inline void checkasm_stats_reset(CheckasmStats *const stats)
 static inline void checkasm_stats_add(CheckasmStats *const stats, const CheckasmSample s)
 {
     if (s.count > 0) {
-        assert(stats->nb_samples < (int) ARRAY_SIZE(stats->samples));
+        assert(stats->nb_samples < CHECKASM_STATS_SAMPLES);
         stats->samples[stats->nb_samples++] = s;
     }
 }
@@ -107,10 +110,9 @@ static inline void checkasm_stats_count_grow(CheckasmStats *const stats, uint64_
     if (cycles < target_cycles >> 10) { /* sum[(1+1/64)^n | n < 200] */
         /* Function is very fast, increase iteration count dramatically */
         stats->next_count <<= 1;
-    } else {
+    } else if (stats->next_count < 1 << 25) {
         /* Grow more slowly at 1/64 = ~1.5% growth */
         stats->next_count = ((stats->next_count << 6) + stats->next_count + 63) >> 6;
-        stats->next_count = imin(stats->next_count, 1 << 25);
     }
 }
 
