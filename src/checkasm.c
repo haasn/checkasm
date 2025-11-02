@@ -390,7 +390,7 @@ void checkasm_bench_finish(void)
         const CheckasmVar cycles = checkasm_stats_estimate(&state.stats);
 
         /* Accumulate multiple bench_new() calls */
-        checkasm_measurement_update(&v->cycles, cycles);
+        checkasm_measurement_update(&v->cycles, state.stats);
 
         /* Keep track of min/max/avg (log) variance */
         state.var_sum += cycles.lvar;
@@ -450,10 +450,8 @@ static void check_cpu_flag(const CheckasmCpuInfo *cpu)
                 const CheckasmStats perf_scale = checkasm_measure_perf_scale();
                 const CheckasmStats nop_cycles
                     = checkasm_measure_nop_cycles(state.target_cycles);
-                checkasm_measurement_update(&state.nop_cycles,
-                                            checkasm_stats_estimate(&nop_cycles));
-                checkasm_measurement_update(&state.perf_scale,
-                                            checkasm_stats_estimate(&perf_scale));
+                checkasm_measurement_update(&state.nop_cycles, nop_cycles);
+                checkasm_measurement_update(&state.perf_scale, perf_scale);
             }
         }
     }
@@ -594,14 +592,13 @@ int checkasm_run(const CheckasmConfig *config)
 
         const CheckasmStats perf_stats = checkasm_measure_perf_scale();
         const CheckasmVar   perf_scale = checkasm_stats_estimate(&perf_stats);
-        checkasm_measurement_update(&state.perf_scale, perf_scale);
+        checkasm_measurement_update(&state.perf_scale, perf_stats);
         /* Use the low estimate to compute the number of target cycles, to
          * ensure we reach the required number of cycles with confidence */
         const double low_estimate      = checkasm_sample(perf_scale, -1.0);
         state.target_cycles            = 1e3 * cfg.bench_usec / low_estimate;
         const CheckasmStats nop_cycles = checkasm_measure_nop_cycles(state.target_cycles);
-        checkasm_measurement_update(&state.nop_cycles,
-                                    checkasm_stats_estimate(&nop_cycles));
+        checkasm_measurement_update(&state.nop_cycles, nop_cycles);
     }
 
 #if ARCH_ARM

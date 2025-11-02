@@ -30,6 +30,7 @@
 #include <assert.h>
 #include <math.h>
 #include <stdint.h>
+#include <string.h>
 
 typedef struct CheckasmVar {
     double lmean, lvar; /* log mean and variance */
@@ -119,21 +120,27 @@ static inline void checkasm_stats_count_grow(CheckasmStats *const stats, uint64_
 CheckasmVar checkasm_stats_estimate(const CheckasmStats *stats);
 
 typedef struct CheckasmMeasurement {
-    CheckasmVar product;
-    int         nb_measurements;
+    CheckasmVar   product;
+    int           nb_measurements;
+    CheckasmStats stats; /* last measurement run */
 } CheckasmMeasurement;
 
 static inline void checkasm_measurement_init(CheckasmMeasurement *measurement)
 {
-    measurement->product         = checkasm_var_const(1.0);
-    measurement->nb_measurements = 0;
+    measurement->product          = checkasm_var_const(1.0);
+    measurement->nb_measurements  = 0;
+    measurement->stats.nb_samples = 0;
 }
 
 static inline void checkasm_measurement_update(CheckasmMeasurement *measurement,
-                                               const CheckasmVar    var)
+                                               const CheckasmStats  stats)
 {
-    measurement->product = checkasm_var_mul(measurement->product, var);
+    const CheckasmVar est = checkasm_stats_estimate(&stats);
+    measurement->product  = checkasm_var_mul(measurement->product, est);
     measurement->nb_measurements++;
+    measurement->stats.nb_samples = stats.nb_samples;
+    memcpy(measurement->stats.samples, stats.samples,
+           sizeof(stats.samples[0]) * stats.nb_samples);
 }
 
 static inline CheckasmVar
