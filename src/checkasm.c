@@ -732,6 +732,63 @@ void checkasm_list_functions(const CheckasmConfig *config)
     destroy_func_tree(state.funcs);
 }
 
+static void print_info(void)
+{
+    checkasm_fprintf(stderr, COLOR_YELLOW, "checkasm:\n");
+#if ARCH_X86
+    char           name[48];
+    const unsigned cpuid = checkasm_init_x86(name);
+    for (size_t len = strlen(name); len && name[len - 1] == ' '; len--)
+        name[len - 1] = '\0'; /* trim trailing whitespace */
+    fprintf(stderr, " - CPU: %s (%08X)\n", name, cpuid);
+#elif ARCH_RV64
+    const unsigned vlenb = checkasm_init_riscv();
+    if (vlenb)
+        fprintf(stderr, " - CPU: VLEN = %d bits\n", vlenb * 8);
+#elif ARCH_AARCH64 && HAVE_SVE
+    const unsigned sve_len = checkasm_sve_length();
+    if (sve_len)
+        fprintf(stderr, " - CPU: SVE = %d bits\n", sve_len);
+#endif
+    if (cfg.bench) {
+        fprintf(stderr, " - Timing source: %s\n", checkasm_perf.name);
+        if (cfg.verbose) {
+            const CheckasmVar perf_scale = checkasm_measurement_result(state.perf_scale);
+            const CheckasmVar nop_cycles = checkasm_measurement_result(state.nop_cycles);
+            const CheckasmVar mhz = checkasm_var_div(checkasm_var_const(1e3), perf_scale);
+            fprintf(stderr,
+                    " - Timing resolution: %.4f +/- %.3f ns/%s (%.0f +/- %.1f "
+                    "MHz) (provisional)\n",
+                    checkasm_mode(perf_scale), checkasm_stddev(perf_scale),
+                    checkasm_perf.unit, checkasm_mode(mhz), checkasm_stddev(mhz));
+
+            fprintf(stderr,
+                    " - No-op overhead: %.2f +/- %.3f %ss per call (provisional)\n",
+                    checkasm_mode(nop_cycles), checkasm_stddev(nop_cycles),
+                    checkasm_perf.unit);
+        }
+        fprintf(stderr, " - Bench duration: %d µs per function (%" PRIu64 " %ss)\n",
+                cfg.bench_usec, state.target_cycles, checkasm_perf.unit);
+    }
+    fprintf(stderr, " - Random seed: %u\n", cfg.seed);
+}
+
+static void print_summary(void)
+{
+    char skipped[32] = "";
+    if (state.num_skipped)
+        snprintf(skipped, sizeof(skipped), " (%d skipped)", state.num_skipped);
+
+    if (state.num_failed) {
+        fprintf(stderr, "checkasm: %d of %d tests failed%s\n", state.num_failed,
+                state.num_checked, skipped);
+    } else if (state.num_checked) {
+        fprintf(stderr, "checkasm: all %d tests passed%s\n", state.num_checked, skipped);
+    } else {
+        fprintf(stderr, "checkasm: no tests to perform%s\n", skipped);
+    }
+}
+
 int checkasm_run(const CheckasmConfig *config)
 {
 #if !HAVE_HTML_DATA
@@ -788,71 +845,19 @@ int checkasm_run(const CheckasmConfig *config)
         checkasm_checked_call_ptr = checkasm_checked_call_novfp;
 #endif
 
-    checkasm_fprintf(stderr, COLOR_YELLOW, "checkasm:\n");
-#if ARCH_X86
-    char           name[48];
-    const unsigned cpuid = checkasm_init_x86(name);
-    for (size_t len = strlen(name); len && name[len - 1] == ' '; len--)
-        name[len - 1] = '\0'; /* trim trailing whitespace */
-    fprintf(stderr, " - CPU: %s (%08X)\n", name, cpuid);
-#elif ARCH_RV64
-    const unsigned vlenb = checkasm_init_riscv();
-    if (vlenb)
-        fprintf(stderr, " - CPU: VLEN = %d bits\n", vlenb * 8);
-#elif ARCH_AARCH64 && HAVE_SVE
-    const unsigned sve_len = checkasm_sve_length();
-    if (sve_len)
-        fprintf(stderr, " - CPU: SVE = %d bits\n", sve_len);
-#endif
-    if (cfg.bench) {
-        fprintf(stderr, " - Timing source: %s\n", checkasm_perf.name);
-        if (cfg.verbose) {
-            const CheckasmVar perf_scale = checkasm_measurement_result(state.perf_scale);
-            const CheckasmVar nop_cycles = checkasm_measurement_result(state.nop_cycles);
-            const CheckasmVar mhz = checkasm_var_div(checkasm_var_const(1e3), perf_scale);
-            fprintf(stderr,
-                    " - Timing resolution: %.4f +/- %.3f ns/%s (%.0f +/- %.1f "
-                    "MHz) (provisional)\n",
-                    checkasm_mode(perf_scale), checkasm_stddev(perf_scale),
-                    checkasm_perf.unit, checkasm_mode(mhz), checkasm_stddev(mhz));
-
-            fprintf(stderr,
-                    " - No-op overhead: %.2f +/- %.3f %ss per call (provisional)\n",
-                    checkasm_mode(nop_cycles), checkasm_stddev(nop_cycles),
-                    checkasm_perf.unit);
-        }
-        fprintf(stderr, " - Bench duration: %d µs per function (%" PRIu64 " %ss)\n",
-                cfg.bench_usec, state.target_cycles, checkasm_perf.unit);
-    }
-    fprintf(stderr, " - Random seed: %u\n", cfg.seed);
+    print_info();
 
     check_cpu_flag(NULL);
     for (int i = 0; i < cfg.nb_cpu_flags; i++)
         check_cpu_flag(&cfg.cpu_flags[i]);
 
-    int  ret         = 0;
-    char skipped[32] = "";
-    if (state.num_skipped) {
-        snprintf(skipped, sizeof(skipped), " (%d skipped)", state.num_skipped);
-        ret = 1;
-    }
-    if (state.num_failed) {
-        fprintf(stderr, "checkasm: %d of %d tests failed%s\n", state.num_failed,
-                state.num_checked, skipped);
-        ret = 1;
-    } else {
-        if (state.num_checked)
-            fprintf(stderr, "checkasm: all %d tests passed%s\n", state.num_checked,
-                    skipped);
-        else
-            fprintf(stderr, "checkasm: no tests to perform%s\n", skipped);
+    print_summary();
 
-        if (state.num_benched)
-            print_benchmarks();
-    }
+    if (state.num_benched && !state.num_failed)
+        print_benchmarks();
 
     destroy_func_tree(state.funcs);
-    return ret;
+    return state.num_failed || state.num_skipped;
 }
 
 /* Decide whether or not the specified function needs to be tested and
