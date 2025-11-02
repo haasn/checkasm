@@ -57,11 +57,6 @@
   #include <windows.h>
 #endif
 
-typedef struct CheckasmMeasurement {
-    CheckasmVar product;
-    int         nb_measurements;
-} CheckasmMeasurement;
-
 typedef struct CheckasmFuncVersion {
     struct CheckasmFuncVersion *next;
     const CheckasmCpuInfo      *cpu;
@@ -70,23 +65,6 @@ typedef struct CheckasmFuncVersion {
     void *func;
     int   ok;
 } CheckasmFuncVersion;
-
-static void measurement_init(CheckasmMeasurement *measurement)
-{
-    measurement->product         = checkasm_var_const(1.0);
-    measurement->nb_measurements = 0;
-}
-
-static void measurement_update(CheckasmMeasurement *measurement, const CheckasmVar var)
-{
-    measurement->product = checkasm_var_mul(measurement->product, var);
-    measurement->nb_measurements++;
-}
-
-static CheckasmVar measurement_result(const CheckasmMeasurement measurement)
-{
-    return checkasm_var_pow(measurement.product, 1.0 / measurement.nb_measurements);
-}
 
 /* Binary search tree node */
 typedef struct CheckasmFunc {
@@ -188,8 +166,8 @@ static inline char separator(CheckasmFormat format)
 
 static void print_bench_header(void)
 {
-    const CheckasmVar nop_cycles = measurement_result(state.nop_cycles);
-    const CheckasmVar perf_scale = measurement_result(state.perf_scale);
+    const CheckasmVar nop_cycles = checkasm_measurement_result(state.nop_cycles);
+    const CheckasmVar perf_scale = checkasm_measurement_result(state.perf_scale);
     const CheckasmVar nop_time   = checkasm_var_mul(nop_cycles, perf_scale);
 
     switch (cfg.format) {
@@ -248,13 +226,13 @@ static void print_bench_iter(const CheckasmFunc *const f)
 
     const CheckasmFuncVersion *ref        = &f->versions;
     const CheckasmFuncVersion *v          = ref;
-    const CheckasmVar          nop_cycles = measurement_result(state.nop_cycles);
-    const CheckasmVar          perf_scale = measurement_result(state.perf_scale);
+    const CheckasmVar          nop_cycles = checkasm_measurement_result(state.nop_cycles);
+    const CheckasmVar          perf_scale = checkasm_measurement_result(state.perf_scale);
 
     do {
         if (v->cycles.nb_measurements) {
-            const CheckasmVar raw     = measurement_result(v->cycles);
-            const CheckasmVar raw_ref = measurement_result(ref->cycles);
+            const CheckasmVar raw     = checkasm_measurement_result(v->cycles);
+            const CheckasmVar raw_ref = checkasm_measurement_result(ref->cycles);
 
             const CheckasmVar cycles     = checkasm_var_sub(raw, nop_cycles);
             const CheckasmVar cycles_ref = checkasm_var_sub(raw_ref, nop_cycles);
@@ -412,7 +390,7 @@ void checkasm_bench_finish(void)
         const CheckasmVar cycles = checkasm_stats_estimate(&state.stats);
 
         /* Accumulate multiple bench_new() calls */
-        measurement_update(&v->cycles, cycles);
+        checkasm_measurement_update(&v->cycles, cycles);
 
         /* Keep track of min/max/avg (log) variance */
         state.var_sum += cycles.lvar;
@@ -471,8 +449,8 @@ static void check_cpu_flag(const CheckasmCpuInfo *cpu)
                 /* Measure NOP and perf scale after each test+CPU flag configuration */
                 CheckasmVar nop_cycles = checkasm_measure_nop_cycles(state.target_cycles);
                 CheckasmVar perf_scale = checkasm_measure_perf_scale();
-                measurement_update(&state.nop_cycles, nop_cycles);
-                measurement_update(&state.perf_scale, perf_scale);
+                checkasm_measurement_update(&state.nop_cycles, nop_cycles);
+                checkasm_measurement_update(&state.perf_scale, perf_scale);
             }
         }
     }
@@ -607,18 +585,18 @@ int checkasm_run(const CheckasmConfig *config)
         if (checkasm_perf_init())
             return 1;
 
-        measurement_init(&state.nop_cycles);
-        measurement_init(&state.perf_scale);
+        checkasm_measurement_init(&state.nop_cycles);
+        checkasm_measurement_init(&state.perf_scale);
         checkasm_stats_reset(&state.stats);
 
         const CheckasmVar perf_scale = checkasm_measure_perf_scale();
-        measurement_update(&state.perf_scale, perf_scale);
+        checkasm_measurement_update(&state.perf_scale, perf_scale);
         /* Use the low estimate to compute the number of target cycles, to
          * ensure we reach the required number of cycles with confidence */
         const double low_estimate    = checkasm_sample(perf_scale, -1.0);
         state.target_cycles          = 1e3 * cfg.bench_usec / low_estimate;
         const CheckasmVar nop_cycles = checkasm_measure_nop_cycles(state.target_cycles);
-        measurement_update(&state.nop_cycles, nop_cycles);
+        checkasm_measurement_update(&state.nop_cycles, nop_cycles);
     }
 
 #if ARCH_ARM
@@ -647,8 +625,8 @@ int checkasm_run(const CheckasmConfig *config)
     if (cfg.bench) {
         fprintf(stderr, " - Timing source: %s\n", checkasm_perf.name);
         if (cfg.verbose) {
-            const CheckasmVar perf_scale = measurement_result(state.perf_scale);
-            const CheckasmVar nop_cycles = measurement_result(state.nop_cycles);
+            const CheckasmVar perf_scale = checkasm_measurement_result(state.perf_scale);
+            const CheckasmVar nop_cycles = checkasm_measurement_result(state.nop_cycles);
             const CheckasmVar mhz = checkasm_var_div(checkasm_var_const(1e3), perf_scale);
             fprintf(stderr,
                     " - Timing resolution: %.4f +/- %.3f ns/%s (%.0f +/- %.1f "
@@ -750,7 +728,7 @@ void *checkasm_check_func(void *const func, const char *const name, ...)
         state.num_checked++;
 
     if (cfg.bench)
-        measurement_init(&v->cycles);
+        checkasm_measurement_init(&v->cycles);
     return ref;
 }
 

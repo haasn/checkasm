@@ -118,4 +118,28 @@ static inline void checkasm_stats_count_grow(CheckasmStats *const stats, uint64_
 
 CheckasmVar checkasm_stats_estimate(CheckasmStats *stats);
 
+typedef struct CheckasmMeasurement {
+    CheckasmVar product;
+    int         nb_measurements;
+} CheckasmMeasurement;
+
+static inline void checkasm_measurement_init(CheckasmMeasurement *measurement)
+{
+    measurement->product         = checkasm_var_const(1.0);
+    measurement->nb_measurements = 0;
+}
+
+static inline void checkasm_measurement_update(CheckasmMeasurement *measurement,
+                                               const CheckasmVar    var)
+{
+    measurement->product = checkasm_var_mul(measurement->product, var);
+    measurement->nb_measurements++;
+}
+
+static inline CheckasmVar
+checkasm_measurement_result(const CheckasmMeasurement measurement)
+{
+    return checkasm_var_pow(measurement.product, 1.0 / measurement.nb_measurements);
+}
+
 #endif /* CHECKASM_STATS_H */
