@@ -99,7 +99,7 @@ CheckasmVar checkasm_var_div(CheckasmVar a, CheckasmVar b)
     };
 }
 
-CheckasmVar checkasm_stats_estimate(CheckasmStats *const stats)
+CheckasmVar checkasm_stats_estimate(const CheckasmStats *const stats)
 {
     if (!stats->nb_samples)
         return checkasm_var_const(0.0);

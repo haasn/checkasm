@@ -116,7 +116,7 @@ static inline void checkasm_stats_count_grow(CheckasmStats *const stats, uint64_
     }
 }
 
-CheckasmVar checkasm_stats_estimate(CheckasmStats *stats);
+CheckasmVar checkasm_stats_estimate(const CheckasmStats *stats);
 
 typedef struct CheckasmMeasurement {
     CheckasmVar product;
