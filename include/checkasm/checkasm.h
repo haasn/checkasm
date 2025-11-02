@@ -92,6 +92,10 @@ typedef struct CheckasmConfig {
     /* If nonzero, use the specified seed for random number generation. */
     unsigned seed;
 
+    /* Repeat the test (and benchmark, if enabled) this many times, on
+     * successive seeds. Setting -1 effectively tests every possible seed. */
+    unsigned repeat;
+
     /* If nonzero, the process will be pinned to the specified CPU (id) */
     unsigned cpu_affinity;
 } CheckasmConfig;

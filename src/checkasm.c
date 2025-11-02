@@ -807,6 +807,8 @@ int checkasm_run(const CheckasmConfig *config)
 
     if (!cfg.seed)
         cfg.seed = (unsigned) checkasm_gettime_nsec();
+    if (!cfg.repeat)
+        cfg.repeat = 1;
     if (!cfg.bench_usec)
         cfg.bench_usec = 1000;
 
@@ -846,16 +848,29 @@ int checkasm_run(const CheckasmConfig *config)
 
     print_info();
 
-    check_cpu_flag(NULL);
-    for (int i = 0; i < cfg.nb_cpu_flags; i++)
-        check_cpu_flag(&cfg.cpu_flags[i]);
+    for (unsigned i = 0; i < cfg.repeat; i++) {
+        if (i > 0) {
+            checkasm_fprintf(stderr, COLOR_YELLOW, "\nTest #%d:\n", i + 1);
+            fprintf(stderr, " - Random seed: %u\n", cfg.seed);
+        }
+
+        check_cpu_flag(NULL);
+        for (int i = 0; i < cfg.nb_cpu_flags; i++)
+            check_cpu_flag(&cfg.cpu_flags[i]);
+
+        destroy_func_tree(state.current.funcs);
+        memset(&state.current, 0, sizeof(state.current));
+        cfg.seed++;
+
+        if (state.num_failed || state.num_skipped)
+            break;
+    }
 
     print_summary();
 
     if (state.num_benched && !state.num_failed)
         print_benchmarks();
 
-    destroy_func_tree(state.current.funcs);
     return state.num_failed || state.num_skipped;
 }
 
@@ -1036,6 +1051,7 @@ static void print_usage(const char *const progname)
             "    --list-tests               List available tests\n"
             "    --duration=<μs>            Benchmark duration (per function) in "
             "μs\n"
+            "    --repeat[=<N>]             Repeat tests N times, on successive seeds\n"
             "    --test=<pattern> -t        Test only <pattern>\n"
             "    --verbose -v               Print verbose timing info and failure "
             "data\n",
@@ -1113,6 +1129,15 @@ int checkasm_main(CheckasmConfig *config, int argc, const char *argv[])
                 print_usage(argv[0]);
                 return 1;
             }
+        } else if (!strncmp(argv[1], "--repeat=", 9)) {
+            const char *const s = argv[1] + 9;
+            if (!parseu(&config->repeat, s, 10)) {
+                fprintf(stderr, "checkasm: invalid number of repetitions (%s)\n", s);
+                print_usage(argv[0]);
+                return 1;
+            }
+        } else if (!strcmp(argv[1], "--repeat")) {
+            config->repeat = UINT_MAX;
         } else {
             if (!parseu(&config->seed, argv[1], 10)) {
                 fprintf(stderr, "checkasm: unknown option (%s)\n", argv[1]);
