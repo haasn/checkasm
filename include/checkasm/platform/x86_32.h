@@ -30,6 +30,7 @@
 #define CHECKASM_PLATFORM_X86_32_H
 
 #include "checkasm/attributes.h"
+#include "checkasm/checkasm.h"
 
 CHECKASM_API void checkasm_checked_call_emms(void *func, ...);
 

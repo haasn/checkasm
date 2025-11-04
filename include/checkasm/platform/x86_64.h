@@ -32,6 +32,7 @@
 #include <stdint.h>
 
 #include "checkasm/attributes.h"
+#include "checkasm/checkasm.h"
 
 /* YMM and ZMM registers on x86 are turned off to save power when they haven't
  * been used for some period of time. When they are used there will be a
