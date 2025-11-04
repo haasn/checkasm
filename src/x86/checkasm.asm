@@ -193,14 +193,14 @@ cvisible empty_mmx, 0, 0
 
 %if WIN64
     %define stack_param rsp+32 ; shadow space
-    %define num_fn_args rsp+stack_offset+17*8
+    %define num_fn_args rsp+stack_offset+16*8
     %assign num_reg_args 4
     %assign free_regs 7
     %assign clobber_mask_stack_bit 16
     DECLARE_REG_TMP 4
 %else
     %define stack_param rsp
-    %define num_fn_args rsp+stack_offset+11*8
+    %define num_fn_args rsp+stack_offset+10*8
     %assign num_reg_args 6
     %assign free_regs 9
     %assign clobber_mask_stack_bit 64
@@ -228,8 +228,8 @@ cvisible empty_mmx, 0, 0
 cvisible checked_call%1, 2, 15, 16, max_args*8+64+8
     mov          r10d, [num_fn_args]
     mov            r8, 0xdeadbeef00000000
-    mov           r9d, [num_fn_args+r10*8+8] ; clobber_mask
-    mov            t0, [num_fn_args+r10*8]   ; func
+    mov           r9d, [num_fn_args+r10*8+16] ; clobber_mask
+    mov            t0, [num_fn_args+r10*8+8]  ; func
 
     ; Clobber the upper halves of 32-bit parameters
     CLOBBER_UPPER  r0, 1

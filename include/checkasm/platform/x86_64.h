@@ -114,7 +114,7 @@ CHECKASM_API void checkasm_empty_mmx(void);
 
 #define call_new(...)                                                                    \
     (checkasm_set_signal_handler_state(1), checkasm_simd_warmup(),                       \
-     checked_call(__VA_ARGS__, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1,    \
+     checked_call(__VA_ARGS__, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0,     \
                   func_new, clobber_mask));                                              \
     checkasm_set_signal_handler_state(0)
 
