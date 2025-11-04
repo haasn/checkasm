@@ -136,6 +136,29 @@ static void checkasm_test_retval(void)
     report("identity");
 }
 
+static int truncate_c(const float x)
+{
+    return (int) x;
+}
+
+static void checkasm_test_float_arg(void)
+{
+    declare_func(int, float);
+
+    if (check_func(truncate_c, "truncate")) {
+        for (float f = 0.0f; f <= 10.0f; f += 0.5f) {
+            int x = call_ref(f);
+            int y = call_new(f);
+            if (x != y) {
+                if (fail())
+                    fprintf(stderr, "expected %d, got %d\n", x, y);
+            }
+        }
+    }
+
+    report("truncate");
+}
+
 DEF_COPY_GETTER(CHECKASM_CPU_FLAG_BAD_C, memset)
 DEF_COPY_GETTER(CHECKASM_CPU_FLAG_BAD_C, overwrite_left)
 DEF_COPY_GETTER(CHECKASM_CPU_FLAG_BAD_C, overwrite_right)
@@ -145,6 +168,7 @@ DEF_NOOP_GETTER(CHECKASM_CPU_FLAG_BAD_C, segfault)
 void checkasm_check_generic(void)
 {
     checkasm_test_copy(checkasm_copy_c, "copy_generic");
+    checkasm_test_float_arg();
     checkasm_test_retval();
 
     checkasm_should_fail(1);
