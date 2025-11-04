@@ -68,6 +68,10 @@ CHECKASM_API void checkasm_should_fail(int);
     if (checkasm_save_context(checkasm_context))                                         \
         checkasm_handle_signal();
 
+#ifndef declare_func_emms
+  #define declare_func_emms(cpu_flags, ret, ...) declare_func(ret, __VA_ARGS__)
+#endif
+
 /* Indicate that the current test has failed */
 #define fail() checkasm_fail_func("%s:%d", __FILE__, __LINE__)
 
