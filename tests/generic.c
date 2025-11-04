@@ -26,6 +26,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <float.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -77,6 +79,22 @@ void checkasm_test_noop(noop_func fun, const char *name)
     report("%s", name);
 }
 
+void checkasm_test_float(float_func fun, const char *name, const float input)
+{
+    declare_func(float, float);
+
+    if (check_func(fun, "%s", name)) {
+        float x = call_ref(input);
+        float y = call_new(input);
+        if (!float_near_abs_eps(x, y, FLT_EPSILON)) {
+            if (fail())
+                fprintf(stderr, "expected %f, got %f\n", x, y);
+        }
+    }
+
+    report("%s", name);
+}
+
 static DEF_COPY_FUNC(memset)
 {
     memset(dst, 0xAC, size);
@@ -105,6 +123,11 @@ static DEF_NOOP_FUNC(segfault)
 {
     volatile int *bad = NULL;
     *bad              = 0;
+}
+
+static DEF_FLOAT_FUNC(sqrt)
+{
+    return sqrtf(input);
 }
 
 static int identity_ref(const int x)
@@ -170,6 +193,7 @@ DEF_NOOP_GETTER(CHECKASM_CPU_FLAG_BAD_C, segfault)
 void checkasm_check_generic(void)
 {
     checkasm_test_copy(checkasm_copy_c, "copy_generic");
+    checkasm_test_float(checkasm_sqrt, "sqrt_generic", 2.0f);
     checkasm_test_float_arg();
     checkasm_test_retval();
 
