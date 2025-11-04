@@ -44,8 +44,19 @@ CHECKASM_API void checkasm_clear(void *buf, size_t bytes);
 CHECKASM_API void checkasm_clear8(uint8_t *buf, int width, uint8_t val);
 CHECKASM_API void checkasm_clear16(uint16_t *buf, int width, uint16_t val);
 
-#define CLEAR_BUF(buf)     checkasm_clear(buf, sizeof(buf))
-#define RANDOMIZE_BUF(buf) checkasm_randomize(buf, sizeof(buf))
+/**
+ * "Initializes" a buffer to a random mixture of pathological bytes, test
+ * patterns, or random data, in order to try and trigger things like overflow,
+ * underflow and so on. The exact behavior can depend heavily on the chosen
+ * random seed.
+ */
+CHECKASM_API void checkasm_init(void *buf, size_t bytes);
+CHECKASM_API void checkasm_init_mask8(uint8_t *buf, int width, uint8_t mask);
+CHECKASM_API void checkasm_init_mask16(uint16_t *buf, int width, uint16_t mask);
+
+#define CLEAR_BUF(buf)      checkasm_clear(buf, sizeof(buf))
+#define RANDOMIZE_BUF(buf)  checkasm_randomize(buf, sizeof(buf))
+#define INITIALIZE_BUF(buf) checkasm_init(buf, sizeof(buf))
 
 /* float compare utilities */
 CHECKASM_API int checkasm_float_near_ulp(float a, float b, unsigned max_ulp);

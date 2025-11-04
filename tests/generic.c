@@ -42,7 +42,7 @@ void checkasm_test_copy(copy_func fun, const char *name)
     PIXEL_RECT(a_dst, WIDTH, 1);
 
     CHECKASM_ALIGN(uint8_t src[WIDTH]);
-    RANDOMIZE_BUF(src);
+    INITIALIZE_BUF(src);
 
     declare_func(void, uint8_t *dest, const uint8_t *src, size_t n);
 

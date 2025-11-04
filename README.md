@@ -124,7 +124,7 @@ static void test_func1(void)
     CHECKASM_ALIGN(uint8_t dst_c[1024]);
     CHECKASM_ALIGN(uint8_t dst_a[1024]);
     CHECKASM_ALIGN(uint8_t src[1024]);
-    RANDOMIZE_BUF(src);
+    INITIALIZE_BUF(src);
 
     /* substitute for project-specific mechanisms */
     func_type *func = func1_c;

@@ -163,6 +163,61 @@ void checkasm_clear16(uint16_t *buf, int width, uint16_t val)
         *buf++ = val;
 }
 
+/* Randomly downshift an integer */
+static int shift_rand(int x)
+{
+    const int bits = 8 * sizeof(x) - __builtin_clz(x);
+    return x ? (x >> (checkasm_rand() % bits)) : 0;
+}
+
+enum {
+    PAT_ZERO,  // all zero
+    PAT_ONE,   // all one
+    PAT_RAND,  // random data
+    PAT_LOW,   // all low
+    PAT_HIGH,  // all high
+    PAT_ALTLO, // alternating low and high
+    PAT_ALTHI, // alternating high and low
+    PAT_MIX,   // random mix of low and high
+};
+
+void checkasm_init(void *buf, size_t bytes)
+{
+    checkasm_init_mask8(buf, (int) bytes, 0xFF);
+}
+
+#define DEF_CHECKASM_INIT_MASK(BITS, PIXEL)                                              \
+    void checkasm_init_mask##BITS(PIXEL *buf, const int width, const PIXEL mask_pixel)   \
+    {                                                                                    \
+        if (!width)                                                                      \
+            return;                                                                      \
+                                                                                         \
+        int step = 0, mode = 0, mask = mask_pixel;                                       \
+        for (int i = 0; i < width; i++, step--) {                                        \
+            if (!step) {                                                                 \
+                step = imax(shift_rand(width), 1);                                       \
+                mode = checkasm_rand() & 7;                                              \
+                mask = shift_rand(mask_pixel);                                           \
+            }                                                                            \
+                                                                                         \
+            const PIXEL low  = checkasm_rand() & mask;                                   \
+            const PIXEL high = mask_pixel - low;                                         \
+            switch (mode) {                                                              \
+            case PAT_ZERO:  buf[i] = 0; break;                                           \
+            case PAT_ONE:   buf[i] = mask_pixel; break;                                  \
+            case PAT_RAND:  buf[i] = checkasm_rand() & mask_pixel; break;                \
+            case PAT_LOW:   buf[i] = low; break;                                         \
+            case PAT_HIGH:  buf[i] = high; break;                                        \
+            case PAT_ALTLO: buf[i] = (i & 1) ? high : low; break;                        \
+            case PAT_ALTHI: buf[i] = (i & 1) ? low : high; break;                        \
+            case PAT_MIX:   buf[i] = (checkasm_rand() & 1) ? low : high; break;            \
+            }                                                                            \
+        }                                                                                \
+    }
+
+DEF_CHECKASM_INIT_MASK(8, uint8_t)
+DEF_CHECKASM_INIT_MASK(16, uint16_t)
+
 static int use_printf_color;
 
 /* Print colored text to stderr if the terminal supports it */
