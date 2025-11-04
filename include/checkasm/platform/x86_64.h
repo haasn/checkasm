@@ -65,7 +65,7 @@ CHECKASM_API void checkasm_empty_mmx(void);
   #define IGNORED_FP_ARGS 8
 #endif
 
-#if defined(__STDC__) && defined(__STDC_VERSION) && __STDC__ && __STDC_VERSION >= 201112L
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L && __STDC__
   #define clobber_type(arg)                                                              \
       _Generic((void (*)(void *, arg)) NULL,                                             \
           void (*)(void *, int32_t): clobber_mask |= 1 << mpos++,                        \
