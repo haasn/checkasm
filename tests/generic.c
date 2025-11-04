@@ -68,7 +68,9 @@ void checkasm_test_noop(noop_func fun, const char *name)
     declare_func(void, int);
 
     if (check_func(fun, "%s", name)) {
-        call_ref(0);
+        /* don't call unchecked because some of these functions are designed to
+         * e.g. intentionally corrupt the stack */
+        (void) func_ref;
         call_new(0);
     }
 
