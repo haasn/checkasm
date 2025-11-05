@@ -190,6 +190,23 @@ DEF_COPY_GETTER(CHECKASM_CPU_FLAG_BAD_C, overwrite_right)
 DEF_COPY_GETTER(CHECKASM_CPU_FLAG_BAD_C, underwrite)
 DEF_NOOP_GETTER(CHECKASM_CPU_FLAG_BAD_C, segfault)
 
+/* Ensure we can call declare_func() inside check_func() */
+static void checkasm_test_check_declare(void)
+{
+    /* Pick a function that will actually crash, to ensure the error
+     * handling still works in this case */
+    noop_func *func = get_segfault();
+
+    if (check_func(func, "check_declare")) {
+        declare_func(void, int);
+
+        call_ref(0);
+        call_new(0);
+    }
+
+    report("check_declare");
+}
+
 void checkasm_check_generic(void)
 {
     checkasm_test_copy(checkasm_copy_c, "copy_generic");
@@ -203,4 +220,5 @@ void checkasm_check_generic(void)
     checkasm_test_copy(get_overwrite_right(), "overwrite_right");
     checkasm_test_copy(get_underwrite(), "underwrite");
     checkasm_test_noop(get_segfault(), "segfault");
+    checkasm_test_check_declare();
 }
