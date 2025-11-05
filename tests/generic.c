@@ -77,19 +77,19 @@ void checkasm_test_noop(noop_func fun, const char *name)
 
 static DEF_COPY_FUNC(memset)
 {
-    memset(dst, 0xFF, size);
+    memset(dst, 0xAC, size);
 }
 
 static DEF_COPY_FUNC(overwrite_left)
 {
     memcpy(dst, src, size);
-    dst[-1] = 0xFF;
+    dst[-1] = dst[-2] = dst[-3] = dst[-4] = 0xAC;
 }
 
 static DEF_COPY_FUNC(overwrite_right)
 {
     memcpy(dst, src, size);
-    dst[size] = 0xFF;
+    dst[size] = dst[size + 1] = dst[size + 2] = dst[size + 3] = 0xAC;
 }
 
 static DEF_COPY_FUNC(underwrite)
