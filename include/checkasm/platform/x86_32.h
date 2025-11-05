@@ -32,15 +32,27 @@
 #include "checkasm/attributes.h"
 #include "checkasm/checkasm.h"
 
+CHECKASM_API void checkasm_checked_call_float(void *func, ...);
 CHECKASM_API void checkasm_checked_call_emms(void *func, ...);
 
 CHECKASM_API void checkasm_empty_mmx(void);
+
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L && __STDC__
+  #define checked_call_fn(ret)                                                           \
+      _Generic((ret (*)(void)) NULL,                                                     \
+          float (*)(void): checkasm_checked_call_float,                                  \
+          double (*)(void): checkasm_checked_call_float,                                 \
+          default: checkasm_checked_call)
+#else
+  /* Always use float version to not trigger false positives */
+  #define checked_call_fn(ret) checkasm_checked_call_float
+#endif
 
 #define declare_new(ret, ...)                                                            \
     ret (*checked_call)(void *, __VA_ARGS__, int, int, int, int, int, int, int, int,     \
                         int, int, int, int, int, int, int)                               \
         = (ret (*)(void *, __VA_ARGS__, int, int, int, int, int, int, int, int, int,     \
-                   int, int, int, int, int, int))(void *) checkasm_checked_call;         \
+                   int, int, int, int, int, int))(void *) checked_call_fn(ret);          \
     int emms_needed = 0;                                                                 \
     (void) emms_needed;
 

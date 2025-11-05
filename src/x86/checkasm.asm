@@ -507,7 +507,9 @@ cvisible checked_call%1, 1, 7
     jz .stack_ok
     REPORT_FAILURE errmsg_stack
 .stack_ok:
-%ifnidn %1, _emms
+%ifidn %1, _emms
+    emms
+%elifnidn %1, _float
     fstenv        [esp]
     movzx          r1, word [esp + 8]
     cmp            r1, 0xffff
@@ -516,7 +518,6 @@ cvisible checked_call%1, 1, 7
     mov       [esp+4], r1
     REPORT_FAILURE errmsg_emms
 .emms_ok:
-%else ; _emms
     emms
 %endif
     ; check for dirty YMM state, i.e. missing vzeroupper
@@ -539,6 +540,7 @@ cvisible checked_call%1, 1, 7
 %endmacro
 
 checked_call_fn
+checked_call_fn _float
 checked_call_fn _emms
 
 %endif ; ARCH_X86_32
