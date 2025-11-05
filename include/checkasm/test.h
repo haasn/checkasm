@@ -39,8 +39,17 @@
  * Internal checkasm API. Used inside tests *
  ********************************************/
 
-CHECKASM_API void *checkasm_check_func(void *func, const char *name, ...)
+/* Decide whether or not the specified function needs to be tested */
+CHECKASM_API int checkasm_check_func(void *func, const char *name, ...)
     CHECKASM_PRINTF(2, 3);
+#define check_func checkasm_check_func
+
+/* Currently active function pointers */
+CHECKASM_API void *checkasm_func_ref(void);
+CHECKASM_API void *checkasm_func_new(void);
+#define func_ref ((func_type *) checkasm_func_ref())
+#define func_new ((func_type *) checkasm_func_new())
+
 CHECKASM_API int  checkasm_fail_func(const char *msg, ...) CHECKASM_PRINTF(1, 2);
 CHECKASM_API void checkasm_report(const char *name, ...) CHECKASM_PRINTF(1, 2);
 CHECKASM_API void checkasm_set_signal_handler_state(int enabled);
@@ -51,17 +60,12 @@ CHECKASM_API void checkasm_set_signal_handler_state(int enabled);
  * between tests. */
 CHECKASM_API void checkasm_should_fail(int);
 
-/* Decide whether or not the specified function needs to be tested */
-#define check_func(func, ...)                                                            \
-    (func_ref = (func_type *) checkasm_check_func((func_new = func), __VA_ARGS__))
-
 /* Declare the function prototype. The first argument is the return value,
  * the remaining arguments are the function parameters. Naming parameters
  * is optional. */
 #define declare_func(ret, ...)                                                           \
-    declare_new(ret, __VA_ARGS__);                                                       \
     typedef ret func_type(__VA_ARGS__);                                                  \
-    func_type  *func_ref, *func_new;
+    declare_new(ret, __VA_ARGS__);
 
 #ifndef declare_func_emms
   #define declare_func_emms(cpu_flags, ret, ...) declare_func(ret, __VA_ARGS__)
@@ -105,13 +109,13 @@ CHECKASM_API const CheckasmPerf *checkasm_get_perf(void);
 #define CHECKASM_PERF_CALL4(...)                                                         \
     do {                                                                                 \
         int tidx = 0;                                                                    \
-        func_new(__VA_ARGS__);                                                           \
+        bench_func(__VA_ARGS__);                                                         \
         tidx = 1;                                                                        \
-        func_new(__VA_ARGS__);                                                           \
+        bench_func(__VA_ARGS__);                                                         \
         tidx = 2;                                                                        \
-        func_new(__VA_ARGS__);                                                           \
+        bench_func(__VA_ARGS__);                                                         \
         tidx = 3;                                                                        \
-        func_new(__VA_ARGS__);                                                           \
+        bench_func(__VA_ARGS__);                                                         \
         (void) tidx;                                                                     \
     } while (0)
 
@@ -129,7 +133,7 @@ CHECKASM_API const CheckasmPerf *checkasm_get_perf(void);
     do {                                                                                 \
         time = perf.start();                                                             \
         for (int tidx = 0; tidx < count; tidx++)                                         \
-            func_new(__VA_ARGS__);                                                       \
+            bench_func(__VA_ARGS__);                                                     \
         time = perf.stop(time);                                                          \
     } while (0)
 
@@ -183,6 +187,7 @@ CHECKASM_API void checkasm_bench_finish(void);
 #define bench_new(...)                                                                   \
     do {                                                                                 \
         if (checkasm_bench_func()) {                                                     \
+            func_type *const bench_func = (func_type *) checkasm_func_new();             \
             checkasm_set_signal_handler_state(1);                                        \
             for (int truns; (truns = checkasm_bench_runs());) {                          \
                 uint64_t time;                                                           \

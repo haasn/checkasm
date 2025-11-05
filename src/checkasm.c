@@ -94,6 +94,7 @@ static struct {
     CheckasmFunc          *funcs;
     CheckasmFunc          *current_func;
     CheckasmFuncVersion   *current_func_ver;
+    void                  *current_func_ref;
     const CheckasmCpuInfo *cpu;
     CheckasmCpu            cpu_flags;
     const char            *current_test_name;
@@ -123,6 +124,16 @@ static struct {
     uint64_t target_cycles;
     int      skip_tests;
 } state;
+
+void *checkasm_func_ref(void)
+{
+    return state.current_func_ref;
+}
+
+void *checkasm_func_new(void)
+{
+    return state.current_func_ver->func;
+}
 
 CheckasmCpu checkasm_get_cpu_flags(void)
 {
@@ -871,7 +882,7 @@ int checkasm_run(const CheckasmConfig *config)
 /* Decide whether or not the specified function needs to be tested and
  * allocate/initialize data structures if needed. Returns a pointer to a
  * reference function if the function should be tested, otherwise NULL */
-void *checkasm_check_func(void *const func, const char *const name, ...)
+int checkasm_check_func(void *const func, const char *const name, ...)
 {
     char    name_buf[256];
     va_list arg;
@@ -882,25 +893,23 @@ void *checkasm_check_func(void *const func, const char *const name, ...)
 
     if (!func || name_length <= 0 || (size_t) name_length >= sizeof(name_buf)
         || (cfg.function_pattern && wildstrcmp(name_buf, cfg.function_pattern))) {
-        return NULL;
+        return 0;
     }
 
     state.current_func = get_func(&state.funcs, name_buf);
 
     state.funcs->color       = 1;
     CheckasmFuncVersion *v   = &state.current_func->versions;
-    void                *ref = func;
+    CheckasmFuncVersion *ref = v;
 
     if (v->func) {
         CheckasmFuncVersion *prev;
         do {
             /* Only test functions that haven't already been tested */
             if (v->func == func || (!v->cpu && !v->ok))
-                return NULL;
-
+                return 0;
             if (v->ok)
-                ref = v->func;
-
+                ref = v;
             prev = v;
         } while ((v = v->next));
 
@@ -916,8 +925,9 @@ void *checkasm_check_func(void *const func, const char *const name, ...)
     v->cpu  = state.cpu;
 
     state.current_func_ver = v;
+    state.current_func_ref = ref->func;
     if (state.skip_tests)
-        return NULL;
+        return 0;
 
     checkasm_srand(cfg.seed);
 
@@ -926,7 +936,7 @@ void *checkasm_check_func(void *const func, const char *const name, ...)
 
     if (cfg.bench)
         checkasm_measurement_init(&v->cycles);
-    return ref;
+    return 1;
 }
 
 /* Indicate that the current test has failed, return whether verbose printing
