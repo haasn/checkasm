@@ -260,6 +260,9 @@ DISABLE_SVE2
 #define EXTERN PRIVATE_PREFIX
 #endif
 
+#define QUOTE2(x) #x
+#define QUOTE(x) QUOTE2(x)
+
 .macro function name, export=0, align=2, visible=0
     .macro endfunc
 #ifdef __ELF__
@@ -270,6 +273,14 @@ DISABLE_SVE2
 #endif
         .purgem endfunc
     .endm
+#if defined(_WIN32) && defined(BUILDING_DLL)
+    .if \export && \visible
+        .section .drectve
+        .ascii "-export:"
+        .ascii QUOTE(EXTERN)
+        .ascii "\name "
+    .endif
+#endif
         .text
         .align \align
     .if \export
