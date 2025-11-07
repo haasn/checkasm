@@ -942,7 +942,7 @@ void checkasm_report(const char *const name, ...)
     } else if (!state.cpu) {
         /* Calculate the amount of padding required
          * to make the output vertically aligned */
-        int length = (int) strlen(state.current_test_name) + strlen(report_name);
+        int length = (int) (strlen(state.current_test_name) + strlen(report_name));
         if (length > state.max_report_name_length)
             state.max_report_name_length = length;
     }
