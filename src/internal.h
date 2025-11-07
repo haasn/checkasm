@@ -99,6 +99,8 @@ void checkasm_json_pop(CheckasmJson *json, char type);
 void checkasm_set_signal_handlers(void);
 
 /* Platform specific timing code */
+extern CheckasmPerf checkasm_perf;
+
 int checkasm_perf_init(void);
 int checkasm_perf_init_linux(CheckasmPerf *perf);
 int checkasm_perf_init_macos(CheckasmPerf *perf);

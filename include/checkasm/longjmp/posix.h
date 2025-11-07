@@ -32,7 +32,7 @@
 #include <setjmp.h>
 
 typedef sigjmp_buf checkasm_jmp_buf;
-#define checkasm_save_context(ctx) sigsetjmp(ctx, 1)
-#define checkasm_load_context(ctx) siglongjmp(ctx, 1)
+#define checkasm_save_context(ctx) sigsetjmp(*ctx, 1)
+#define checkasm_load_context(ctx) siglongjmp(*ctx, 1)
 
 #endif /* CHECKASM_SIGNAL_POSIX_H */

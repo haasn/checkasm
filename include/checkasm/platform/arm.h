@@ -34,14 +34,15 @@
 /* Use a dummy argument, to offset the real parameters by 2, not only 1.
  * This makes sure that potential 8-byte-alignment of parameters is kept
  * the same even when the extra parameters have been removed. */
-CHECKASM_API extern void (*checkasm_checked_call_ptr)(void *func, int dummy, ...);
+typedef void (*checkasm_checked_call_func)(void *func, int dummy, ...);
+CHECKASM_API checkasm_checked_call_func checkasm_get_checked_call_ptr(void);
 
 #define declare_new(ret, ...)                                                            \
     ret (*checked_call)(void *, int dummy, __VA_ARGS__, int, int, int, int, int, int,    \
                         int, int, int, int, int, int, int, int, int, int)                \
         = (ret (*)(void *, int, __VA_ARGS__, int, int, int, int, int, int, int, int,     \
                    int, int, int, int, int, int, int,                                    \
-                   int))(void *) checkasm_checked_call_ptr;
+                   int))(void *) checkasm_get_checked_call_ptr();
 
 #define call_new(...)                                                                    \
     (checkasm_set_signal_handler_state(1),                                               \

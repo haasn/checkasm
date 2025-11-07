@@ -58,6 +58,15 @@
   #include <windows.h>
 #endif
 
+#if ARCH_ARM
+static checkasm_checked_call_func checkasm_checked_call_ptr;
+
+checkasm_checked_call_func checkasm_get_checked_call_ptr(void)
+{
+    return checkasm_checked_call_ptr;
+}
+#endif
+
 typedef struct CheckasmFuncVersion {
     struct CheckasmFuncVersion *next;
     const CheckasmCpuInfo      *cpu;
@@ -995,10 +1004,6 @@ void checkasm_report(const char *const name, ...)
 
     state.current_func = NULL; /* reset current function for new report */
 }
-
-#if ARCH_ARM
-void (*checkasm_checked_call_ptr)(void *func, int dummy, ...);
-#endif
 
 static void print_usage(const char *const progname)
 {

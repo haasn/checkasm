@@ -46,7 +46,7 @@ CHECKASM_API int  checkasm_fail_func(const char *msg, ...) ATTR_FORMAT_PRINTF(1,
 CHECKASM_API void checkasm_report(const char *name, ...) ATTR_FORMAT_PRINTF(1, 2);
 CHECKASM_API void checkasm_set_signal_handler_state(int enabled);
 CHECKASM_API void checkasm_handle_signal(void);
-CHECKASM_API extern checkasm_jmp_buf checkasm_context;
+CHECKASM_API checkasm_jmp_buf *checkasm_get_context(void);
 
 /* Mark a block of tests as expected to fail. If this is set, at least
  * one failure must be detected in between each report() call, otherwise
@@ -65,7 +65,7 @@ CHECKASM_API void checkasm_should_fail(int);
     declare_new(ret, __VA_ARGS__);                                                       \
     typedef ret func_type(__VA_ARGS__);                                                  \
     func_type  *func_ref, *func_new;                                                     \
-    if (checkasm_save_context(checkasm_context))                                         \
+    if (checkasm_save_context(checkasm_get_context()))                                   \
         checkasm_handle_signal();
 
 #ifndef declare_func_emms
@@ -105,7 +105,7 @@ typedef struct CheckasmPerf {
 #endif
 } CheckasmPerf;
 
-CHECKASM_API extern CheckasmPerf checkasm_perf;
+CHECKASM_API const CheckasmPerf *checkasm_get_perf(void);
 
 #define CHECKASM_PERF_CALL4(...)                                                         \
     do {                                                                                 \
@@ -164,7 +164,7 @@ CHECKASM_API extern CheckasmPerf checkasm_perf;
   #endif
   #define CHECKASM_PERF_BENCH(count, time, ...)                                          \
       do {                                                                               \
-          const CheckasmPerf perf = checkasm_perf;                                       \
+          const CheckasmPerf perf = *checkasm_get_perf();                                \
           if (CHECKASM_PERF_ASM_USABLE && count >= 128) {                                \
               CHECKASM_PERF_BENCH_ASM(count, time, __VA_ARGS__);                         \
           } else {                                                                       \
@@ -174,7 +174,7 @@ CHECKASM_API extern CheckasmPerf checkasm_perf;
 #else /* !CHECKASM_PERF_ASM */
   #define CHECKASM_PERF_BENCH(count, time, ...)                                          \
       do {                                                                               \
-          const CheckasmPerf perf = checkasm_perf;                                       \
+          const CheckasmPerf perf = *checkasm_get_perf();                                \
           CHECKASM_PERF_BENCH_SIMPLE(count, time, __VA_ARGS__);                          \
       } while (0)
 #endif
