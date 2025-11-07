@@ -79,8 +79,12 @@ api_export_flags = []
 api_export_flags_asm = []
 if host_machine.system() == 'windows'
     if get_option('default_library') != 'static'
-        api_export_flags = ['-DCHECKASM_BUILDING_DLL', '-DBUILDING_DLL']
-        api_export_flags_asm = ['-DBUILDING_DLL']
+        # nasm's dllexport doesn't match the mingw conventions on x86_32,
+        # so don't do explicit dllexport at all, just let it export all symbols.
+        if cc.get_argument_syntax() == 'msvc' or not arch_x86_32
+            api_export_flags = ['-DCHECKASM_BUILDING_DLL', '-DBUILDING_DLL']
+            api_export_flags_asm = ['-DBUILDING_DLL']
+        endif
     endif
 endif
 
