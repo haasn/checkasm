@@ -163,10 +163,26 @@ void checkasm_clear16(uint16_t *buf, int width, uint16_t val)
         *buf++ = val;
 }
 
+#if defined(_MSC_VER) && !defined(__clang__)
+#include <intrin.h>
+
+static inline int clz(const unsigned int mask) {
+    unsigned long leading_zero = 0;
+    _BitScanReverse(&leading_zero, mask);
+    return (31 - leading_zero);
+}
+
+#else /* !_MSC_VER */
+static inline int clz(const unsigned int mask) {
+    return __builtin_clz(mask);
+}
+#endif /* !_MSC_VER */
+
+
 /* Randomly downshift an integer */
 static int shift_rand(int x)
 {
-    const int bits = 8 * sizeof(x) - __builtin_clz(x);
+    const int bits = 8 * sizeof(x) - clz(x);
     return x ? (x >> (checkasm_rand() % bits)) : 0;
 }
 
