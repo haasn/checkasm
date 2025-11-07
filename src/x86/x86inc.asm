@@ -43,17 +43,24 @@
     %endif
 %endif
 
+%define WIN32  0
 %define WIN64  0
 %define UNIX64 0
 %if ARCH_X86_64
     %ifidn __OUTPUT_FORMAT__,win32
+        %define WIN32  1
         %define WIN64  1
     %elifidn __OUTPUT_FORMAT__,win64
+        %define WIN32  1
         %define WIN64  1
     %elifidn __OUTPUT_FORMAT__,x64
         %define WIN64  1
     %else
         %define UNIX64 1
+    %endif
+%else
+    %ifidn __OUTPUT_FORMAT__,win32
+        %define WIN32  1
     %endif
 %endif
 
