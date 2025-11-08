@@ -815,8 +815,10 @@ int checkasm_run(const CheckasmConfig *config)
 
     int  ret         = 0;
     char skipped[32] = "";
-    if (state.num_skipped)
+    if (state.num_skipped) {
         snprintf(skipped, sizeof(skipped), " (%d skipped)", state.num_skipped);
+        ret = 1;
+    }
     if (state.num_failed) {
         fprintf(stderr, "checkasm: %d of %d tests failed%s\n", state.num_failed,
                 state.num_checked, skipped);
