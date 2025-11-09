@@ -44,9 +44,7 @@ CHECKASM_API void *checkasm_check_func(void *func, const char *name, ...)
     ATTR_FORMAT_PRINTF(2, 3);
 CHECKASM_API int  checkasm_fail_func(const char *msg, ...) ATTR_FORMAT_PRINTF(1, 2);
 CHECKASM_API void checkasm_report(const char *name, ...) ATTR_FORMAT_PRINTF(1, 2);
-CHECKASM_API void checkasm_set_signal_handler_state(int enabled);
 CHECKASM_API void checkasm_handle_signal(void);
-CHECKASM_API checkasm_jmp_buf *checkasm_get_context(void);
 
 /* Mark a block of tests as expected to fail. If this is set, at least
  * one failure must be detected in between each report() call, otherwise
@@ -58,6 +56,11 @@ CHECKASM_API void checkasm_should_fail(int);
 #define check_func(func, ...)                                                            \
     (func_ref = (func_type *) checkasm_check_func((func_new = func), __VA_ARGS__))
 
+static checkasm_jmp_buf checkasm_context;
+CHECKASM_API void       checkasm_set_signal_handler(checkasm_jmp_buf *context);
+#define checkasm_set_signal_handler_state(state)                                         \
+    checkasm_set_signal_handler((state) ? &checkasm_context : NULL)
+
 /* Declare the function prototype. The first argument is the return value,
  * the remaining arguments are the function parameters. Naming parameters
  * is optional. */
@@ -65,7 +68,7 @@ CHECKASM_API void checkasm_should_fail(int);
     declare_new(ret, __VA_ARGS__);                                                       \
     typedef ret func_type(__VA_ARGS__);                                                  \
     func_type  *func_ref, *func_new;                                                     \
-    if (checkasm_save_context(checkasm_get_context()))                                   \
+    if (checkasm_save_context(checkasm_context))                                         \
         checkasm_handle_signal();
 
 #ifndef declare_func_emms
@@ -208,5 +211,11 @@ CHECKASM_API void checkasm_bench_finish(void);
  * calls for functions which modifies their input buffer(s) to ensure that
  * throughput, and not latency, is measured. */
 #define alternate(a, b) ((tidx & 1) ? (b) : (a))
+
+/* Suppress unused static variable warnings */
+static inline void checkasm_unused(void)
+{
+    (void) checkasm_context;
+}
 
 #endif /* CHECKASM_TEST_H */

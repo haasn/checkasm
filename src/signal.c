@@ -44,18 +44,13 @@
   #endif
 #endif
 
-static checkasm_jmp_buf checkasm_context;
-
-checkasm_jmp_buf *checkasm_get_context(void)
-{
-    return &checkasm_context;
-}
-
+static checkasm_jmp_buf *volatile cur_context;
 static volatile sig_atomic_t sig; // SIG_ATOMIC_MAX = signal handling enabled
 
-void checkasm_set_signal_handler_state(const int enabled)
+void checkasm_set_signal_handler(checkasm_jmp_buf *context)
 {
-    sig = enabled ? SIG_ATOMIC_MAX : 0;
+    cur_context = context;
+    sig         = context ? SIG_ATOMIC_MAX : 0;
 }
 
 #ifdef _WIN32
@@ -78,7 +73,7 @@ static LONG NTAPI signal_handler(EXCEPTION_POINTERS *const e)
         default:                              return EXCEPTION_CONTINUE_SEARCH;
         }
         sig = s;
-        checkasm_load_context(&checkasm_context);
+        checkasm_load_context(*cur_context);
     }
     return EXCEPTION_CONTINUE_SEARCH;
 }
@@ -98,7 +93,7 @@ static void signal_handler(const int s)
     if (sig == SIG_ATOMIC_MAX) {
         sig = s;
         sigaction(s, &signal_handler_act, NULL);
-        checkasm_load_context(&checkasm_context);
+        checkasm_load_context(*cur_context);
     }
 }
 #endif
