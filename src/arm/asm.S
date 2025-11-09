@@ -260,7 +260,7 @@ DISABLE_SVE2
 #define EXTERN PRIVATE_PREFIX
 #endif
 
-.macro function name, export=0, align=2
+.macro function name, export=0, align=2, visible=0
     .macro endfunc
 #ifdef __ELF__
         .size   \name, . - \name
@@ -276,9 +276,13 @@ DISABLE_SVE2
         .global EXTERN\name
 #ifdef __ELF__
         .type   EXTERN\name, %function
+    .if !\visible
         .hidden EXTERN\name
+    .endif
 #elif defined(__MACH__)
+    .if !\visible
         .private_extern EXTERN\name
+    .endif
 #endif
 #if HAVE_AS_FUNC
         .func   EXTERN\name
