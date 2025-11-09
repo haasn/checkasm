@@ -45,12 +45,11 @@
 #endif
 
 static checkasm_jmp_buf *volatile cur_context;
-static volatile sig_atomic_t sig; // SIG_ATOMIC_MAX = signal handling enabled
+static volatile sig_atomic_t sig;
 
 void checkasm_set_signal_handler(checkasm_jmp_buf *context)
 {
     cur_context = context;
-    sig         = context ? SIG_ATOMIC_MAX : 0;
 }
 
 #ifdef _WIN32
@@ -58,7 +57,7 @@ void checkasm_set_signal_handler(checkasm_jmp_buf *context)
   #if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
 static LONG NTAPI signal_handler(EXCEPTION_POINTERS *const e)
 {
-    if (sig == SIG_ATOMIC_MAX) {
+    if (cur_context) {
         int s;
         switch (e->ExceptionRecord->ExceptionCode) {
         case EXCEPTION_FLT_DIVIDE_BY_ZERO:
@@ -90,7 +89,7 @@ static const struct sigaction signal_handler_act = {
 
 static void signal_handler(const int s)
 {
-    if (sig == SIG_ATOMIC_MAX) {
+    if (cur_context) {
         sig = s;
         sigaction(s, &signal_handler_act, NULL);
         checkasm_load_context(*cur_context);
