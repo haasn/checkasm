@@ -125,6 +125,13 @@ if arch_x86
   cdata.set10('FORCE_VEX_ENCODING', cc.get_define('__AVX__').strip() != '')
 endif
 
+if arch_aarch64
+  # TODO: Actually set these flags correctly.
+  cdata.set10('HAVE_AS_ARCH_DIRECTIVE', false)
+  cdata.set10('HAVE_AS_ARCHEXT_SVE_DIRECTIVE', false)
+  cdata.set10('HAVE_SVE', false)
+endif
+
 checkasm_config = []
 checkasm_config += configure_file(
   output: 'config.h',
