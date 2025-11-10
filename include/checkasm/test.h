@@ -45,7 +45,6 @@ CHECKASM_API void *checkasm_check_func(void *func, const char *name, ...)
 CHECKASM_API int  checkasm_fail_func(const char *msg, ...) CHECKASM_PRINTF(1, 2);
 CHECKASM_API void checkasm_report(const char *name, ...) CHECKASM_PRINTF(1, 2);
 CHECKASM_API void checkasm_set_signal_handler_state(int enabled);
-CHECKASM_API void checkasm_handle_signal(void);
 CHECKASM_API checkasm_jmp_buf *checkasm_get_context(void);
 
 /* Mark a block of tests as expected to fail. If this is set, at least
@@ -64,9 +63,7 @@ CHECKASM_API void checkasm_should_fail(int);
 #define declare_func(ret, ...)                                                           \
     declare_new(ret, __VA_ARGS__);                                                       \
     typedef ret func_type(__VA_ARGS__);                                                  \
-    func_type  *func_ref, *func_new;                                                     \
-    if (checkasm_save_context(checkasm_get_context()))                                   \
-        checkasm_handle_signal();
+    func_type  *func_ref, *func_new;
 
 #ifndef declare_func_emms
   #define declare_func_emms(cpu_flags, ret, ...) declare_func(ret, __VA_ARGS__)

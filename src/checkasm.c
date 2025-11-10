@@ -99,6 +99,8 @@ static struct {
     const char            *current_test_name;
     CheckasmStats          stats;
     uint64_t               total_cycles;
+    int                    current_reports;
+    int                    skip_reports;
 
     /* Miscellaneous state */
     int    num_checked;
@@ -605,9 +607,20 @@ static void check_cpu_flag(const CheckasmCpuInfo *cpu)
         for (int i = 0; i < cfg.nb_tests; i++) {
             if (cfg.test_pattern && wildstrcmp(cfg.tests[i].name, cfg.test_pattern))
                 continue;
-            checkasm_srand(cfg.seed);
             state.current_test_name = cfg.tests[i].name;
-            state.should_fail       = 0; // reset between tests
+            state.current_reports   = 0;
+
+            if (checkasm_save_context(checkasm_get_context())) {
+                checkasm_fail_internal("%s", checkasm_get_last_signal_desc());
+
+                /* We want to associate the failure with the correct report
+                 * group, so skip all report() calls until we reach the same
+                 * position in the test function. */
+                state.skip_reports = state.current_reports;
+            }
+
+            checkasm_srand(cfg.seed);
+            state.should_fail = 0; // reset between tests
             cfg.tests[i].func();
 
             if (cfg.bench) {
@@ -959,6 +972,13 @@ void checkasm_should_fail(int s)
  * the last time this function was called */
 void checkasm_report(const char *const name, ...)
 {
+    /* When resuming a test after a signal, we may need to skip some report()
+     * calls to get back to the one we were at when the signal handler fired */
+    if (state.skip_reports) {
+        state.skip_reports--;
+        return;
+    }
+
     char report_name[256];
 
     va_list arg;
@@ -1011,6 +1031,7 @@ void checkasm_report(const char *const name, ...)
     }
 
     state.current_func = NULL; /* reset current function for new report */
+    state.current_reports++;
 }
 
 static void print_usage(const char *const progname)

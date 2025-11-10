@@ -123,11 +123,11 @@ COLD void checkasm_set_signal_handlers(void)
     handlers_set = 1;
 }
 
-void checkasm_handle_signal(void)
+const char *checkasm_get_last_signal_desc(void)
 {
     const int s = sig;
-    checkasm_fail_func(s == SIGFPE   ? "fatal arithmetic error"
-                       : s == SIGILL ? "illegal instruction"
-                       : s == SIGBUS ? "bus error"
-                                     : "segmentation fault");
+    return s == SIGFPE ? "fatal arithmetic error"
+         : s == SIGILL ? "illegal instruction"
+         : s == SIGBUS ? "bus error"
+                       : "segmentation fault";
 }
