@@ -38,10 +38,6 @@
 #define x18 do_not_use_x18
 #define w18 do_not_use_w18
 
-#if HAVE_AS_ARCH_DIRECTIVE
-        .arch AS_ARCH_LEVEL
-#endif
-
 #if HAVE_AS_ARCHEXT_SVE_DIRECTIVE
 #define ENABLE_SVE  .arch_extension sve
 #define DISABLE_SVE .arch_extension nosve
@@ -52,7 +48,7 @@
 
 /* If we do support the .arch_extension directives, disable support for all
  * the extensions that we may use, in case they were implicitly enabled by
- * the .arch level. This makes it clear if we try to assemble an instruction
+ * default. This makes it clear if we try to assemble an instruction
  * from an unintended extension set; we only allow assmbling such instructions
  * within regions where we explicitly enable those extensions. */
 DISABLE_SVE

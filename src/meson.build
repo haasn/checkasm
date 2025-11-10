@@ -64,11 +64,11 @@ if ((arch_aarch64 or arch_arm) and
             '-nologo',
             '-I@0@'.format(meson.current_source_dir()),
             '-I@0@'.format(meson.current_build_dir()),
-            '@EXTRA_ARGS@',
     ]
     gaspp_gen = generator(gaspp,
         output: '@BASENAME@.obj',
         arguments: gaspp_args + [
+            '@EXTRA_ARGS@',
             '@INPUT@',
             '-c',
             '-o', '@OUTPUT@'
@@ -126,10 +126,26 @@ if arch_x86
 endif
 
 if arch_aarch64
-  # TODO: Actually set these flags correctly.
-  cdata.set10('HAVE_AS_ARCH_DIRECTIVE', false)
-  cdata.set10('HAVE_AS_ARCHEXT_SVE_DIRECTIVE', false)
-  cdata.set10('HAVE_SVE', false)
+  if use_gaspp
+    python3 = import('python').find_installation()
+  endif
+  foreach name, instr : {'sve': 'whilelt p0.s, x0, x1'}
+    if use_gaspp
+      f = configure_file(
+        command: [python3, '-c', 'import sys; print(sys.argv[1])', '@0@'.format(instr)],
+        output: 'test-@0@.S'.format(name),
+        capture: true)
+      r = run_command(gaspp, gaspp_args, f, '-c', '-o', meson.current_build_dir() / 'test-' + name + '.obj', check: false)
+      message('Checking for gaspp/armasm64 ' + name.to_upper() + ': ' + (r.returncode() == 0 ? 'YES' : 'NO'))
+      cdata.set10('HAVE_AS_ARCHEXT_' + name.to_upper() + '_DIRECTIVE', false)
+      cdata.set10('HAVE_' + name.to_upper(), r.returncode() == 0)
+    else
+      code = f'__asm__ (".arch_extension @name@\\n@instr@\\n");'
+      supported = cc.compiles(code, name: name.to_upper())
+      cdata.set10('HAVE_AS_ARCHEXT_' + name.to_upper() + '_DIRECTIVE', supported)
+      cdata.set10('HAVE_' + name.to_upper(), supported)
+    endif
+  endforeach
 endif
 
 checkasm_config = []
