@@ -53,9 +53,26 @@ checkasm_jmp_buf *checkasm_get_context(void)
 
 static volatile sig_atomic_t sig; // SIG_ATOMIC_MAX = signal handling enabled
 
+volatile sig_atomic_t checkasm_interrupted;
+
 void checkasm_set_signal_handler_state(const int enabled)
 {
     sig = enabled ? SIG_ATOMIC_MAX : 0;
+}
+
+static void interrupt_handler(const int s)
+{
+    checkasm_interrupted = 1;
+
+    /* If we happen to be currently executing a test function, we should jump
+     * directly out of it; since it may take an arbitrary amount of time */
+    if (sig == SIG_ATOMIC_MAX) {
+        sig = s;
+        checkasm_load_context(&checkasm_context);
+    }
+
+    /* Don't re-set the signal handler, to let the next signal trigger the
+     * default action */
 }
 
 #ifdef _WIN32
@@ -88,6 +105,11 @@ static LONG NTAPI signal_handler(EXCEPTION_POINTERS *const e)
 
 static void signal_handler(int s);
 
+static const struct sigaction interrupt_handler_act = {
+    .sa_handler = interrupt_handler,
+    .sa_flags   = SA_RESETHAND,
+};
+
 static const struct sigaction signal_handler_act = {
     .sa_handler = signal_handler,
     .sa_flags   = SA_RESETHAND,
@@ -113,11 +135,15 @@ COLD void checkasm_set_signal_handlers(void)
   #if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
     AddVectoredExceptionHandler(0, signal_handler);
   #endif
+    signal(SIGINT, interrupt_handler);
+    signal(SIGTERM, interrupt_handler);
 #else // !_WIN32
     sigaction(SIGBUS, &signal_handler_act, NULL);
     sigaction(SIGFPE, &signal_handler_act, NULL);
     sigaction(SIGILL, &signal_handler_act, NULL);
     sigaction(SIGSEGV, &signal_handler_act, NULL);
+    sigaction(SIGINT, &interrupt_handler_act, NULL);
+    sigaction(SIGTERM, &interrupt_handler_act, NULL);
 #endif
 
     handlers_set = 1;
@@ -126,6 +152,9 @@ COLD void checkasm_set_signal_handlers(void)
 void checkasm_handle_signal(void)
 {
     const int s = sig;
+    if (s == SIGINT || s == SIGTERM)
+        return; /* function was interrupted */
+
     checkasm_fail_func(s == SIGFPE   ? "fatal arithmetic error"
                        : s == SIGILL ? "illegal instruction"
                        : s == SIGBUS ? "bus error"

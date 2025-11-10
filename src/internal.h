@@ -30,6 +30,7 @@
 #ifndef CHECKASM_INTERNAL_H
 #define CHECKASM_INTERNAL_H
 
+#include <signal.h>
 #include <stdint.h>
 #include <stdio.h>
 
@@ -97,6 +98,10 @@ void checkasm_json_pop(CheckasmJson *json, char type);
 
 /* Platform specific signal handling */
 void checkasm_set_signal_handlers(void);
+
+/* Set to 1 if the process should terminate. The current test will continue
+ * executing until the next report() call, then the process will exit. */
+extern volatile sig_atomic_t checkasm_interrupted;
 
 /* Platform specific timing code */
 extern CheckasmPerf checkasm_perf;

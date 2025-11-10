@@ -527,11 +527,14 @@ static CheckasmFunc *get_func(CheckasmFunc **const root, const char *const name)
 /* Decide whether or not the current function needs to be benchmarked */
 int checkasm_bench_func(void)
 {
-    return !state.num_failed && cfg.bench;
+    return !state.num_failed && cfg.bench && !checkasm_interrupted;
 }
 
 int checkasm_bench_runs(void)
 {
+    if (checkasm_interrupted)
+        return 0;
+
     /* This limit should be impossible to hit in practice */
     if (state.stats.nb_samples == CHECKASM_STATS_SAMPLES)
         return 0;
@@ -591,6 +594,8 @@ static int wildstrcmp(const char *str, const char *pattern)
     return strcmp(str, pattern);
 }
 
+static void handle_interrupt(void);
+
 /* Perform tests and benchmarks for the specified
  * cpu flag if supported by the host */
 static void check_cpu_flag(const CheckasmCpuInfo *cpu)
@@ -618,14 +623,18 @@ static void check_cpu_flag(const CheckasmCpuInfo *cpu)
             checkasm_srand(cfg.seed);
             state.current.test_name = cfg.tests[i].name;
             state.should_fail       = 0; // reset between tests
+            handle_interrupt();
             cfg.tests[i].func();
 
             if (cfg.bench) {
                 /* Measure NOP and perf scale after each test+CPU flag configuration */
-                const CheckasmStats perf_scale = checkasm_measure_perf_scale();
+                handle_interrupt();
                 const CheckasmStats nop_cycles
                     = checkasm_measure_nop_cycles(state.target_cycles);
                 checkasm_measurement_update(&state.nop_cycles, nop_cycles);
+
+                handle_interrupt();
+                const CheckasmStats perf_scale = checkasm_measure_perf_scale();
                 checkasm_measurement_update(&state.perf_scale, perf_scale);
             }
         }
@@ -773,7 +782,7 @@ static void print_info(void)
     fprintf(stderr, " - Random seed: %u\n", cfg.seed);
 }
 
-static void print_summary(void)
+static int print_summary(void)
 {
     char skipped[32] = "";
     if (state.num_skipped)
@@ -786,6 +795,19 @@ static void print_summary(void)
         fprintf(stderr, "checkasm: all %d tests passed%s\n", state.num_checked, skipped);
     } else {
         fprintf(stderr, "checkasm: no tests to perform%s\n", skipped);
+    }
+
+    if (state.num_benched && !state.num_failed)
+        print_benchmarks();
+
+    return state.num_failed || state.num_skipped;
+}
+
+static void handle_interrupt(void)
+{
+    if (checkasm_interrupted) {
+        fprintf(stderr, "checkasm: interrupted\n");
+        exit(print_summary());
     }
 }
 
@@ -866,12 +888,7 @@ int checkasm_run(const CheckasmConfig *config)
             break;
     }
 
-    print_summary();
-
-    if (state.num_benched && !state.num_failed)
-        print_benchmarks();
-
-    return state.num_failed || state.num_skipped;
+    return print_summary();
 }
 
 /* Decide whether or not the specified function needs to be tested and
@@ -881,6 +898,9 @@ void *checkasm_check_func(void *const func, const char *const name, ...)
 {
     char    name_buf[256];
     va_list arg;
+
+    if (checkasm_interrupted)
+        return NULL;
 
     va_start(arg, name);
     int name_length = vsnprintf(name_buf, sizeof(name_buf), name, arg);
@@ -1030,6 +1050,7 @@ void checkasm_report(const char *const name, ...)
     }
 
     state.current.func = NULL; /* reset current function for new report */
+    handle_interrupt();
 }
 
 static void print_usage(const char *const progname)
