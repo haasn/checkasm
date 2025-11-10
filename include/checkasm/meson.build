@@ -66,17 +66,6 @@ else
   perf_header = files('perf/dummy.h')
 endif
 
-# Setjmp/longjmp implementation
-if host_machine.system() == 'windows'
-  if arch_x86_32
-    longjmp_header = 'longjmp/win32.h'
-  else
-    longjmp_header = 'longjmp/win64.h'
-  endif
-else
-  longjmp_header = files('longjmp/posix.h')
-endif
-
 install_headers(checkasm_api_headers, subdir: meson.project_name())
 
 configure_file(
@@ -90,14 +79,6 @@ configure_file(
 configure_file(
   input: perf_header,
   output: 'perf.h',
-  install: true,
-  install_dir: get_option('includedir') / meson.project_name(),
-  copy: true,
-)
-
-configure_file(
-  input: longjmp_header,
-  output: 'longjmp.h',
   install: true,
   install_dir: get_option('includedir') / meson.project_name(),
   copy: true,

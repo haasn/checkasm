@@ -501,7 +501,7 @@ static void check_cpu_flag(const CheckasmCpuInfo *cpu)
                 continue;
             current.test_name = cfg.tests[i].name;
 
-            if (checkasm_save_context(checkasm_get_context())) {
+            if (checkasm_save_context(checkasm_context)) {
                 const char *signal = checkasm_get_last_signal_desc();
                 handle_interrupt();
                 checkasm_fail_internal("%s", signal);
@@ -923,8 +923,8 @@ int checkasm_should_fail(CheckasmCpu cpu_flags)
 {
     current.should_fail = !!(current.cpu_flags & cpu_flags);
 
-#if CHECKASM_WORKING_SIGNAL_HANDLER
-    return 1;
+#if CHECKASM_HAVE_LONGJMP
+    return 1; /* we can catch any crashes */
 #else
     /* If our signal handler isn't working, we shouldn't run tests that
      * are expected to fail, as they may rely on the signal handler. */

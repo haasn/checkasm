@@ -43,12 +43,7 @@
   #endif
 #endif
 
-static checkasm_jmp_buf checkasm_context;
-
-checkasm_jmp_buf *checkasm_get_context(void)
-{
-    return &checkasm_context;
-}
+checkasm_jmp_buf checkasm_context;
 
 static volatile sig_atomic_t sig; // SIG_ATOMIC_MAX = signal handling enabled
 
@@ -67,7 +62,7 @@ static void interrupt_handler(const int s)
      * directly out of it; since it may take an arbitrary amount of time */
     if (sig == SIG_ATOMIC_MAX) {
         sig = s;
-        checkasm_load_context(&checkasm_context);
+        checkasm_load_context(checkasm_context);
     }
 
     /* Don't re-set the signal handler, to let the next signal trigger the
@@ -94,7 +89,7 @@ static LONG NTAPI signal_handler(EXCEPTION_POINTERS *const e)
         default:                              return EXCEPTION_CONTINUE_SEARCH;
         }
         sig = s;
-        checkasm_load_context(&checkasm_context);
+        checkasm_load_context(checkasm_context);
     }
     return EXCEPTION_CONTINUE_SEARCH;
 }
@@ -119,7 +114,7 @@ static void signal_handler(const int s)
     if (sig == SIG_ATOMIC_MAX) {
         sig = s;
         sigaction(s, &signal_handler_act, NULL);
-        checkasm_load_context(&checkasm_context);
+        checkasm_load_context(checkasm_context);
     }
 }
 #endif

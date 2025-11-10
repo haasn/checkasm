@@ -37,6 +37,7 @@
 
 #include "checkasm/attributes.h"
 #include "checkasm/test.h"
+#include "longjmp.h"
 #include "stats.h"
 
 #ifdef __GNUC__
@@ -104,6 +105,8 @@ const char *checkasm_get_last_signal_desc(void);
 /* Set to 1 if the process should terminate. The current test will continue
  * executing until the next report() call, then the process will exit. */
 extern volatile sig_atomic_t checkasm_interrupted;
+
+extern checkasm_jmp_buf checkasm_context;
 
 /* Platform specific timing code */
 extern CheckasmPerf checkasm_perf;

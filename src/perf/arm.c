@@ -63,7 +63,7 @@ static uint64_t perf_stop(uint64_t t)
 COLD int checkasm_perf_init_arm(CheckasmPerf *perf)
 {
     /* Try using the alternative timing register. */
-    if (!checkasm_save_context(checkasm_get_context())) {
+    if (!checkasm_save_context(checkasm_context)) {
         checkasm_set_signal_handler_state(1);
         checkasm_cntvct();
         uint64_t frequency = checkasm_cntfrq();
@@ -78,9 +78,9 @@ COLD int checkasm_perf_init_arm(CheckasmPerf *perf)
         perf->stop  = perf_stop;
         perf->name  = "aarch64 (cntvct)";
         if (frequency == 1000000000) /* 1 GHz */
-            perf->unit  = "nsec";
+            perf->unit = "nsec";
         else
-            perf->unit  = "tick";
+            perf->unit = "tick";
 
         return 0;
     }

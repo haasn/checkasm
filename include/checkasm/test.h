@@ -33,7 +33,6 @@
 
 #include "checkasm/attributes.h"
 #include "checkasm/checkasm.h"
-#include "checkasm/longjmp.h"
 #include "checkasm/perf.h"
 #include "checkasm/platform.h"
 
@@ -46,7 +45,6 @@ CHECKASM_API void *checkasm_check_func(void *func, const char *name, ...)
 CHECKASM_API int  checkasm_fail_func(const char *msg, ...) CHECKASM_PRINTF(1, 2);
 CHECKASM_API void checkasm_report(const char *name, ...) CHECKASM_PRINTF(1, 2);
 CHECKASM_API void checkasm_set_signal_handler_state(int enabled);
-CHECKASM_API checkasm_jmp_buf *checkasm_get_context(void);
 
 /* Mark a block of tests as expected to fail when any of `cpu_flags` are set
  * (or -1 to always expect a failure). Returns whether or not these functions
