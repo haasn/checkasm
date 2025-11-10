@@ -434,7 +434,7 @@ static void print_bench_iter(const CheckasmFunc *const f, struct IterState *cons
     print_bench_iter(f->child[1], iter);
 }
 
-static void print_benchmarks()
+static void print_benchmarks(void)
 {
     struct IterState iter = { .json.file = stdout };
     print_bench_header(&iter);
