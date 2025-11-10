@@ -805,7 +805,7 @@ int checkasm_run(const CheckasmConfig *config)
             return 1;
         }
 
-        state.target_cycles = 1e3 * cfg.bench_usec / low_estimate;
+        state.target_cycles = (uint64_t) (1e3 * cfg.bench_usec / low_estimate);
         checkasm_measure_nop_cycles(&state.nop_cycles, state.target_cycles);
     }
 

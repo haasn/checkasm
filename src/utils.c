@@ -218,42 +218,42 @@ void checkasm_randomize_range(double *buf, int width, double range)
 void checkasm_randomize_rangef(float *buf, int width, float range)
 {
     while (width--)
-        *buf++ = checkasm_randf() * range;
+        *buf++ = (float) (checkasm_randf() * range);
 }
 
-#define RANDOMIZE_DIST(buf, width, mean, stddev)                                         \
+#define RANDOMIZE_DIST(buf, ftype, width, mean, stddev)                                  \
     do {                                                                                 \
         if ((width) & 1) {                                                               \
-            *(buf)++ = (mean) + (stddev) * checkasm_rand_norm();                         \
+            *(buf)++ = (ftype) ((mean) + (stddev) * checkasm_rand_norm());               \
             (width) ^= 1;                                                                \
         }                                                                                \
                                                                                          \
         for (; width; width -= 2) {                                                      \
             double z1, z2;                                                               \
             z1       = marsaglia(&z2);                                                   \
-            *(buf)++ = (mean) + (stddev) * z1;                                           \
-            *(buf)++ = (mean) + (stddev) * z2;                                           \
+            *(buf)++ = (ftype) ((mean) + (stddev) * z1);                                 \
+            *(buf)++ = (ftype) ((mean) + (stddev) * z2);                                 \
         }                                                                                \
     } while (0)
 
 void checkasm_randomize_dist(double *buf, int width, CheckasmDist dist)
 {
-    RANDOMIZE_DIST(buf, width, dist.mean, dist.stddev);
+    RANDOMIZE_DIST(buf, double, width, dist.mean, dist.stddev);
 }
 
 void checkasm_randomize_distf(float *buf, int width, CheckasmDist dist)
 {
-    RANDOMIZE_DIST(buf, width, dist.mean, dist.stddev);
+    RANDOMIZE_DIST(buf, float, width, dist.mean, dist.stddev);
 }
 
 void checkasm_randomize_norm(double *buf, int width)
 {
-    RANDOMIZE_DIST(buf, width, 0.0, 1.0);
+    RANDOMIZE_DIST(buf, double, width, 0.0, 1.0);
 }
 
 void checkasm_randomize_normf(float *buf, int width)
 {
-    RANDOMIZE_DIST(buf, width, 0.0, 1.0);
+    RANDOMIZE_DIST(buf, float, width, 0.0, 1.0);
 }
 
 void checkasm_clear(void *buf, size_t bytes)

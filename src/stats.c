@@ -109,7 +109,7 @@ CheckasmVar checkasm_stats_estimate(const CheckasmStats *const stats)
     int    count = 0;
     for (int i = 0; i < stats->nb_samples; i++) {
         const CheckasmSample s = stats->samples[i];
-        const double         x = log(s.sum) - log(s.count);
+        const double         x = log((double) s.sum) - log((double) s.count);
         sum += x * s.count;
         sum2 += x * x * s.count;
         sum_w2 += s.count * s.count;
