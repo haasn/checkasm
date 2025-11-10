@@ -43,7 +43,8 @@ if cc.get_argument_syntax() == 'msvc'
       '-wd4244', # Silence "C4244: '=': conversion from 'double' to 'uint64_t', possible loss of data"
       '-wd4996', # use of POSIX functions
     ]
-else
+endif
+if cc.get_argument_syntax() != 'msvc' or cc.get_id() == 'clang-cl'
     optional_arguments += [
       '-Wno-c23-extensions' # silence use of #embed
     ]
