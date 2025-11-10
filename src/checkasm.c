@@ -610,7 +610,7 @@ static void check_cpu_flag(const CheckasmCpuInfo *cpu)
             state.current_test_name = cfg.tests[i].name;
             state.current_reports   = 0;
 
-            if (checkasm_save_context(checkasm_get_context())) {
+            if (checkasm_save_context(checkasm_context)) {
                 checkasm_fail_internal("%s", checkasm_get_last_signal_desc());
 
                 /* We want to associate the failure with the correct report

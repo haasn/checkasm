@@ -35,6 +35,7 @@
 
 #include "checkasm/attributes.h"
 #include "checkasm/test.h"
+#include "longjmp.h"
 #include "stats.h"
 
 #ifdef __GNUC__
@@ -98,6 +99,8 @@ void checkasm_json_pop(CheckasmJson *json, char type);
 /* Platform specific signal handling */
 void        checkasm_set_signal_handlers(void);
 const char *checkasm_get_last_signal_desc(void);
+
+extern checkasm_jmp_buf checkasm_context;
 
 /* Platform specific timing code */
 extern CheckasmPerf checkasm_perf;
