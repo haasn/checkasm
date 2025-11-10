@@ -143,7 +143,7 @@ static int identity_new(const int x)
 
 static void checkasm_test_retval(void)
 {
-    const int flags = checkasm_get_cpu_flags();
+    const uint64_t flags = checkasm_get_cpu_flags();
 
     declare_func(int, int);
 

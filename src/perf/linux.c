@@ -47,7 +47,7 @@ static uint64_t perf_start(void)
 static uint64_t perf_stop(uint64_t t)
 {
     ioctl(perf_sysfd, PERF_EVENT_IOC_DISABLE, 0);
-    int ret = read(perf_sysfd, &t, sizeof(t));
+    long ret = read(perf_sysfd, &t, sizeof(t));
     (void) ret;
     return t;
 }
@@ -67,7 +67,7 @@ COLD int checkasm_perf_init_linux(CheckasmPerf *perf)
     };
 
     if (perf_sysfd == -1) {
-        perf_sysfd = syscall(SYS_perf_event_open, &attr, 0, -1, -1, 0);
+        perf_sysfd = (int) syscall(SYS_perf_event_open, &attr, 0, -1, -1, 0);
         if (perf_sysfd == -1) {
             perror("perf_event_open");
             return 1;

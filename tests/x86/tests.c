@@ -77,7 +77,7 @@ DEF_COPY_FUNC(copy_novzeroupper_avx2);
 
 static copy_func *get_copy_x86(void)
 {
-    const unsigned flags = checkasm_get_cpu_flags();
+    const uint64_t flags = checkasm_get_cpu_flags();
 #if ARCH_X86
     if (flags & CHECKASM_CPU_FLAG_AVX512)
         return checkasm_copy_avx512;
