@@ -244,9 +244,6 @@ DISABLE_SVE
 #ifdef __ELF__
         .size   \name, . - \name
 #endif
-#if HAVE_AS_FUNC
-        .endfunc
-#endif
         .purgem endfunc
     .endm
 #if defined(_WIN32) && defined(BUILDING_DLL)
@@ -271,16 +268,10 @@ DISABLE_SVE
         .private_extern EXTERN\name
     .endif
 #endif
-#if HAVE_AS_FUNC
-        .func   EXTERN\name
-#endif
 EXTERN\name:
     .else
 #ifdef __ELF__
         .type \name, %function
-#endif
-#if HAVE_AS_FUNC
-        .func \name
 #endif
     .endif
 \name:
