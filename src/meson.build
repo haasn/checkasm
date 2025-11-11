@@ -151,20 +151,11 @@ if have_macos_kperf
   checkasm_sources += files('perf/macos_kperf.c')
 endif
 
+checkasm_asm_sources = []
 if arch_aarch64
   checkasm_asm_sources = files('arm/checkasm_64.S')
-  if use_gaspp
-    checkasm_asm_objs += gaspp_gen.process(checkasm_asm_sources, extra_args: api_export_flags_asm)
-  else
-    checkasm_sources += checkasm_asm_sources
-  endif
 elif arch_arm
   checkasm_asm_sources = files('arm/checkasm_32.S')
-  if use_gaspp
-    checkasm_asm_objs += gaspp_gen.process(checkasm_asm_sources, extra_args: api_export_flags_asm)
-  else
-    checkasm_sources += checkasm_asm_sources
-  endif
 elif arch_rv64
   checkasm_sources += files('riscv/checkasm_64.S')
 elif arch_loongarch
@@ -181,6 +172,12 @@ elif arch_x86
     'x86/checkasm.asm',
     'x86/cpu.c',
   )
+endif
+
+if use_gaspp
+  checkasm_asm_objs += gaspp_gen.process(checkasm_asm_sources, extra_args: api_export_flags_asm)
+else
+  checkasm_sources += checkasm_asm_sources
 endif
 
 checkasm_dependencies = [
