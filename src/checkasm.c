@@ -1016,21 +1016,18 @@ void checkasm_report(const char *const name, ...)
         pad_length -= fprintf(stderr, " - %s.%s", state.current.test_name, report_name);
         fprintf(stderr, "%*c", imax(pad_length, 0) + 2, '[');
 
+        int fails = state.num_failed - state.prev_failed;
         if (state.should_fail) {
-            /* Pass the test as a whole if *any* failure was recorded since the
-             * last time checkasm_report() was called; do this instead of
-             * requiring a failure for every single test, since not all checked
-             * functions in each block may actually trigger the failure,
-             * dependent on register sizes etc. */
-            state.num_failed = state.prev_failed
-                             + (state.num_failed == state.prev_failed) * new_checked;
+            state.num_failed = state.prev_failed + (new_checked - fails);
         }
 
         if (state.num_failed == state.prev_failed)
             checkasm_fprintf(stderr, COLOR_GREEN, state.should_fail ? "EXPECTED" : "OK");
+        else if (!state.should_fail)
+            checkasm_fprintf(stderr, COLOR_RED, "FAILED");
         else
             checkasm_fprintf(stderr, COLOR_RED,
-                             state.should_fail ? "SHOULD FAIL" : "FAILED");
+                             fails > 0 ? "ALL SHOULD FAIL" : "SHOULD FAIL");
         fprintf(stderr, "]\n");
 
         state.prev_checked = state.num_checked;

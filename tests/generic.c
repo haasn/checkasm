@@ -53,6 +53,11 @@ void checkasm_test_copy(copy_func fun, const char *name, const int min_width)
             CLEAR_PIXEL_RECT(c_dst);
             CLEAR_PIXEL_RECT(a_dst);
 
+            /* Make sure that the destination buffer actually differs from
+             * the source buffer, to make sure that a skipped write does
+             * trigger a failure. */
+            for (int i = 0; i < w; i++)
+                c_dst[i] = a_dst[i] = ~src[i];
             call_ref(c_dst, src, w);
             call_new(a_dst, src, w);
             checkasm_check_pixel_padded(c_dst, c_dst_stride, a_dst, a_dst_stride, w, 1,
