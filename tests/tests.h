@@ -50,6 +50,12 @@ enum {
 #endif
 };
 
+#define DEF_GETTER(FLAG, NAME, func_type, fallback)                                      \
+    static func_type *get_##NAME(void)                                                   \
+    {                                                                                    \
+        return (checkasm_get_cpu_flags() & FLAG) ? checkasm_##NAME : fallback;           \
+    }
+
 uint64_t checkasm_get_cpu_flags(void);
 
 /* Should return the arch-specific flags */
@@ -65,11 +71,7 @@ void checkasm_test_copy(copy_func *func, const char *name);
 #define DEF_COPY_FUNC(NAME)                                                              \
     void checkasm_##NAME(uint8_t *dst, const uint8_t *src, size_t size)
 
-#define DEF_COPY_GETTER(FLAG, NAME)                                                      \
-    static copy_func *get_##NAME(void)                                                   \
-    {                                                                                    \
-        return (checkasm_get_cpu_flags() & FLAG) ? checkasm_##NAME : checkasm_copy_c;    \
-    }
+#define DEF_COPY_GETTER(FLAG, NAME) DEF_GETTER(FLAG, NAME, copy_func, checkasm_copy_c)
 
 /* Reference function for copy routines */
 static inline DEF_COPY_FUNC(copy_c)
@@ -86,11 +88,7 @@ typedef void(noop_func)(int unused);
 void checkasm_test_noop(noop_func *func, const char *name);
 
 #define DEF_NOOP_FUNC(NAME) void checkasm_##NAME(int unused)
-#define DEF_NOOP_GETTER(FLAG, NAME)                                                      \
-    static noop_func *get_##NAME(void)                                                   \
-    {                                                                                    \
-        return (checkasm_get_cpu_flags() & FLAG) ? checkasm_##NAME : NULL;               \
-    }
+#define DEF_NOOP_GETTER(FLAG, NAME) DEF_GETTER(FLAG, NAME, noop_func, NULL)
 
 /* Used for testing floating point operations */
 typedef float(float_func)(float input);
