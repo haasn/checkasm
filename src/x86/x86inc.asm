@@ -54,6 +54,7 @@
         %define WIN32  1
         %define WIN64  1
     %elifidn __OUTPUT_FORMAT__,x64
+        %define WIN32  1
         %define WIN64  1
     %else
         %define UNIX64 1
@@ -818,11 +819,6 @@ BRANCH_INSTR jz, je, jnz, jne, jl, jle, jnl, jnle, jg, jge, jng, jnge, ja, jae, 
     cglobal_internal 1, %1 %+ SUFFIX, %2
 %endmacro
 %macro cvisible 1-2+ "" ; name, [PROLOGUE args]
-%if WIN32
-%ifdef BUILDING_DLL
-    EXPORT mangle(public_prefix %+ _ %+ %1)
-%endif
-%endif
     cglobal_internal 0, %1 %+ SUFFIX, %2
 %endmacro
 %macro cglobal_internal 2-3+
@@ -848,6 +844,11 @@ BRANCH_INSTR jz, je, jnz, jne, jl, jle, jnl, jnle, jg, jge, jng, jnge, ja, jae, 
         global %2:private_extern
     %else
         global %2
+    %endif
+    %if WIN32 && !%1
+        %ifdef BUILDING_DLL
+            export %2
+        %endif
     %endif
     align function_align
     %2:
