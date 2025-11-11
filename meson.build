@@ -99,6 +99,28 @@ arch_loongarch   = host_machine.cpu_family().startswith('loongarch')
 arch_loongarch32 = host_machine.cpu_family() == 'loongarch32'
 arch_loongarch64 = host_machine.cpu_family() == 'loongarch64'
 
+use_gaspp = false
+if ((arch_aarch64 or arch_arm) and
+     cc.get_argument_syntax() == 'msvc' and cc.get_id() != 'clang-cl')
+    gaspp = find_program('gas-preprocessor.pl')
+    use_gaspp = true
+    gaspp_args = [
+            '-as-type', 'armasm',
+            '-arch', host_machine.cpu_family(),
+            '--',
+            arch_aarch64 ? 'armasm64' : 'armasm',
+            '-nologo',
+    ]
+    gaspp_gen = generator(gaspp,
+        output: '@BASENAME@.obj',
+        arguments: gaspp_args + [
+            '@EXTRA_ARGS@',
+            '@INPUT@',
+            '-c',
+            '-o', '@OUTPUT@'
+        ])
+endif
+
 subdir('include/checkasm')
 subdir('src')
 

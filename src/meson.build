@@ -51,30 +51,6 @@ if (arch_aarch64 or arch_arm or arch_loongarch or arch_ppc64le or arch_riscv)
     have_elf_aux_info = cc.has_function('elf_aux_info', prefix : '#include <sys/auxv.h>', args : test_args)
 endif
 
-use_gaspp = false
-if ((arch_aarch64 or arch_arm) and
-     cc.get_argument_syntax() == 'msvc' and cc.get_id() != 'clang-cl')
-    gaspp = find_program('gas-preprocessor.pl')
-    use_gaspp = true
-    gaspp_args = [
-            '-as-type', 'armasm',
-            '-arch', host_machine.cpu_family(),
-            '--',
-            arch_aarch64 ? 'armasm64' : 'armasm',
-            '-nologo',
-            '-I@0@'.format(meson.current_source_dir()),
-            '-I@0@'.format(meson.current_build_dir()),
-    ]
-    gaspp_gen = generator(gaspp,
-        output: '@BASENAME@.obj',
-        arguments: gaspp_args + [
-            '@EXTRA_ARGS@',
-            '@INPUT@',
-            '-c',
-            '-o', '@OUTPUT@'
-        ])
-endif
-
 api_export_flags = []
 api_export_flags_asm = []
 if host_machine.system() == 'windows'
@@ -198,7 +174,11 @@ elif arch_x86
 endif
 
 if use_gaspp
-  checkasm_asm_objs += gaspp_gen.process(checkasm_asm_sources, extra_args: api_export_flags_asm)
+  gaspp_args = api_export_flags_asm + [
+    '-I@0@'.format(meson.current_source_dir()),
+    '-I@0@'.format(meson.current_build_dir()),
+  ]
+  checkasm_asm_objs += gaspp_gen.process(checkasm_asm_sources, extra_args: gaspp_args)
 else
   checkasm_sources += checkasm_asm_sources
 endif
