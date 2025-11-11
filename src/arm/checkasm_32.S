@@ -253,7 +253,7 @@ clobbercheck vfp
 /**
  * int checkasm_has_neon(void);
  */
-function has_neon, export=1
+function has_neon, export=1, visible=1
 #if (defined(__APPLE__) && __ARM_ARCH >= 7) || defined(_WIN32)
         mov             r0, #1
         bx              lr
@@ -269,7 +269,7 @@ endfunc
 /**
  * int checkasm_has_vfp(void);
  */
-function has_vfp, export=1
+function has_vfp, export=1, visible=1
 #if defined(__APPLE__) || defined(_WIN32)
         mov             r0, #1
         bx              lr

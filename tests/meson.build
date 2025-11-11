@@ -55,6 +55,11 @@ elif arch_aarch64
     'arm/64/tests.c',
   )
   checkasm_asm_sources = files('arm/64/tests.S')
+elif arch_arm
+  checkasm_test_sources += files(
+    'arm/32/tests.c',
+  )
+  checkasm_asm_sources = files('arm/32/tests.S')
 else
   warning('There are no assembly functions to test on the current platform.')
 endif

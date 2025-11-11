@@ -49,6 +49,10 @@ enum {
     CHECKASM_CPU_FLAG_RVV   = 1 << 2,
 #elif ARCH_AARCH64
     CHECKASM_CPU_FLAG_AARCH64 = 1 << 1,
+#elif ARCH_ARM
+    CHECKASM_CPU_FLAG_ARM  = 1 << 1,
+    CHECKASM_CPU_FLAG_VFP  = 1 << 2,
+    CHECKASM_CPU_FLAG_NEON = 1 << 3,
 #endif
 };
 
@@ -64,6 +68,7 @@ uint64_t checkasm_get_cpu_flags(void);
 uint64_t checkasm_get_cpu_flags_x86(void);
 uint64_t checkasm_get_cpu_flags_riscv(void);
 uint64_t checkasm_get_cpu_flags_aarch64(void);
+uint64_t checkasm_get_cpu_flags_arm(void);
 
 /**
  * Copy `size` (power-of-two) bytes from aligned buffers `src` to `dst`.
@@ -104,5 +109,6 @@ void checkasm_check_generic(void);
 void checkasm_check_x86(void);
 void checkasm_check_riscv(void);
 void checkasm_check_aarch64(void);
+void checkasm_check_arm(void);
 
 #endif /* CHECKASM_TESTS_H */

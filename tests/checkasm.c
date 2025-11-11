@@ -17,6 +17,11 @@ static const CheckasmCpuInfo cpus[] = {
 #if ARCH_AARCH64
     { "Generic aarch64", "aarch64", CHECKASM_CPU_FLAG_AARCH64 },
 #endif
+#if ARCH_ARM
+    { "Generic ARM",     "arm",     CHECKASM_CPU_FLAG_ARM     },
+    { "VFP",             "vfp",     CHECKASM_CPU_FLAG_VFP     },
+    { "NEON",            "neon",    CHECKASM_CPU_FLAG_NEON    },
+#endif
 };
 
 static const CheckasmTest tests[] = {
@@ -27,6 +32,8 @@ static const CheckasmTest tests[] = {
     { "riscv", checkasm_check_riscv },
 #elif ARCH_AARCH64
     { "aarch64", checkasm_check_aarch64 },
+#elif ARCH_ARM
+    { "arm", checkasm_check_arm },
 #endif
 };
 
@@ -47,6 +54,8 @@ int main(int argc, const char *argv[])
     cfg.cpu |= checkasm_get_cpu_flags_riscv();
 #elif ARCH_AARCH64
     cfg.cpu |= checkasm_get_cpu_flags_aarch64();
+#elif ARCH_ARM
+    cfg.cpu |= checkasm_get_cpu_flags_arm();
 #endif
 
     return checkasm_main(&cfg, argc, argv);
