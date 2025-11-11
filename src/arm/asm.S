@@ -28,8 +28,6 @@
 #ifndef CHECKASM_ARM_ASM_S
 #define CHECKASM_ARM_ASM_S
 
-#include "config.h"
-
 #ifndef __has_feature
 #define __has_feature(x) 0
 #endif
