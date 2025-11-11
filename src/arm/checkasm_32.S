@@ -26,8 +26,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *****************************************************************************/
 
-#define PRIVATE_PREFIX checkasm_
-
 #include "arm/asm.S"
 
 #ifndef __ARM_ARCH
