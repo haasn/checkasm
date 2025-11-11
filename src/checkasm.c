@@ -755,9 +755,10 @@ static void print_info(void)
     if (vlenb)
         fprintf(stderr, " - CPU: VLEN = %d bits\n", vlenb * 8);
 #elif ARCH_AARCH64 && HAVE_SVE
-    const unsigned sve_len = checkasm_sve_length();
-    if (sve_len)
+    if (checkasm_has_sve()) {
+        const unsigned sve_len = checkasm_sve_length();
         fprintf(stderr, " - CPU: SVE = %d bits\n", sve_len);
+    }
 #endif
     if (cfg.bench) {
         fprintf(stderr, " - Timing source: %s\n", checkasm_perf.name);

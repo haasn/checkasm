@@ -42,10 +42,17 @@ unsigned checkasm_init_x86(char *name);
  * Returns the vector length in bytes, or 0 if no RVV */
 int checkasm_init_riscv(void);
 
-#elif ARCH_AARCH64 && HAVE_SVE
+#elif ARCH_AARCH64
+
+/* Returns a nonzero value if SVE is available, 0 otherwise */
+int checkasm_has_sve(void);
+
+  #if HAVE_SVE
 
 /* Returns the SVE vector length in bytes, or 0 if no SVE */
 int checkasm_sve_length(void);
+
+  #endif
 
 #elif ARCH_ARM
 

@@ -233,6 +233,27 @@ function checked_call, export=1, visible=1
         ret
 endfunc
 
+/**
+ * int checkasm_has_sve(void);
+ */
+function has_sve, export=1
+        stp             x29, x30, [sp, #-16]!
+        mov             x29, sp
+#ifdef _WIN32
+        mov             w0, #46 /* PF_ARM_SVE_INSTRUCTIONS_AVAILABLE */
+        bl              IsProcessorFeaturePresent
+#elif defined(__APPLE__)
+        /* No sysctlbyname feature defined for SVE yet */
+        mov             w0, #0
+#else
+        mov             w0, #16 /* AT_HWCAP */
+        bl              X(getauxval)
+        and             w0, w0, #(1 << 22) /* HWCAP_AARCH64_SVE */
+#endif
+        ldp             x29, x30, [sp], #16
+        ret
+endfunc
+
 #if HAVE_SVE
 ENABLE_SVE
 function sve_length, export=1
