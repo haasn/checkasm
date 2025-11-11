@@ -33,6 +33,8 @@ if cc.get_argument_syntax() != 'msvc'
 endif
 extra_arguments = cc.get_supported_arguments(optional_arguments)
 
+checkasm_asm_objs = []
+checkasm_asm_sources = []
 checkasm_test_sources = files(
   'checkasm.c',
   'generic.c'
@@ -48,12 +50,28 @@ elif arch_rv64
     'riscv/tests.S',
     'riscv/tests.c',
   )
+elif arch_aarch64
+  checkasm_test_sources += files(
+    'arm/64/tests.c',
+  )
+  checkasm_asm_sources = files('arm/64/tests.S')
 else
   warning('There are no assembly functions to test on the current platform.')
 endif
 
+if use_gaspp and checkasm_asm_sources.length() > 0
+  gaspp_args = [
+    '-I@0@'.format(meson.project_source_root()),
+    '-I@0@'.format(meson.project_build_root()),
+  ]
+  checkasm_asm_objs += gaspp_gen.process(checkasm_asm_sources, extra_args: gaspp_args)
+else
+  checkasm_test_sources += checkasm_asm_sources
+endif
+
 checkasm_test = executable('checkasm',
   checkasm_test_sources,
+  checkasm_asm_objs,
   checkasm_config,
   c_args: extra_arguments,
   dependencies: [checkasm_dep, libm_dependency],

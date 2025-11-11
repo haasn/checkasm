@@ -2,17 +2,20 @@
 #include <checkasm/checkasm.h>
 
 static const CheckasmCpuInfo cpus[] = {
-    { "Bad C",          "badc",   CHECKASM_CPU_FLAG_BAD_C  },
+    { "Bad C",           "badc",    CHECKASM_CPU_FLAG_BAD_C   },
 #if ARCH_X86
-    { "Generic x86",    "x86",    CHECKASM_CPU_FLAG_X86    },
-    { "MMX",            "mmx",    CHECKASM_CPU_FLAG_MMX    },
-    { "SSE2",           "sse2",   CHECKASM_CPU_FLAG_SSE2   },
-    { "AVX-2",          "avx2",   CHECKASM_CPU_FLAG_AVX2   },
-    { "AVX-512",        "avx512", CHECKASM_CPU_FLAG_AVX512 },
+    { "Generic x86",     "x86",     CHECKASM_CPU_FLAG_X86     },
+    { "MMX",             "mmx",     CHECKASM_CPU_FLAG_MMX     },
+    { "SSE2",            "sse2",    CHECKASM_CPU_FLAG_SSE2    },
+    { "AVX-2",           "avx2",    CHECKASM_CPU_FLAG_AVX2    },
+    { "AVX-512",         "avx512",  CHECKASM_CPU_FLAG_AVX512  },
 #endif
 #if ARCH_RISCV
-    { "Generic RISC-V", "riscv",  CHECKASM_CPU_FLAG_RISCV  },
-    { "RVV",            "rvv",    CHECKASM_CPU_FLAG_RVV    },
+    { "Generic RISC-V",  "riscv",   CHECKASM_CPU_FLAG_RISCV   },
+    { "RVV",             "rvv",     CHECKASM_CPU_FLAG_RVV     },
+#endif
+#if ARCH_AARCH64
+    { "Generic aarch64", "aarch64", CHECKASM_CPU_FLAG_AARCH64 },
 #endif
 };
 
@@ -22,6 +25,8 @@ static const CheckasmTest tests[] = {
     { "x86",     checkasm_check_x86     },
 #elif ARCH_RISCV
     { "riscv", checkasm_check_riscv },
+#elif ARCH_AARCH64
+    { "aarch64", checkasm_check_aarch64 },
 #endif
 };
 
@@ -40,6 +45,8 @@ int main(int argc, const char *argv[])
     cfg.cpu |= checkasm_get_cpu_flags_x86();
 #elif ARCH_RISCV
     cfg.cpu |= checkasm_get_cpu_flags_riscv();
+#elif ARCH_AARCH64
+    cfg.cpu |= checkasm_get_cpu_flags_aarch64();
 #endif
 
     return checkasm_main(&cfg, argc, argv);
