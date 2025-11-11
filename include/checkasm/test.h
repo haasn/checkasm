@@ -41,9 +41,9 @@
  ********************************************/
 
 CHECKASM_API void *checkasm_check_func(void *func, const char *name, ...)
-    ATTR_FORMAT_PRINTF(2, 3);
-CHECKASM_API int  checkasm_fail_func(const char *msg, ...) ATTR_FORMAT_PRINTF(1, 2);
-CHECKASM_API void checkasm_report(const char *name, ...) ATTR_FORMAT_PRINTF(1, 2);
+    CHECKASM_PRINTF(2, 3);
+CHECKASM_API int  checkasm_fail_func(const char *msg, ...) CHECKASM_PRINTF(1, 2);
+CHECKASM_API void checkasm_report(const char *name, ...) CHECKASM_PRINTF(1, 2);
 CHECKASM_API void checkasm_set_signal_handler_state(int enabled);
 CHECKASM_API void checkasm_handle_signal(void);
 CHECKASM_API checkasm_jmp_buf *checkasm_get_context(void);

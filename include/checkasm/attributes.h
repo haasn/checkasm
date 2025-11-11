@@ -31,17 +31,17 @@
 
 #include <stddef.h>
 
-#ifndef ATTR_FORMAT_PRINTF
+#ifndef CHECKASM_PRINTF
   #ifdef __GNUC__
     #if defined(__MINGW32__) && !defined(__clang__)
-      #define ATTR_FORMAT_PRINTF(fmt, attr)                                              \
+      #define CHECKASM_PRINTF(fmt, attr)                                                 \
           __attribute__((__format__(__gnu_printf__, fmt, attr)))
     #else
-      #define ATTR_FORMAT_PRINTF(fmt, attr)                                              \
+      #define CHECKASM_PRINTF(fmt, attr)                                                 \
           __attribute__((__format__(__printf__, fmt, attr)))
     #endif
   #else
-    #define ATTR_FORMAT_PRINTF(fmt, attr)
+    #define CHECKASM_PRINTF(fmt, attr)
   #endif
 #endif
 

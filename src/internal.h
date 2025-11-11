@@ -66,7 +66,7 @@
 void checkasm_srand(unsigned seed);
 
 /* Hidden alias without public visibility, for use in asm */
-int checkasm_fail_internal(const char *msg, ...) ATTR_FORMAT_PRINTF(1, 2);
+int checkasm_fail_internal(const char *msg, ...) CHECKASM_PRINTF(1, 2);
 
 #define COLOR_DEFAULT -1
 #define COLOR_RED     31
@@ -80,7 +80,7 @@ int checkasm_fail_internal(const char *msg, ...) ATTR_FORMAT_PRINTF(1, 2);
 /* Colored variant of fprintf for terminals that support it */
 void checkasm_setup_fprintf(FILE *const f);
 void checkasm_fprintf(FILE *const f, const int color, const char *const fmt, ...)
-    ATTR_FORMAT_PRINTF(3, 4);
+    CHECKASM_PRINTF(3, 4);
 
 /* Light-weight helper for printing nested JSON objects */
 typedef struct CheckasmJson {
@@ -90,7 +90,7 @@ typedef struct CheckasmJson {
 } CheckasmJson;
 
 void checkasm_json(CheckasmJson *json, const char *key, const char *fmt, ...)
-    ATTR_FORMAT_PRINTF(3, 4);
+    CHECKASM_PRINTF(3, 4);
 void checkasm_json_str(CheckasmJson *json, const char *key, const char *str);
 void checkasm_json_push(CheckasmJson *json, const char *const key, char type);
 void checkasm_json_pop(CheckasmJson *json, char type);
