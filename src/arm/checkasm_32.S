@@ -236,11 +236,7 @@ function checked_call_\variant, export=1
 2:
         movrel          r0, error_message_gpr
 1:
-#ifdef PREFIX
-        bl              _checkasm_fail_internal
-#else
-        bl              checkasm_fail_internal
-#endif
+        bl              X(fail_internal)
 0:
         pop             {r0, r1}
 .ifc \variant, vfp
@@ -261,11 +257,7 @@ clobbercheck vfp
 function has_neon, export=1
         push            {lr}
         mov             r0, #16 /* AT_HWCAP */
-#ifdef PREFIX
-        bl              _checkasm_getauxval
-#else
-        bl              checkasm_getauxval
-#endif
+        bl              X(getauxval)
         and             r0, #(1 << 12) /* HWCAP_NEON */
         pop             {pc}
 endfunc
