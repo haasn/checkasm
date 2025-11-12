@@ -767,7 +767,15 @@ int checkasm_run(const CheckasmConfig *config)
         checkasm_measurement_update(&state.perf_scale, perf_stats);
         /* Use the low estimate to compute the number of target cycles, to
          * ensure we reach the required number of cycles with confidence */
-        const double low_estimate      = checkasm_sample(perf_scale, -1.0);
+        const double low_estimate = checkasm_sample(perf_scale, -1.0);
+        if (low_estimate <= 0.0) {
+            fprintf(stderr,
+                    "checkasm: cycle counter seems to be non-functional "
+                    "(invalid timer scale: %.4f %ss/nsec)\n",
+                    checkasm_mode(perf_scale), checkasm_perf.unit);
+            return 1;
+        }
+
         state.target_cycles            = 1e3 * cfg.bench_usec / low_estimate;
         const CheckasmStats nop_cycles = checkasm_measure_nop_cycles(state.target_cycles);
         checkasm_measurement_update(&state.nop_cycles, nop_cycles);
