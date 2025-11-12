@@ -69,11 +69,26 @@ COLD int checkasm_perf_init(void)
         checkasm_perf.name       = CHECKASM_PERF_ASM_NAME;
         checkasm_perf.unit       = CHECKASM_PERF_ASM_UNIT;
         checkasm_perf.asm_usable = 1;
-        return 0;
     } else {
         fprintf(stderr, "checkasm: unable to access cycle counter\n");
         checkasm_perf.asm_usable = 0;
     }
+
+  #if ARCH_AARCH64 || ARCH_ARM
+    /* On ARM, verify that the cycle counter increments */
+    if (checkasm_perf.asm_usable) {
+        const uint64_t t = CHECKASM_PERF_ASM();
+        for (int i = 0; i < 1000; i++) {
+            if (CHECKASM_PERF_ASM() > t)
+                return 0; /* asm timers work */
+        }
+        fprintf(stderr, "checkasm: cycle counter does not increment\n");
+        checkasm_perf.asm_usable = 0;
+    }
+  #else /* !ARM */
+    if (checkasm_perf.asm_usable)
+        return 0;
+  #endif
 #endif
 
 #if HAVE_LINUX_PERF
