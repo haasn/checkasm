@@ -86,6 +86,76 @@ COLD int checkasm_perf_init_arm(CheckasmPerf *perf)
     }
     return 1;
 }
+#elif ARCH_ARM && !defined(_MSC_VER) && defined(__ARM_ARCH) && __ARM_ARCH <= 6           \
+    && (!defined(__thumb__) || defined(__thumb2__))
+
+static inline uint64_t checkasm_ccnt(void)
+{
+    uint32_t cycle_counter;
+    /* Flush Prefetch Buffer */
+    __asm__ __volatile__("mcr p15, 0, %0, c7, c5, 4" ::"r"(0) : "memory");
+    /* ARM1176 specific, possibly available on other ARM11 such as ARM1136
+     * as well. */
+    __asm__ __volatile__("mrc p15, 0, %0, c15, c12, 1" : "=r"(cycle_counter)::"memory");
+    return cycle_counter;
+}
+
+static inline void checkasm_ccnt_start(void)
+{
+    __asm__ __volatile__("mcr p15, 0, %0, c15, c12, 0" ::"r"(1));
+}
+
+static uint64_t perf_start(void)
+{
+    return checkasm_ccnt();
+}
+
+static uint64_t perf_stop(uint64_t t)
+{
+    return checkasm_ccnt() - t;
+}
+
+COLD int checkasm_perf_init_arm(CheckasmPerf *perf)
+{
+    /* Try using the ARMv6 cycle counter register. */
+    if (!checkasm_save_context(checkasm_context)) {
+        checkasm_set_signal_handler_state(1);
+        checkasm_ccnt();
+        checkasm_set_signal_handler_state(0);
+
+        /* Try starting the timer, if possible */
+        if (!checkasm_save_context(checkasm_context)) {
+            checkasm_set_signal_handler_state(1);
+            checkasm_ccnt_start();
+            checkasm_set_signal_handler_state(0);
+
+            /* If starting the timer seems to work, run that on all cores. */
+            checkasm_run_on_all_cores(checkasm_ccnt_start);
+        }
+
+        const uint64_t t     = checkasm_ccnt();
+        const int      iters = 1000;
+        int            i;
+        for (i = 0; i < iters; i++) {
+            if (checkasm_ccnt() > t)
+                break;
+        }
+        if (i == iters) {
+            fprintf(stderr, "checkasm: ARM11 cycle counter does not increment\n");
+            return 1;
+        }
+
+        perf->start = perf_start;
+        perf->stop  = perf_stop;
+        perf->name  = "armv6 (ccnt)";
+        perf->unit  = "cycle";
+
+        return 0;
+    }
+
+    fprintf(stderr, "checkasm: unable to access ARM11 cycle counter\n");
+    return 1;
+}
 #else
 COLD int checkasm_perf_init_arm(CheckasmPerf *perf)
 {
