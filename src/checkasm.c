@@ -41,6 +41,7 @@
 #include "checkasm/checkasm.h"
 #include "checkasm/test.h"
 #include "cpu.h"
+#include "function.h"
 #include "html_data.h"
 #include "internal.h"
 #include "stats.h"
@@ -67,32 +68,12 @@ checkasm_checked_call_func checkasm_get_checked_call_ptr(void)
 }
 #endif
 
-typedef struct CheckasmFuncVersion {
-    struct CheckasmFuncVersion *next;
-    const CheckasmCpuInfo      *cpu;
-    CheckasmMeasurement         cycles;
-
-    void *func;
-    int   ok;
-} CheckasmFuncVersion;
-
-/* Binary search tree node */
-typedef struct CheckasmFunc {
-    struct CheckasmFunc *child[2];
-    struct CheckasmFunc *prev; /* previous function in current report group */
-    CheckasmFuncVersion  versions;
-    uint8_t              color; /* 0 = red, 1 = black */
-    const char          *test_name;
-    char                *report_name;
-    char                 name[];
-} CheckasmFunc;
-
 /* Internal state */
 static CheckasmConfig cfg;
 static struct {
     /* Current function/test state, reset after each test run */
     struct {
-        CheckasmFunc          *funcs;
+        CheckasmFuncTree       tree;
         CheckasmFunc          *func;
         CheckasmFuncVersion   *func_ver;
         const CheckasmCpuInfo *cpu;
@@ -129,24 +110,6 @@ static struct {
 CheckasmCpu checkasm_get_cpu_flags(void)
 {
     return state.current.cpu_flags;
-}
-
-/* Deallocate a tree */
-static void destroy_func_tree(CheckasmFunc *const f)
-{
-    if (f) {
-        CheckasmFuncVersion *v = f->versions.next;
-        while (v) {
-            CheckasmFuncVersion *next = v->next;
-            free(v);
-            v = next;
-        }
-
-        destroy_func_tree(f->child[0]);
-        destroy_func_tree(f->child[1]);
-        free(f->report_name);
-        free(f);
-    }
 }
 
 /* Get the suffix of the specified cpu flag */
@@ -430,86 +393,9 @@ static void print_benchmarks(void)
 {
     struct IterState iter = { .json.file = stdout };
     print_bench_header(&iter);
-    print_bench_iter(state.current.funcs, &iter);
+    print_bench_iter(state.current.tree.root, &iter);
     print_bench_footer(&iter);
     assert(iter.json.level == 0);
-}
-
-#define is_digit(x) ((x) >= '0' && (x) <= '9')
-
-/* ASCIIbetical sort except preserving natural order for numbers */
-static int cmp_func_names(const char *a, const char *b)
-{
-    const char *const start = a;
-
-    int ascii_diff, digit_diff;
-    for (; !(ascii_diff = *(const unsigned char *) a - *(const unsigned char *) b) && *a;
-         a++, b++)
-        ;
-    for (; is_digit(*a) && is_digit(*b); a++, b++)
-        ;
-
-    if (a > start && is_digit(a[-1]) && (digit_diff = is_digit(*a) - is_digit(*b)))
-        return digit_diff;
-
-    return ascii_diff;
-}
-
-/* Perform a tree rotation in the specified direction and return the new root */
-static CheckasmFunc *rotate_tree(CheckasmFunc *const f, const int dir)
-{
-    CheckasmFunc *const r = f->child[dir ^ 1];
-
-    f->child[dir ^ 1] = r->child[dir];
-    r->child[dir]     = f;
-    r->color          = f->color;
-    f->color          = 0;
-    return r;
-}
-
-#define is_red(f) ((f) && !(f)->color)
-
-/* Balance a left-leaning red-black tree at the specified node */
-static void balance_tree(CheckasmFunc **const root)
-{
-    CheckasmFunc *const f = *root;
-
-    if (is_red(f->child[0]) && is_red(f->child[1])) {
-        f->color ^= 1;
-        f->child[0]->color = f->child[1]->color = 1;
-    } else if (!is_red(f->child[0]) && is_red(f->child[1]))
-        *root = rotate_tree(f, 0); /* Rotate left */
-    else if (is_red(f->child[0]) && is_red(f->child[0]->child[0]))
-        *root = rotate_tree(f, 1); /* Rotate right */
-}
-
-/* Get a node with the specified name, creating it if it doesn't exist */
-static CheckasmFunc *get_func(CheckasmFunc **const root, const char *const name)
-{
-    CheckasmFunc *f = *root;
-
-    if (f) {
-        /* Search the tree for a matching node */
-        const int cmp = cmp_func_names(name, f->name);
-        if (cmp) {
-            f = get_func(&f->child[cmp > 0], name);
-
-            /* Rebalance the tree on the way up if a new node was inserted */
-            if (!f->versions.func)
-                balance_tree(root);
-        }
-    } else {
-        /* Allocate and insert a new node into the tree */
-        const size_t name_length = strlen(name) + 1;
-        f = *root = checkasm_mallocz(offsetof(CheckasmFunc, name) + name_length);
-        /* Associate this function with each other function that was last used
-         * as part of the same report group */
-        f->prev      = state.current.func;
-        f->test_name = state.current.test_name;
-        memcpy(f->name, name, name_length);
-    }
-
-    return f;
 }
 
 /* Decide whether or not the current function needs to be benchmarked */
@@ -748,8 +634,8 @@ void checkasm_list_functions(const CheckasmConfig *config)
     for (int i = 0; i < cfg.nb_cpu_flags; i++)
         check_cpu_flag(&cfg.cpu_flags[i]);
 
-    print_functions(state.current.funcs);
-    destroy_func_tree(state.current.funcs);
+    print_functions(state.current.tree.root);
+    checkasm_func_tree_uninit(&state.current.tree);
 }
 
 static void print_info(void)
@@ -891,7 +777,7 @@ int checkasm_run(const CheckasmConfig *config)
             check_cpu_flag(&cfg.cpu_flags[i]);
 
         int res = print_summary();
-        destroy_func_tree(state.current.funcs);
+        checkasm_func_tree_uninit(&state.current.tree);
         if (res)
             return res;
 
@@ -922,11 +808,9 @@ void *checkasm_check_func(void *const func, const char *const name, ...)
         return NULL;
     }
 
-    state.current.func = get_func(&state.current.funcs, name_buf);
-
-    state.current.funcs->color = 1;
-    CheckasmFuncVersion *v     = &state.current.func->versions;
-    void                *ref   = func;
+    CheckasmFunc *const  f   = checkasm_func_get(&state.current.tree, name_buf);
+    CheckasmFuncVersion *v   = &f->versions;
+    void                *ref = func;
 
     if (v->func) {
         CheckasmFuncVersion *prev;
@@ -952,10 +836,16 @@ void *checkasm_check_func(void *const func, const char *const name, ...)
     v->ok   = 1;
     v->cpu  = state.current.cpu;
 
-    state.current.func_ver = v;
     if (state.skip_tests)
         return NULL;
 
+    /* Associate this function with each other function that was last used
+     * as part of the same report group */
+    f->prev      = state.current.func;
+    f->test_name = state.current.test_name;
+
+    state.current.func     = f;
+    state.current.func_ver = v;
     checkasm_srand(cfg.seed);
 
     if (state.current.cpu)
