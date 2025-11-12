@@ -31,7 +31,15 @@
 
 #include <stdint.h>
 
-#if defined(_MSC_VER) && !defined(__clang__)
+#if defined(__APPLE__)
+
+  /* Don't attempt to read pmccntr directly; this is never accessible
+   * on Darwin in any known configurations. */
+  #undef CHECKASM_PERF_ASM
+  #undef CHECKASM_PERF_ASM_NAME
+  #undef CHECKASM_PERF_ASM_UNIT
+
+#elif defined(_MSC_VER) && !defined(__clang__)
 
   #define CHECKASM_PERF_ASM()                                                            \
       (_InstructionSynchronizationBarrier(), ReadTimeStampCounter())
