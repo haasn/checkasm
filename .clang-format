@@ -15,12 +15,9 @@ AlignEscapedNewlines: Right
 AlignAfterOpenBracket: Align
 AlignArrayOfStructures: Left
 AlignTrailingComments: true
----
-Language: C
-PointerAlignment: Right
-SpaceAfterCStyleCast: true
+AlignConsecutiveBitFields: true
 AlignConsecutiveShortCaseStatements:
     Enabled: true
-AlignConsecutiveBitFields: true
+PointerAlignment: Right
+SpaceAfterCStyleCast: true
 QualifierAlignment: Left
----
