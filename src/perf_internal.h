@@ -55,7 +55,7 @@ static inline void checkasm_pmccntr_enable(void)
 
 #elif ARCH_ARM
 
-  #if !defined(_MSC_VER) && defined(__ARM_ARCH) && __ARM_ARCH >= 7
+  #if !defined(_MSC_VER) && (!defined(__thumb__) || defined(__thumb2__))
 
 static inline void checkasm_counter_enable(void)
 {

@@ -29,17 +29,34 @@
 #ifndef CHECKASM_PERF_ARM_H
 #define CHECKASM_PERF_ARM_H
 
-#if !defined(_MSC_VER) && defined(__ARM_ARCH) && __ARM_ARCH >= 7
+#if !defined(_MSC_VER) && (!defined(__thumb__) || defined(__thumb2__))
 
   #include <stdint.h>
 
 static inline uint64_t checkasm_counter(void)
 {
     uint32_t cycle_counter;
-    /* This requires enabling user mode access to the cycle counter (which
-     * can only be done from kernel space). */
-    __asm__ __volatile__("isb\nmrc p15, 0, %0, c9, c13, 0"
-                         : "=r"(cycle_counter)::"memory");
+        /* This requires enabling user mode access to the cycle counter (which
+         * can only be done from kernel space).
+         *
+         * On architectures before ARMv7, this timer isn't accessible, but we
+         * can still assemble the "mrc" instruction for reading it (provided
+         * that we're building either in ARM or Thumb2 mode; this instruction
+         * isn't available in Thumb1) and try accessing it with a signal
+         * handler.
+         */
+  #if defined(__ARM_ARCH) && __ARM_ARCH >= 7
+    /* This barrier can't be assembled unless we're targeting armv7; providing
+     * .inst equivalents below. */
+    __asm__ __volatile__("isb" ::: "memory");
+  #elif defined(__thumb2__)
+    /* Thumb2 representation of "isb" */
+    __asm__ __volatile__(".inst.w 0xf3bf8f6f" ::: "memory");
+  #else
+    /* ARM representation of "isb" */
+    __asm__ __volatile__(".inst 0xf57ff06f" ::: "memory");
+  #endif
+    __asm__ __volatile__("mrc p15, 0, %0, c9, c13, 0" : "=r"(cycle_counter)::"memory");
     return cycle_counter;
 }
 
@@ -53,5 +70,5 @@ static inline uint64_t checkasm_counter(void)
   #undef CHECKASM_PERF_ASM_NAME
   #undef CHECKASM_PERF_ASM_UNIT
 
-#endif /* !defined(_MSC_VER) && defined(__ARM_ARCH) && __ARM_ARCH >= 7 */
+#endif /* !defined(_MSC_VER) && (!defined(__thumb__) || defined(__thumb2__)) */
 #endif /* CHECKASM_PERF_ARM_H */
