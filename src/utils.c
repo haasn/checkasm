@@ -553,9 +553,12 @@ static int check_err(const char *const file, const int line, const char *const n
         DEF_CHECKASM_CHECK_BODY(cmp_int, type, fmt, fmtw);                               \
     }
 
+DEF_CHECKASM_CHECK_FUNC(int, "%9d", 9)
 DEF_CHECKASM_CHECK_FUNC(int8_t, "%4d", 4)
 DEF_CHECKASM_CHECK_FUNC(int16_t, "%6d", 6)
 DEF_CHECKASM_CHECK_FUNC(int32_t, "%9d", 9)
+
+DEF_CHECKASM_CHECK_FUNC(unsigned, "%08x", 8)
 DEF_CHECKASM_CHECK_FUNC(uint8_t, "%02x", 2)
 DEF_CHECKASM_CHECK_FUNC(uint16_t, "%04x", 4)
 DEF_CHECKASM_CHECK_FUNC(uint32_t, "%08x", 8)

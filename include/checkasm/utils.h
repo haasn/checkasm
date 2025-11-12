@@ -109,9 +109,12 @@ CHECKASM_API int checkasm_double_near_abs_eps_array(const double *a, const doubl
         const int w, const int h, const char *const name, const int align_w,             \
         const int align_h, const int padding)
 
+DECL_CHECKASM_CHECK_FUNC(int);
 DECL_CHECKASM_CHECK_FUNC(int8_t);
 DECL_CHECKASM_CHECK_FUNC(int16_t);
 DECL_CHECKASM_CHECK_FUNC(int32_t);
+
+DECL_CHECKASM_CHECK_FUNC(unsigned);
 DECL_CHECKASM_CHECK_FUNC(uint8_t);
 DECL_CHECKASM_CHECK_FUNC(uint16_t);
 DECL_CHECKASM_CHECK_FUNC(uint32_t);
