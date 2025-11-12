@@ -144,6 +144,7 @@ checkasm_asm_objs = []
 checkasm_sources = files(
   'checkasm.c',
   'cpu.c',
+  'function.c',
   'perf.c',
   'signal.c',
   'stats.c',
