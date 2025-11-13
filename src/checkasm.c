@@ -651,6 +651,33 @@ static void print_cpu_name(void)
     }
 }
 
+int checkasm_run_on_all_cores(void (*func)(void))
+{
+#if HAVE_PTHREAD_SETAFFINITY_NP && defined(CPU_SET)
+    cpu_set_t mask;
+    if (pthread_getaffinity_np(pthread_self(), sizeof(mask), &mask))
+        return 1;
+
+    int ret = 0;
+    for (int c = 0; c < CPU_SETSIZE; c++) {
+        if (CPU_ISSET(c, &mask)) {
+            cpu_set_t set;
+            CPU_ZERO(&set);
+            CPU_SET(c, &set);
+            if (pthread_setaffinity_np(pthread_self(), sizeof(set), &set)) {
+                ret = 1;
+                break;
+            }
+            func();
+        }
+    }
+    pthread_setaffinity_np(pthread_self(), sizeof(mask), &mask);
+    return ret;
+#else
+    return 1;
+#endif
+}
+
 static int set_cpu_affinity(const uint64_t affinity)
 {
     int affinity_err;

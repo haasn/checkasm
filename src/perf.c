@@ -34,6 +34,7 @@
 #include "checkasm/perf.h"
 #include "checkasm/test.h"
 #include "internal.h"
+#include "perf_internal.h"
 #include "stats.h"
 
 #ifdef CHECKASM_PERF_ASM
@@ -73,6 +74,19 @@ COLD int checkasm_perf_init(void)
         fprintf(stderr, "checkasm: unable to access cycle counter\n");
         checkasm_perf.asm_usable = 0;
     }
+
+  #ifdef CHECKASM_PERF_ASM_INIT
+    /* Try enabling the timers, if possible */
+    if (checkasm_perf.asm_usable && !checkasm_save_context(checkasm_get_context())) {
+        /* Try calling the asm timer to see if it works */
+        checkasm_set_signal_handler_state(1);
+        CHECKASM_PERF_ASM_INIT();
+        checkasm_set_signal_handler_state(0);
+
+        /* If enabling the timers seem to work, run that on all cores. */
+        checkasm_run_on_all_cores(CHECKASM_PERF_ASM_INIT);
+    }
+  #endif
 
   #if ARCH_AARCH64 || ARCH_ARM
     /* On ARM, verify that the cycle counter increments */

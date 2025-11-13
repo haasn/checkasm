@@ -110,6 +110,8 @@ int checkasm_perf_init(void);
 int checkasm_perf_init_linux(CheckasmPerf *perf);
 int checkasm_perf_init_macos(CheckasmPerf *perf);
 
+int checkasm_run_on_all_cores(void (*func)(void));
+
 CheckasmStats checkasm_measure_nop_cycles(uint64_t target_cycles); /* cycles per iter */
 CheckasmStats checkasm_measure_perf_scale(void);                   /* ns per cycle */
 uint64_t      checkasm_gettime_nsec(void);
