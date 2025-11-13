@@ -47,6 +47,8 @@ CHECKASM_API int checkasm_check_func(void *func, const char *name, ...)
 /* Currently active function pointers */
 CHECKASM_API void *checkasm_func_ref(void);
 CHECKASM_API void *checkasm_func_new(void);
+CHECKASM_API void  checkasm_func_ref_override(void *func);
+CHECKASM_API void  checkasm_func_new_override(void *func);
 #define func_ref ((func_type *) checkasm_func_ref())
 #define func_new ((func_type *) checkasm_func_new())
 

@@ -94,6 +94,7 @@ static struct {
     CheckasmFunc          *funcs;
     CheckasmFunc          *current_func;
     CheckasmFuncVersion   *current_func_ver;
+    void                  *current_func_new;
     void                  *current_func_ref;
     const CheckasmCpuInfo *cpu;
     CheckasmCpu            cpu_flags;
@@ -132,7 +133,17 @@ void *checkasm_func_ref(void)
 
 void *checkasm_func_new(void)
 {
-    return state.current_func_ver->func;
+    return state.current_func_new;
+}
+
+void checkasm_func_ref_override(void *const func)
+{
+    state.current_func_ref = func;
+}
+
+void checkasm_func_new_override(void *const func)
+{
+    state.current_func_new = func;
 }
 
 CheckasmCpu checkasm_get_cpu_flags(void)
@@ -925,6 +936,7 @@ int checkasm_check_func(void *const func, const char *const name, ...)
     v->cpu  = state.cpu;
 
     state.current_func_ver = v;
+    state.current_func_new = v->func;
     state.current_func_ref = ref->func;
     if (state.skip_tests)
         return 0;
