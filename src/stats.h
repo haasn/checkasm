@@ -99,7 +99,7 @@ static inline void checkasm_stats_reset(CheckasmStats *const stats)
 
 static inline void checkasm_stats_add(CheckasmStats *const stats, const CheckasmSample s)
 {
-    if (s.count > 0) {
+    if (s.sum > 0 && s.count > 0) {
         assert(stats->nb_samples < CHECKASM_STATS_SAMPLES);
         stats->samples[stats->nb_samples++] = s;
     }
