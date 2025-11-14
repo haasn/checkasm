@@ -105,34 +105,39 @@ static void tree_balance(CheckasmFunc **const root)
         *root = tree_rotate(f, 1); /* Rotate right */
 }
 
-/* Get a node with the specified name, creating it if it doesn't exist */
-static CheckasmFunc *func_get(CheckasmFunc **const root, const char *const name)
+/* Get a node with the specified name, creating it if it doesn't exist; returns
+ * 1 if a new node was inserted, 0 otherwise. */
+static int func_get(CheckasmFunc **const root, const char *const name,
+                    CheckasmFunc **const out_func)
 {
     CheckasmFunc *f = *root;
-
-    if (f) {
-        /* Search the tree for a matching node */
-        const int cmp = cmp_func_names(name, f->name);
-        if (cmp) {
-            f = func_get(&f->child[cmp > 0], name);
-
-            /* Rebalance the tree on the way up if a new node was inserted */
-            if (!f->versions.func)
-                tree_balance(root);
-        }
-    } else {
+    if (!f) {
         /* Allocate and insert a new node into the tree */
         const size_t name_length = strlen(name) + 1;
-        f = *root = checkasm_mallocz(offsetof(CheckasmFunc, name) + name_length);
+        f = checkasm_mallocz(offsetof(CheckasmFunc, name) + name_length);
         memcpy(f->name, name, name_length);
+        *out_func = *root = f;
+        return 1;
     }
 
-    return f;
+    /* Search the tree for a matching node */
+    const int cmp = cmp_func_names(name, f->name);
+    if (!cmp) {
+        *out_func = f;
+        return 0;
+    }
+
+    int inserted = func_get(&f->child[cmp > 0], name, out_func);
+    if (inserted)
+        tree_balance(root); /* Rebalance the tree on the way up */
+    return inserted;
 }
 
 CheckasmFunc *checkasm_func_get(CheckasmFuncTree *tree, const char *const name)
 {
-    CheckasmFunc *f                = func_get(&tree->root, name);
-    tree->root->color = 1; /* Ensure root is black */
-    return f;
+    CheckasmFunc *func     = NULL;
+    int           inserted = func_get(&tree->root, name, &func);
+    if (inserted)
+        tree->root->color = 1; /* Ensure root is black */
+    return func;
 }
