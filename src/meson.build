@@ -192,7 +192,7 @@ elif arch_riscv
 elif arch_x86
   add_languages('nasm', native: false)
   configure_file(
-    output: 'checkasm_config.asm',
+    output: 'checkasm_config_generated.asm',
     output_format: 'nasm',
     configuration: cdata_asm,
     install: false,
