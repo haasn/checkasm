@@ -30,7 +30,28 @@ api_header_file_names = [
   'utils.h',
 ]
 
-checkasm_api_headers = files(api_header_file_names)
+extra_header_names = [
+  'perf.h',
+  'perf/aarch64.h',
+  'perf/arm.h',
+  'perf/dummy.h',
+  'perf/loongarch32.h',
+  'perf/loongarch64.h',
+  'perf/ppc64le.h',
+  'perf/x86.h',
+
+  'platform.h',
+  'platform/aarch64.h',
+  'platform/arm.h',
+  'platform/generic.h',
+  'platform/loongarch.h',
+  'platform/ppc64le.h',
+  'platform/riscv.h',
+  'platform/x86_32.h',
+  'platform/x86_64.h',
+]
+
+checkasm_api_headers = files(api_header_file_names + extra_header_names)
 
 # Export these for the Doxygen build process (see docs/meson.build)
 checkasm_include_dir = meson.current_source_dir()
@@ -39,56 +60,4 @@ foreach file_name : api_header_file_names
   checkasm_api_header_paths += checkasm_include_dir / file_name
 endforeach
 
-# Platform-specific code and definitions (besides timing)
-if arch_x86_64
-  platform_header = files('platform/x86_64.h')
-elif arch_x86_32
-  platform_header = files('platform/x86_32.h')
-elif arch_arm
-  platform_header = files('platform/arm.h')
-elif arch_aarch64
-  platform_header = files('platform/aarch64.h')
-elif arch_ppc64le
-  platform_header = files('platform/ppc64le.h')
-elif arch_riscv
-  platform_header = files('platform/riscv.h')
-elif arch_loongarch
-  platform_header = files('platform/loongarch.h')
-else
-  platform_header = files('platform/generic.h')
-endif
-
-# Benchmarking / timing subsystem
-if arch_x86
-  perf_header = files('perf/x86.h')
-elif arch_aarch64
-  perf_header = files('perf/aarch64.h')
-elif arch_arm
-  perf_header = files('perf/arm.h')
-elif arch_ppc64le
-  perf_header = files('perf/ppc64le.h')
-elif arch_loongarch64
-  perf_header = files('perf/loongarch64.h')
-elif arch_loongarch32
-  perf_header = files('perf/loongarch32.h')
-else
-  perf_header = files('perf/dummy.h')
-endif
-
-install_headers(checkasm_api_headers, subdir: meson.project_name())
-
-configure_file(
-  input: platform_header,
-  output: 'platform.h',
-  install: true,
-  install_dir: get_option('includedir') / meson.project_name(),
-  copy: true,
-)
-
-configure_file(
-  input: perf_header,
-  output: 'perf.h',
-  install: true,
-  install_dir: get_option('includedir') / meson.project_name(),
-  copy: true,
-)
+install_headers(checkasm_api_headers, subdir: meson.project_name(), preserve_path: true)
