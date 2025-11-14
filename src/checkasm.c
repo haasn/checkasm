@@ -149,18 +149,6 @@ static void destroy_func_tree(CheckasmFunc *const f)
     }
 }
 
-/* Allocate a zero-initialized block, clean up and exit on failure */
-static void *checkasm_malloc(const size_t size)
-{
-    void *const ptr = calloc(1, size);
-    if (!ptr) {
-        fprintf(stderr, "checkasm: malloc failed\n");
-        destroy_func_tree(state.current.funcs);
-        exit(1);
-    }
-    return ptr;
-}
-
 /* Get the suffix of the specified cpu flag */
 static const char *cpu_suffix(const CheckasmCpuInfo *cpu)
 {
@@ -513,7 +501,7 @@ static CheckasmFunc *get_func(CheckasmFunc **const root, const char *const name)
     } else {
         /* Allocate and insert a new node into the tree */
         const size_t name_length = strlen(name) + 1;
-        f = *root = checkasm_malloc(offsetof(CheckasmFunc, name) + name_length);
+        f = *root = checkasm_mallocz(offsetof(CheckasmFunc, name) + name_length);
         /* Associate this function with each other function that was last used
          * as part of the same report group */
         f->prev      = state.current.func;
@@ -953,7 +941,7 @@ void *checkasm_check_func(void *const func, const char *const name, ...)
             prev = v;
         } while ((v = v->next));
 
-        v = prev->next = checkasm_malloc(sizeof(CheckasmFuncVersion));
+        v = prev->next = checkasm_mallocz(sizeof(CheckasmFuncVersion));
     }
 
     name_length += state.suffix_length;
@@ -1071,7 +1059,7 @@ void checkasm_report(const char *const name, ...)
     CheckasmFunc *func = state.current.func;
     while (func) {
         if (!func->report_name)
-            func->report_name = strdup(report_name);
+            func->report_name = checkasm_strdup(report_name);
         func = func->prev;
     }
 

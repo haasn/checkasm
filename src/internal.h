@@ -33,6 +33,7 @@
 #include <signal.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "checkasm/attributes.h"
 #include "checkasm/test.h"
@@ -130,6 +131,26 @@ static inline int imax(const int a, const int b)
 static inline int imin(const int a, const int b)
 {
     return a < b ? a : b;
+}
+
+static inline void *checkasm_handle_oom(void *ptr)
+{
+    if (!ptr) {
+        fprintf(stderr, "checkasm: out of memory\n");
+        exit(1);
+    }
+    return ptr;
+}
+
+/* Allocate a zero-initialized block, clean up and exit on failure */
+static inline void *checkasm_mallocz(const size_t size)
+{
+    return checkasm_handle_oom(calloc(1, size));
+}
+
+static inline char *checkasm_strdup(const char *str)
+{
+    return checkasm_handle_oom(strdup(str));
 }
 
 #endif /* CHECKASM_INTERNAL_H */
