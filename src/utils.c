@@ -36,7 +36,7 @@
 #include <string.h>
 #include <time.h>
 
-#include "config.h"
+#include "checkasm_config.h"
 
 #ifdef _WIN32
   #include <windows.h>

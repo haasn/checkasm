@@ -26,7 +26,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *****************************************************************************/
 
-#include "config.h"
+#include "checkasm_config.h"
 #include "arm/asm.S"
 
 const register_init, align=4

@@ -28,7 +28,7 @@
 
 #include <stdint.h>
 
-#include "config.h"
+#include "checkasm_config.h"
 #include "cpu.h"
 #include "internal.h"
 

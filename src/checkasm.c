@@ -36,7 +36,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "config.h"
+#include "checkasm_config.h"
 
 #include "checkasm/checkasm.h"
 #include "checkasm/test.h"

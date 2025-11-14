@@ -25,8 +25,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "config.h"
 #include "cpu.h"
+#include "checkasm_config.h"
 #include "internal.h"
 
 #if ARCH_RISCV

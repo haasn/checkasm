@@ -26,7 +26,7 @@
 
 #define PRIVATE_PREFIX selftest_
 
-#include "src/config.h"
+#include "src/checkasm_config.h"
 #include "src/arm/asm.S"
 
 #ifndef __ARM_ARCH

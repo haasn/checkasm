@@ -28,7 +28,7 @@
 #ifndef CHECKASM_PERF_INTERNAL_H
 #define CHECKASM_PERF_INTERNAL_H
 
-#include "config.h"
+#include "checkasm_config.h"
 
 #if ARCH_AARCH64
 

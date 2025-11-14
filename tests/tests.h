@@ -31,7 +31,7 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "src/config.h"
+#include "src/checkasm_config.h"
 
 #include <checkasm/test.h>
 #include <checkasm/utils.h>

@@ -30,7 +30,7 @@
 #include <signal.h>
 #include <stdarg.h>
 
-#include "config.h"
+#include "checkasm_config.h"
 
 #include "checkasm/test.h"
 #include "internal.h"

@@ -156,7 +156,7 @@ endif
 
 checkasm_config = []
 checkasm_config += configure_file(
-  output: 'config.h',
+  output: 'checkasm_config.h',
   configuration: cdata,
   install: false,
 )

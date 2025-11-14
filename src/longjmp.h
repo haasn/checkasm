@@ -30,7 +30,7 @@
 #ifndef CHECKASM_LONGJMP_H
 #define CHECKASM_LONGJMP_H
 
-#include "config.h"
+#include "checkasm_config.h"
 
 #if defined(_WIN32) && !ARCH_X86_32
 

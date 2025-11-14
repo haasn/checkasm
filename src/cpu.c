@@ -25,7 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "config.h"
+#include "checkasm_config.h"
 
 #if HAVE_GETAUXVAL || HAVE_ELF_AUX_INFO
   #include <sys/auxv.h>

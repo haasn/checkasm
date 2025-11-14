@@ -28,7 +28,7 @@
 #ifndef CHECKASM_CPU_H
 #define CHECKASM_CPU_H
 
-#include "config.h"
+#include "checkasm_config.h"
 #include <stddef.h>
 #include <stdint.h>
 

@@ -27,7 +27,7 @@
 
 #define PRIVATE_PREFIX selftest_
 
-#include "src/config.h"
+#include "src/checkasm_config.h"
 #include "src/riscv/asm.S"
 
 function copy_rvv, export=1, ext=zve32x
