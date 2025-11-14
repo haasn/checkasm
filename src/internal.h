@@ -33,6 +33,7 @@
 #include <signal.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "checkasm/attributes.h"
 #include "checkasm/test.h"
@@ -125,6 +126,17 @@ static inline int imax(const int a, const int b)
 static inline int imin(const int a, const int b)
 {
     return a < b ? a : b;
+}
+
+/* Allocate a zero-initialized block, clean up and exit on failure */
+static inline void *checkasm_mallocz(const size_t size)
+{
+    void *const ptr = calloc(1, size);
+    if (!ptr) {
+        fprintf(stderr, "checkasm: malloc failed\n");
+        exit(1);
+    }
+    return ptr;
 }
 
 #endif /* CHECKASM_INTERNAL_H */
