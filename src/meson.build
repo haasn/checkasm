@@ -164,35 +164,31 @@ checkasm_config += configure_file(
 # Build definition
 checkasm_asm_objs = []
 checkasm_sources = files(
+  'arm/cpu.c',
   'checkasm.c',
   'cpu.c',
   'function.c',
   'perf.c',
+  'perf/arm.c',
+  'perf/linux.c',
+  'perf/macos_kperf.c',
+  'riscv/cpu.c',
   'signal.c',
   'stackguard.c',
   'stats.c',
   'utils.c',
+  'x86/cpu.c',
 )
-
-if have_linux_perf
-  checkasm_sources += files('perf/linux.c')
-endif
-
-if have_macos_kperf
-  checkasm_sources += files('perf/macos_kperf.c')
-endif
 
 checkasm_asm_sources = []
 if arch_aarch64
   checkasm_asm_sources = files('arm/checkasm_64.S')
-  checkasm_sources += files('arm/cpu.c', 'perf/arm.c')
 elif arch_arm
   checkasm_asm_sources = files('arm/checkasm_32.S')
-  checkasm_sources += files('arm/cpu.c', 'perf/arm.c')
 elif arch_loongarch
   checkasm_sources += files('loongarch/checkasm.S')
 elif arch_riscv
-  checkasm_sources += files('riscv/cpu.c', 'riscv/callcheck.S')
+  checkasm_sources += files('riscv/callcheck.S')
 elif arch_x86
   add_languages('nasm', native: false)
   configure_file(
@@ -203,7 +199,6 @@ elif arch_x86
   )
   checkasm_sources += files(
     'x86/checkasm.asm',
-    'x86/cpu.c',
   )
 endif
 

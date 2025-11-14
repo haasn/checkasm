@@ -29,6 +29,8 @@
 #include "cpu.h"
 #include "internal.h"
 
+#if ARCH_RISCV
+
 #include <stdatomic.h>
 #include <stdbool.h>
 #include <inttypes.h>
@@ -216,3 +218,5 @@ void *checkasm_checked_call_ptr(void)
     assert(checked_call != NULL);
     return checked_call;
 }
+
+#endif /* ARCH_RISCV */

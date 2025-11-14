@@ -28,6 +28,8 @@
 
 #include "config.h"
 
+#if HAVE_LINUX_PERF
+
 #include <linux/perf_event.h>
 #include <sys/ioctl.h>
 #include <sys/syscall.h>
@@ -80,3 +82,5 @@ COLD int checkasm_perf_init_linux(CheckasmPerf *perf)
     perf->unit  = "tick";
     return 0;
 }
+
+#endif /* HAVE_LINUX_PERF */

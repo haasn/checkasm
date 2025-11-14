@@ -26,6 +26,10 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "config.h"
+
+#if HAVE_MACOS_KPERF
+
 #include <dlfcn.h>
 
 #include "internal.h"
@@ -123,3 +127,5 @@ done:
     perf->unit  = "cycle";
     return 0;
 }
+
+#endif /* HAVE_MACOS_KPERF */

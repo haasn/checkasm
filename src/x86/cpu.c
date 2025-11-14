@@ -32,6 +32,8 @@
 #include "cpu.h"
 #include "internal.h"
 
+#if ARCH_X86
+
 typedef struct {
     uint32_t eax, ebx, edx, ecx;
 } CpuidRegisters;
@@ -83,3 +85,5 @@ void checkasm_simd_warmup(void)
 
     simd_warmup();
 }
+
+#endif
