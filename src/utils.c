@@ -27,6 +27,7 @@
  */
 
 #include <assert.h>
+#include <inttypes.h>
 #include <math.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -553,15 +554,15 @@ static int check_err(const char *const file, const int line, const char *const n
         DEF_CHECKASM_CHECK_BODY(cmp_int, type, fmt, fmtw);                               \
     }
 
-DEF_CHECKASM_CHECK_FUNC(int, "%9d", 9)
-DEF_CHECKASM_CHECK_FUNC(int8_t, "%4d", 4)
-DEF_CHECKASM_CHECK_FUNC(int16_t, "%6d", 6)
-DEF_CHECKASM_CHECK_FUNC(int32_t, "%9d", 9)
+DEF_CHECKASM_CHECK_FUNC(int,     "%9d",       9)
+DEF_CHECKASM_CHECK_FUNC(int8_t,  "%4" PRId8,  4)
+DEF_CHECKASM_CHECK_FUNC(int16_t, "%6" PRId16, 6)
+DEF_CHECKASM_CHECK_FUNC(int32_t, "%9" PRId32, 9)
 
-DEF_CHECKASM_CHECK_FUNC(unsigned, "%08x", 8)
-DEF_CHECKASM_CHECK_FUNC(uint8_t, "%02x", 2)
-DEF_CHECKASM_CHECK_FUNC(uint16_t, "%04x", 4)
-DEF_CHECKASM_CHECK_FUNC(uint32_t, "%08x", 8)
+DEF_CHECKASM_CHECK_FUNC(unsigned, "%08x",       8)
+DEF_CHECKASM_CHECK_FUNC(uint8_t,  "%02" PRIx8,  2)
+DEF_CHECKASM_CHECK_FUNC(uint16_t, "%04" PRIx16, 4)
+DEF_CHECKASM_CHECK_FUNC(uint32_t, "%08" PRIx32, 8)
 
 int checkasm_check_float_ulp(const char *file, int line, const float *buf1,
                              ptrdiff_t stride1, const float *buf2, ptrdiff_t stride2,
