@@ -880,15 +880,16 @@ int checkasm_run(const CheckasmConfig *config)
         for (int i = 0; i < cfg.nb_cpu_flags; i++)
             check_cpu_flag(&cfg.cpu_flags[i]);
 
+        int res = print_summary();
         destroy_func_tree(state.current.funcs);
+        if (res)
+            return res;
+
         memset(&state.current, 0, sizeof(state.current));
         cfg.seed++;
-
-        if (state.num_failed || state.num_skipped)
-            break;
     }
 
-    return print_summary();
+    return 0;
 }
 
 /* Decide whether or not the specified function needs to be tested and
