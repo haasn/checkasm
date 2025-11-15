@@ -58,15 +58,15 @@ typedef struct {
 
   #include <setjmp.h>
 
-  #ifdef _WIN32
-typedef jmp_buf checkasm_jmp_buf;
-    #define checkasm_save_context(ctx) setjmp(ctx)
-    #define checkasm_load_context(ctx) longjmp(ctx, 1)
-  #else /* !_WIN32 */
+  #if HAVE_SIGLONGJMP
 typedef sigjmp_buf checkasm_jmp_buf;
     #define checkasm_save_context(ctx) sigsetjmp(ctx, 1)
     #define checkasm_load_context(ctx) siglongjmp(ctx, 1)
-  #endif /* !_WIN32 */
+  #else /* !HAVE_SIGLONGJMP */
+typedef jmp_buf checkasm_jmp_buf;
+    #define checkasm_save_context(ctx) setjmp(ctx)
+    #define checkasm_load_context(ctx) longjmp(ctx, 1)
+  #endif /* !HAVE_SIGLONGJMP */
 
 #endif /* !_WIN32 || ARCH_X86_32 */
 

@@ -44,6 +44,9 @@ have_pthread_setaffinity_np = cc.has_function('pthread_setaffinity_np',
   dependencies: thread_dependency,
 )
 
+have_sigaction = cc.has_function('sigaction', prefix : '#include <signal.h>', args : test_args)
+have_siglongjmp = cc.has_function('siglongjmp', prefix : '#include <setjmp.h>', args : test_args)
+
 have_getauxval = false
 have_elf_aux_info = false
 if (arch_aarch64 or arch_arm or arch_loongarch or arch_ppc64le or arch_riscv)
@@ -91,6 +94,8 @@ cdata.set10('ARCH_LOONGARCH64',             arch_loongarch64)
 cdata.set10('HAVE_UNISTD_H',                cc.check_header('unistd.h'))
 cdata.set10('HAVE_PTHREAD_NP_H',            have_pthread_np)
 cdata.set10('HAVE_PTHREAD_SETAFFINITY_NP',  have_pthread_setaffinity_np)
+cdata.set10('HAVE_SIGACTION',               have_sigaction)
+cdata.set10('HAVE_SIGLONGJMP',              have_siglongjmp)
 cdata.set10('HAVE_GETAUXVAL',               have_getauxval)
 cdata.set10('HAVE_ELF_AUX_INFO',            have_elf_aux_info)
 cdata.set10('HAVE_LINUX_PERF',              have_linux_perf)

@@ -95,7 +95,7 @@ static LONG NTAPI signal_handler(EXCEPTION_POINTERS *const e)
 }
   #endif
 
-#else // !_WIN32
+#elif HAVE_SIGACTION && defined(SA_RESETHAND)
 
 static void signal_handler(int s);
 
@@ -117,6 +117,16 @@ static void signal_handler(const int s)
         checkasm_load_context(checkasm_context);
     }
 }
+#else
+
+static void signal_handler(const int s)
+{
+    if (sig == SIG_ATOMIC_MAX) {
+        sig = s;
+        signal(s, signal_handler);
+        checkasm_load_context(checkasm_context);
+    }
+}
 #endif
 
 COLD void checkasm_set_signal_handlers(void)
@@ -131,13 +141,24 @@ COLD void checkasm_set_signal_handlers(void)
   #endif
     signal(SIGINT, interrupt_handler);
     signal(SIGTERM, interrupt_handler);
-#else // !_WIN32
+#elif HAVE_SIGACTION && defined(SA_RESETHAND)
+#ifdef SIGBUS
     sigaction(SIGBUS, &signal_handler_act, NULL);
+#endif
     sigaction(SIGFPE, &signal_handler_act, NULL);
     sigaction(SIGILL, &signal_handler_act, NULL);
     sigaction(SIGSEGV, &signal_handler_act, NULL);
     sigaction(SIGINT, &interrupt_handler_act, NULL);
     sigaction(SIGTERM, &interrupt_handler_act, NULL);
+#else
+#ifdef SIGBUS
+    signal(SIGBUS, signal_handler);
+#endif
+    signal(SIGFPE, signal_handler);
+    signal(SIGILL, signal_handler);
+    signal(SIGSEGV, signal_handler);
+    signal(SIGINT, interrupt_handler);
+    signal(SIGTERM, interrupt_handler);
 #endif
 
     handlers_set = 1;
@@ -148,7 +169,9 @@ const char *checkasm_get_last_signal_desc(void)
     switch (sig) {
     case SIGFPE:  return "fatal arithmetic error";
     case SIGILL:  return "illegal instruction";
+#ifdef SIGBUS
     case SIGBUS:  return "bus error";
+#endif
     case SIGSEGV: return "segmentation fault";
     case SIGINT:  return "interrupted";
     case SIGTERM: return "terminated";
