@@ -165,7 +165,7 @@ static void test_copy_emms(copy_func fun, const char *name)
     declare_func_emms(CHECKASM_CPU_FLAG_MMX, void, uint8_t *dest, const uint8_t *src,
                       size_t n);
 
-    for (size_t w = 1; w <= 256; w *= 2) {
+    for (size_t w = 8; w <= 256; w *= 2) {
         if (check_func(fun, "%s_%zu", name, w)) {
             CLEAR_BUF(c_dst);
             CLEAR_BUF(a_dst);
@@ -182,16 +182,16 @@ static void test_copy_emms(copy_func fun, const char *name)
 
 void checkasm_check_x86(void)
 {
-    checkasm_test_copy(get_copy_x86(), "copy");
+    checkasm_test_copy(get_copy_x86(), "copy", 1);
     test_copy_emms(get_copy_noemms_mmx(), "copy_noemms");
     check_clobber(0, NUM_SAFE);
 
     checkasm_should_fail(1);
     checkasm_test_noop(get_sigill_x86(), "sigill");
     checkasm_test_noop(get_corrupt_stack_x86(), "corrupt_stack");
-    checkasm_test_copy(get_copy_noemms_mmx(), "noemms");
+    checkasm_test_copy(get_copy_noemms_mmx(), "noemms", 8);
     check_clobber(NUM_SAFE, NUM_REGS);
 
     if (has_vzeroupper_check)
-        checkasm_test_copy(get_copy_novzeroupper_avx2(), "novzeroupper");
+        checkasm_test_copy(get_copy_novzeroupper_avx2(), "novzeroupper", 32);
 }

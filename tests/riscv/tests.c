@@ -110,7 +110,7 @@ static void check_clobber(const RiscvRegister *registers)
 
 void checkasm_check_riscv(void)
 {
-    checkasm_test_copy(get_copy_rvv(), "copy_rvv");
+    checkasm_test_copy(get_copy_rvv(), "copy_rvv", 1);
     check_clobber(registers_safe);
 
 #if ARCH_RV64

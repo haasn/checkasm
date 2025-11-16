@@ -74,7 +74,7 @@ uint64_t checkasm_get_cpu_flags_arm(void);
  * Copy `size` (power-of-two) bytes from aligned buffers `src` to `dst`.
  */
 typedef void(copy_func)(uint8_t *dst, const uint8_t *src, size_t size);
-void checkasm_test_copy(copy_func *func, const char *name);
+void checkasm_test_copy(copy_func *func, const char *name, int min_width);
 
 #define DEF_COPY_FUNC(NAME)                                                              \
     void checkasm_##NAME(uint8_t *dst, const uint8_t *src, size_t size)
