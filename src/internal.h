@@ -109,6 +109,7 @@ extern CheckasmPerf checkasm_perf;
 int checkasm_perf_init(void);
 int checkasm_perf_init_linux(CheckasmPerf *perf);
 int checkasm_perf_init_macos(CheckasmPerf *perf);
+int checkasm_perf_init_arm(CheckasmPerf *perf);
 
 int checkasm_run_on_all_cores(void (*func)(void));
 

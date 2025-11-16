@@ -115,6 +115,11 @@ COLD int checkasm_perf_init(void)
         return 0;
 #endif
 
+#if ARCH_ARM || ARCH_AARCH64
+    if (!checkasm_perf_init_arm(&checkasm_perf))
+        return 0;
+#endif
+
     /* Generic fallback to gettime() */
     if (checkasm_gettime_nsec() == (uint64_t) -1) {
         fprintf(stderr, "checkasm: checkasm_gettime_nsec() returned nonsense\n");
