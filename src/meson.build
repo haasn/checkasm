@@ -131,14 +131,15 @@ if arch_aarch64
         capture: true)
       r = run_command(gaspp, gaspp_args, f, '-c', '-o', meson.current_build_dir() / 'test-' + name + '.obj', check: false)
       message('Checking for gaspp/armasm64 ' + name.to_upper() + ': ' + (r.returncode() == 0 ? 'YES' : 'NO'))
-      cdata.set10('HAVE_AS_ARCHEXT_' + name.to_upper() + '_DIRECTIVE', false)
-      cdata.set10('HAVE_' + name.to_upper(), r.returncode() == 0)
+      archext_supported = false
+      supported = r.returncode() == 0
     else
       code = f'__asm__ (".arch_extension @name@\\n@instr@\\n");'
       supported = cc.compiles(code, name: name.to_upper())
-      cdata.set10('HAVE_AS_ARCHEXT_' + name.to_upper() + '_DIRECTIVE', supported)
-      cdata.set10('HAVE_' + name.to_upper(), supported)
+      archext_supported = supported
     endif
+    cdata.set10('HAVE_AS_ARCHEXT_' + name.to_upper() + '_DIRECTIVE', archext_supported)
+    cdata.set10('HAVE_' + name.to_upper(), supported)
   endforeach
 endif
 
