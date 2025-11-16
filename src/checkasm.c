@@ -1026,8 +1026,7 @@ void checkasm_report(const char *const name, ...)
         else if (!state.should_fail)
             checkasm_fprintf(stderr, COLOR_RED, "FAILED");
         else
-            checkasm_fprintf(stderr, COLOR_RED,
-                             fails > 0 ? "ALL SHOULD FAIL" : "SHOULD FAIL");
+            checkasm_fprintf(stderr, COLOR_RED, "%d/%d EXPECTED", fails, new_checked);
         fprintf(stderr, "]\n");
 
         state.prev_checked = state.num_checked;
