@@ -32,13 +32,17 @@
 #include "checkasm/checkasm.h"
 #include "stats.h"
 
+typedef enum CheckasmFuncState {
+    CHECKASM_FUNC_OK,
+    CHECKASM_FUNC_FAILED,
+} CheckasmFuncState;
+
 typedef struct CheckasmFuncVersion {
     struct CheckasmFuncVersion *next;
+    void                       *func;
     const CheckasmCpuInfo      *cpu;
     CheckasmMeasurement         cycles;
-
-    void *func;
-    int   ok;
+    CheckasmFuncState           state;
 } CheckasmFuncVersion;
 
 typedef struct CheckasmFunc {

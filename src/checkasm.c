@@ -818,10 +818,10 @@ void *checkasm_check_func(void *const func, const char *const name, ...)
         CheckasmFuncVersion *prev;
         do {
             /* Only test functions that haven't already been tested */
-            if (v->func == func || (!v->cpu && !v->ok))
+            if (v->func == func || (!v->cpu && v->state != CHECKASM_FUNC_OK))
                 return NULL;
 
-            if (v->ok)
+            if (v->state == CHECKASM_FUNC_OK)
                 ref = v->func;
 
             prev = v;
@@ -834,9 +834,9 @@ void *checkasm_check_func(void *const func, const char *const name, ...)
     if (name_length > state.max_function_name_length)
         state.max_function_name_length = name_length;
 
-    v->func = func;
-    v->ok   = 1;
-    v->cpu  = current.cpu;
+    v->func  = func;
+    v->state = CHECKASM_FUNC_OK;
+    v->cpu   = current.cpu;
 
     if (state.skip_tests)
         return NULL;
@@ -862,7 +862,7 @@ void *checkasm_check_func(void *const func, const char *const name, ...)
     int funcname(const char *const msg, ...)                                             \
     {                                                                                    \
         CheckasmFuncVersion *const v = current.func_ver;                                 \
-        if (v && v->ok) {                                                                \
+        if (v && v->state == CHECKASM_FUNC_OK) {                                         \
             va_list arg;                                                                 \
                                                                                          \
             if (!current.should_fail) {                                                  \
@@ -875,7 +875,7 @@ void *checkasm_check_func(void *const func, const char *const name, ...)
                 fprintf(stderr, ")\n");                                                  \
             }                                                                            \
                                                                                          \
-            v->ok = 0;                                                                   \
+            v->state = CHECKASM_FUNC_FAILED;                                             \
             current.num_failed++;                                                        \
         }                                                                                \
         return cfg.verbose && !current.should_fail;                                      \
