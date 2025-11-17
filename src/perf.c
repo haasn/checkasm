@@ -168,6 +168,13 @@ COLD void checkasm_measure_nop_cycles(CheckasmMeasurement *meas, uint64_t target
 COLD void checkasm_measure_perf_scale(CheckasmMeasurement *meas)
 {
     const CheckasmPerf perf = checkasm_perf;
+    if (!strcmp(perf.unit, "nsec")) {
+        *meas = (CheckasmMeasurement) {
+            .product         = checkasm_var_const(1.0),
+            .nb_measurements = 1,
+        };
+        return;
+    }
 
     /* Try to make the loop long enough to be measurable, but not too long
      * to avoid being affected by CPU frequency scaling or preemption */
