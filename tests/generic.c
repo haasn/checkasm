@@ -202,7 +202,7 @@ void checkasm_check_generic(void)
     checkasm_test_float_arg();
     checkasm_test_retval();
 
-    if (!checkasm_should_fail(1))
+    if (!checkasm_should_fail(CHECKASM_CPU_FLAG_BAD_C))
         return;
 
     checkasm_test_copy(get_memset(), "memset", 1);

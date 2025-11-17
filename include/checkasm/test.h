@@ -32,6 +32,7 @@
 #include <stdint.h>
 
 #include "checkasm/attributes.h"
+#include "checkasm/checkasm.h"
 #include "checkasm/longjmp.h"
 #include "checkasm/perf.h"
 #include "checkasm/platform.h"
@@ -48,14 +49,14 @@ CHECKASM_API void checkasm_set_signal_handler_state(int enabled);
 CHECKASM_API void checkasm_handle_signal(void);
 CHECKASM_API checkasm_jmp_buf *checkasm_get_context(void);
 
-/* Mark a block of tests as expected to fail. If this is set, all tested
- * functions must must be marked as failed, otherwise the whole test will
- * be marked as failed. This state does not persist between tests.
+/* Mark a block of tests as expected to fail when any of `cpu_flags` are set
+ * (or -1 to always expect a failure). Returns whether or not these functions
+ * should be executed. (If not, such tests should be silently skipped.)
  *
- * Returns a nonzero value if tests failure tests are expected to work,
- * zero if such tests should be skipped (if signal handling isn't
- * supported). */
-CHECKASM_API int checkasm_should_fail(int);
+ * Note: All functions inside such a block *must* fail, otherwise the whole
+ * test will be considered failed.
+ */
+CHECKASM_API int checkasm_should_fail(CheckasmCpu cpu_flags);
 
 /* Decide whether or not the specified function needs to be tested */
 #define check_func(func, ...)                                                            \
