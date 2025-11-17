@@ -686,7 +686,7 @@ static int set_cpu_affinity(const uint64_t affinity)
     BOOL(WINAPI * spdcs)(HANDLE, const ULONG *, ULONG) = (void *) GetProcAddress(
         GetModuleHandleW(L"kernel32.dll"), "SetProcessDefaultCpuSets");
     if (spdcs)
-        affinity_err = !spdcs(process, (ULONG[]) { (ULONG)affinity + 256 }, 1);
+        affinity_err = !spdcs(process, (ULONG[]) { (ULONG) affinity + 256 }, 1);
     else
   #endif
     {
