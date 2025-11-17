@@ -91,7 +91,6 @@ static struct {
 
     /* Overall stats for this test run */
     int    num_checked;
-    int    num_skipped;
     int    num_failed;
     int    num_benched;
     int    prev_checked, prev_failed; /* reset by report() */
@@ -228,7 +227,6 @@ static void print_bench_header(struct IterState *const iter)
         checkasm_json_str(json, "checkasmVersion", CHECKASM_VERSION);
         checkasm_json(json, "numChecked", "%d", current.num_checked);
         checkasm_json(json, "numFailed", "%d", current.num_failed);
-        checkasm_json(json, "numSkipped", "%d", current.num_skipped);
         checkasm_json(json, "targetCycles", "%" PRIu64, state.target_cycles);
         checkasm_json(json, "numBenchmarks", "%d", current.num_benched);
         checkasm_json_push(json, "cpuFlags", '{');
@@ -689,24 +687,19 @@ static void print_info(void)
 
 static int print_summary(void)
 {
-    char skipped[32] = "";
-    if (current.num_skipped)
-        snprintf(skipped, sizeof(skipped), " (%d skipped)", current.num_skipped);
-
     if (current.num_failed) {
-        fprintf(stderr, "checkasm: %d of %d tests failed%s\n", current.num_failed,
-                current.num_checked, skipped);
+        fprintf(stderr, "checkasm: %d of %d tests failed\n", current.num_failed,
+                current.num_checked);
     } else if (current.num_checked) {
-        fprintf(stderr, "checkasm: all %d tests passed%s\n", current.num_checked,
-                skipped);
+        fprintf(stderr, "checkasm: all %d tests passed\n", current.num_checked);
     } else {
-        fprintf(stderr, "checkasm: no tests to perform%s\n", skipped);
+        fprintf(stderr, "checkasm: no tests to perform\n");
     }
 
     if (current.num_benched && !current.num_failed)
         print_benchmarks();
 
-    return current.num_failed || current.num_skipped;
+    return current.num_failed > 0;
 }
 
 static void handle_interrupt(void)
@@ -855,10 +848,8 @@ void *checkasm_check_func(void *const func, const char *const name, ...)
 
     current.func     = f;
     current.func_ver = v;
+    current.num_checked++;
     checkasm_srand(cfg.seed);
-
-    if (current.cpu)
-        current.num_checked++;
 
     if (cfg.bench)
         checkasm_measurement_init(&v->cycles);
@@ -885,10 +876,7 @@ void *checkasm_check_func(void *const func, const char *const name, ...)
             }                                                                            \
                                                                                          \
             v->ok = 0;                                                                   \
-            if (v->cpu)                                                                  \
-                current.num_failed++;                                                    \
-            else                                                                         \
-                current.num_skipped++;                                                   \
+            current.num_failed++;                                                        \
         }                                                                                \
         return cfg.verbose && !current.should_fail;                                      \
     }
