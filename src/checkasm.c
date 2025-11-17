@@ -726,7 +726,7 @@ int checkasm_run(const CheckasmConfig *config)
     checkasm_setup_fprintf(stderr);
 
     if (!cfg.seed)
-        cfg.seed = (unsigned) checkasm_gettime_nsec();
+        cfg.seed = checkasm_seed();
     if (!cfg.repeat)
         cfg.repeat = 1;
     if (!cfg.bench_usec)

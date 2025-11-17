@@ -116,6 +116,7 @@ int checkasm_run_on_all_cores(void (*func)(void));
 
 uint64_t checkasm_gettime_nsec(void);
 uint64_t checkasm_gettime_nsec_diff(uint64_t t); /* subtracts t */
+unsigned checkasm_seed(void);
 void     checkasm_noop(void *);
 
 /* These functions update the measurements in `meas` directly; must be inialized */

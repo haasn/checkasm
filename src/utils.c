@@ -63,7 +63,7 @@ NOINLINE void checkasm_noop(void *ptr)
     (void) ptr;
 }
 
-static ALWAYS_INLINE uint64_t gettime_nsec(void)
+static ALWAYS_INLINE uint64_t gettime_nsec(int is_seed)
 {
 #ifdef _WIN32
     static LARGE_INTEGER freq;
@@ -81,23 +81,32 @@ static ALWAYS_INLINE uint64_t gettime_nsec(void)
     return mach_absolute_time() * tb_info.numer / tb_info.denom;
 #else
     struct timespec ts;
+    if (!is_seed) {
   #ifdef CLOCK_MONOTONIC_RAW
-    clock_gettime(CLOCK_MONOTONIC_RAW, &ts);
+      clock_gettime(CLOCK_MONOTONIC_RAW, &ts);
   #else
-    clock_gettime(CLOCK_MONOTONIC, &ts);
+      clock_gettime(CLOCK_MONOTONIC, &ts);
   #endif
+    } else {
+      clock_gettime(CLOCK_REALTIME, &ts);
+    }
     return UINT64_C(1000000000) * ts.tv_sec + ts.tv_nsec;
 #endif
 }
 
 uint64_t checkasm_gettime_nsec(void)
 {
-    return gettime_nsec();
+    return gettime_nsec(0);
 }
 
 uint64_t checkasm_gettime_nsec_diff(uint64_t t)
 {
-    return gettime_nsec() - t;
+    return gettime_nsec(0) - t;
+}
+
+unsigned checkasm_seed(void)
+{
+    return (unsigned) gettime_nsec(1);
 }
 
 // xor128 from Marsaglia, George (July 2003). "Xorshift RNGs".
