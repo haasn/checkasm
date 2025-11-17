@@ -113,11 +113,13 @@ int checkasm_perf_init_arm(CheckasmPerf *perf);
 
 int checkasm_run_on_all_cores(void (*func)(void));
 
-CheckasmStats checkasm_measure_nop_cycles(uint64_t target_cycles); /* cycles per iter */
-CheckasmStats checkasm_measure_perf_scale(void);                   /* ns per cycle */
-uint64_t      checkasm_gettime_nsec(void);
-uint64_t      checkasm_gettime_nsec_diff(uint64_t t); /* subtracts t */
-void          checkasm_noop(void *);
+uint64_t checkasm_gettime_nsec(void);
+uint64_t checkasm_gettime_nsec_diff(uint64_t t); /* subtracts t */
+void     checkasm_noop(void *);
+
+/* These functions update the measurements in `meas` directly; must be inialized */
+void checkasm_measure_nop_cycles(CheckasmMeasurement *meas, uint64_t target_cycles);
+void checkasm_measure_perf_scale(CheckasmMeasurement *meas); /* ns per cycle */
 
 /* Miscellaneous helpers */
 static inline int imax(const int a, const int b)

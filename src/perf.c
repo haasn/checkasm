@@ -134,7 +134,7 @@ COLD int checkasm_perf_init(void)
 }
 
 /* Measure the overhead of the timing code */
-COLD CheckasmStats checkasm_measure_nop_cycles(uint64_t target_cycles)
+COLD void checkasm_measure_nop_cycles(CheckasmMeasurement *meas, uint64_t target_cycles)
 {
     CheckasmStats stats;
     checkasm_stats_reset(&stats);
@@ -162,10 +162,10 @@ COLD CheckasmStats checkasm_measure_nop_cycles(uint64_t target_cycles)
         checkasm_stats_count_grow(&stats, cycles, target_cycles);
     }
 
-    return stats;
+    checkasm_measurement_update(meas, stats);
 }
 
-COLD CheckasmStats checkasm_measure_perf_scale(void)
+COLD void checkasm_measure_perf_scale(CheckasmMeasurement *meas)
 {
     const CheckasmPerf perf = checkasm_perf;
 
@@ -204,5 +204,5 @@ COLD CheckasmStats checkasm_measure_perf_scale(void)
             break;
     }
 
-    return stats;
+    checkasm_measurement_update(meas, stats);
 }
