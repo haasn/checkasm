@@ -915,22 +915,29 @@ void checkasm_report(const char *const name, ...)
         int pad_length = (int) state.max_report_name_length + 4;
         assert(!state.skip_tests);
 
-        print_cpu_name();
-        pad_length -= fprintf(stderr, " - %s.%s", current.test_name, report_name);
-        fprintf(stderr, "%*c", imax(pad_length, 0) + 2, '[');
-
         int fails = current.num_failed - current.prev_failed;
         if (current.should_fail)
             current.num_failed = current.prev_failed + (new_checked - fails);
 
-        if (current.num_failed == current.prev_failed)
-            checkasm_fprintf(stderr, COLOR_GREEN,
-                             current.should_fail ? "EXPECTED" : "OK");
-        else if (!current.should_fail)
-            checkasm_fprintf(stderr, COLOR_RED, "FAILED");
-        else
-            checkasm_fprintf(stderr, COLOR_RED, "%d/%d EXPECTED", fails, new_checked);
-        fprintf(stderr, "]\n");
+        /* Omit "OK" for non-verbose non-benchmark C function successes */
+        const int want_print = current.num_failed != current.prev_failed
+                            || current.should_fail || cfg.verbose || cfg.bench
+                            || current.cpu;
+
+        if (want_print) {
+            print_cpu_name();
+            pad_length -= fprintf(stderr, " - %s.%s", current.test_name, report_name);
+            fprintf(stderr, "%*c", imax(pad_length, 0) + 2, '[');
+
+            if (current.num_failed == current.prev_failed) {
+                checkasm_fprintf(stderr, COLOR_GREEN,
+                                 current.should_fail ? "EXPECTED" : "OK");
+            } else if (!current.should_fail)
+                checkasm_fprintf(stderr, COLOR_RED, "FAILED");
+            else
+                checkasm_fprintf(stderr, COLOR_RED, "%d/%d EXPECTED", fails, new_checked);
+            fprintf(stderr, "]\n");
+        }
 
         current.prev_checked = current.num_checked;
         current.prev_failed  = current.num_failed;
