@@ -27,24 +27,32 @@
 #include "src/config.h"
 #include "src/arm/asm.S"
 
+.macro v4bx rd
+#if __ARM_ARCH >= 5 || defined(__ARM_ARCH_4T__)
+        bx              \rd
+#else
+        mov             pc, \rd
+#endif
+.endm
+
 function sigill_arm, export=1
-        udf #0
-        bx lr
+        udf             #0
+        v4bx            lr
 endfunc
 
 .macro clobber_r reg
 function clobber_\reg, export=1
         mov             \reg, #0x42
-        bx lr
+        v4bx            lr
 endfunc
 .endm
 
 .macro clobber_d reg
 function clobber_\reg, export=1
-        mov            r0, #0x42
-        mov            r1, #0x42
-        vmov           \reg, r0, r1
-        bx lr
+        mov             r0, #0x42
+        mov             r1, #0x42
+        vmov            \reg, r0, r1
+        v4bx            lr
 endfunc
 .endm
 
@@ -63,7 +71,7 @@ clobber_d \r
 function clobber_stack_args_arm, export=1
         mov             r0, #0x42
         str             r0, [sp, #0]
-        bx              lr
+        v4bx            lr
 endfunc
 
 // void clobber_stack_arm(int, int, int, int, int);
@@ -74,12 +82,12 @@ function clobber_stack_arm, export=1
         mov             r0, #0x42
         str             r0, [sp, #0]
         str             r0, [sp, #4]
-        bx              lr
+        v4bx            lr
 endfunc
 
 function clobber_fpscr_vfp, export=1
         // Flush to zero, default NaN mode, round towards zero
         ldr             r12, =0x3C00000
         fmxr            fpscr, r12
-        bx              lr
+        v4bx            lr
 endfunc
