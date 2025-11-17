@@ -40,6 +40,7 @@
   #undef CHECKASM_PERF_ASM_UNIT
 
 #elif defined(_MSC_VER) && !defined(__clang__)
+  #include <windows.h>
 
   #define CHECKASM_PERF_ASM()                                                            \
       (_InstructionSynchronizationBarrier(), ReadTimeStampCounter())
