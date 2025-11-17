@@ -70,20 +70,21 @@ checkasm_checked_call_func checkasm_get_checked_call_ptr(void)
 
 /* Internal state */
 static CheckasmConfig cfg;
-static struct {
-    /* Current function/test state, reset after each test run */
-    struct {
-        CheckasmFuncTree       tree;
-        CheckasmFunc          *func;
-        CheckasmFuncVersion   *func_ver;
-        const CheckasmCpuInfo *cpu;
-        int                    cpu_name_printed;
-        CheckasmCpu            cpu_flags;
-        const char            *test_name;
-        uint64_t               cycles;
-    } current;
 
-    /* Overall stats, kept between test runs */
+/* Current function/test state, reset after each test run */
+static struct {
+    CheckasmFuncTree       tree;
+    CheckasmFunc          *func;
+    CheckasmFuncVersion   *func_ver;
+    const CheckasmCpuInfo *cpu;
+    int                    cpu_name_printed;
+    CheckasmCpu            cpu_flags;
+    const char            *test_name;
+    uint64_t               cycles;
+} current;
+
+/* Global state for the entire checkasm_run() call */
+static struct {
     int num_checked;
     int num_skipped;
     int num_failed;
@@ -109,7 +110,7 @@ static struct {
 
 CheckasmCpu checkasm_get_cpu_flags(void)
 {
-    return state.current.cpu_flags;
+    return current.cpu_flags;
 }
 
 /* Get the suffix of the specified cpu flag */
@@ -393,7 +394,7 @@ static void print_benchmarks(void)
 {
     struct IterState iter = { .json.file = stdout };
     print_bench_header(&iter);
-    print_bench_iter(state.current.tree.root, &iter);
+    print_bench_iter(current.tree.root, &iter);
     print_bench_footer(&iter);
     assert(iter.json.level == 0);
 }
@@ -415,7 +416,7 @@ int checkasm_bench_runs(void)
 
     /* Try and gather at least 30 samples for statistical validity, even if
      * it means exceeding the time budget */
-    if (state.current.cycles < state.target_cycles || state.stats.nb_samples < 30)
+    if (current.cycles < state.target_cycles || state.stats.nb_samples < 30)
         return state.stats.next_count;
     else
         return 0;
@@ -426,13 +427,13 @@ void checkasm_bench_update(const int iterations, const uint64_t cycles)
 {
     checkasm_stats_add(&state.stats, (CheckasmSample) { cycles, iterations });
     checkasm_stats_count_grow(&state.stats, cycles, state.target_cycles);
-    state.current.cycles += cycles;
+    current.cycles += cycles;
 }
 
 void checkasm_bench_finish(void)
 {
-    CheckasmFuncVersion *const v = state.current.func_ver;
-    if (v && state.current.cycles) {
+    CheckasmFuncVersion *const v = current.func_ver;
+    if (v && current.cycles) {
         const CheckasmVar cycles = checkasm_stats_estimate(&state.stats);
 
         /* Accumulate multiple bench_new() calls */
@@ -445,7 +446,7 @@ void checkasm_bench_finish(void)
     }
 
     checkasm_stats_reset(&state.stats);
-    state.current.cycles = 0;
+    current.cycles = 0;
 }
 
 /* Compares a string with a wildcard pattern. */
@@ -474,29 +475,29 @@ static void handle_interrupt(void);
  * cpu flag if supported by the host */
 static void check_cpu_flag(const CheckasmCpuInfo *cpu)
 {
-    const CheckasmCpu prev_cpu_flags = state.current.cpu_flags;
+    const CheckasmCpu prev_cpu_flags = current.cpu_flags;
     if (cpu) {
-        state.current.cpu_flags |= cpu->flag & cfg.cpu;
+        current.cpu_flags |= cpu->flag & cfg.cpu;
     } else {
         /* Also include any CPU flags not related to the CPU flags list */
-        state.current.cpu_flags = cfg.cpu;
+        current.cpu_flags = cfg.cpu;
         for (int i = 0; i < cfg.nb_cpu_flags; i++)
-            state.current.cpu_flags &= ~cfg.cpu_flags[i].flag;
+            current.cpu_flags &= ~cfg.cpu_flags[i].flag;
     }
 
-    if (!cpu || state.current.cpu_flags != prev_cpu_flags) {
-        state.current.cpu              = cpu;
-        state.current.cpu_name_printed = 0;
-        state.suffix_length            = (int) strlen(cpu_suffix(cpu)) + 1;
+    if (!cpu || current.cpu_flags != prev_cpu_flags) {
+        current.cpu              = cpu;
+        current.cpu_name_printed = 0;
+        state.suffix_length      = (int) strlen(cpu_suffix(cpu)) + 1;
         if (cfg.set_cpu_flags)
-            cfg.set_cpu_flags(state.current.cpu_flags);
+            cfg.set_cpu_flags(current.cpu_flags);
 
         for (int i = 0; i < cfg.nb_tests; i++) {
             if (cfg.test_pattern && wildstrcmp(cfg.tests[i].name, cfg.test_pattern))
                 continue;
             checkasm_srand(cfg.seed);
-            state.current.test_name = cfg.tests[i].name;
-            state.should_fail       = 0; // reset between tests
+            current.test_name = cfg.tests[i].name;
+            state.should_fail = 0; // reset between tests
             handle_interrupt();
             cfg.tests[i].func();
 
@@ -514,10 +515,10 @@ static void check_cpu_flag(const CheckasmCpuInfo *cpu)
 /* Print the name of the current CPU flag, but only do it once */
 static void print_cpu_name(void)
 {
-    if (!state.current.cpu_name_printed) {
+    if (!current.cpu_name_printed) {
         checkasm_fprintf(stderr, COLOR_YELLOW, "%s:\n",
-                         state.current.cpu ? state.current.cpu->name : "C");
-        state.current.cpu_name_printed = 1;
+                         current.cpu ? current.cpu->name : "C");
+        current.cpu_name_printed = 1;
     }
 }
 
@@ -627,6 +628,7 @@ static void print_functions(const CheckasmFunc *const f)
 void checkasm_list_functions(const CheckasmConfig *config)
 {
     memset(&state, 0, sizeof(state));
+    memset(&current, 0, sizeof(current));
     state.skip_tests = 1;
     cfg              = *config;
 
@@ -634,8 +636,8 @@ void checkasm_list_functions(const CheckasmConfig *config)
     for (int i = 0; i < cfg.nb_cpu_flags; i++)
         check_cpu_flag(&cfg.cpu_flags[i]);
 
-    print_functions(state.current.tree.root);
-    checkasm_func_tree_uninit(&state.current.tree);
+    print_functions(current.tree.root);
+    checkasm_func_tree_uninit(&current.tree);
 }
 
 static void print_info(void)
@@ -719,6 +721,7 @@ int checkasm_run(const CheckasmConfig *config)
 #endif
 
     memset(&state, 0, sizeof(state));
+    memset(&current, 0, sizeof(current));
     cfg = *config;
 
     checkasm_set_signal_handlers();
@@ -777,11 +780,11 @@ int checkasm_run(const CheckasmConfig *config)
             check_cpu_flag(&cfg.cpu_flags[i]);
 
         int res = print_summary();
-        checkasm_func_tree_uninit(&state.current.tree);
+        checkasm_func_tree_uninit(&current.tree);
         if (res)
             return res;
 
-        memset(&state.current, 0, sizeof(state.current));
+        memset(&current, 0, sizeof(current));
         cfg.seed++;
     }
 
@@ -808,7 +811,7 @@ void *checkasm_check_func(void *const func, const char *const name, ...)
         return NULL;
     }
 
-    CheckasmFunc *const  f   = checkasm_func_get(&state.current.tree, name_buf);
+    CheckasmFunc *const  f   = checkasm_func_get(&current.tree, name_buf);
     CheckasmFuncVersion *v   = &f->versions;
     void                *ref = func;
 
@@ -834,21 +837,21 @@ void *checkasm_check_func(void *const func, const char *const name, ...)
 
     v->func = func;
     v->ok   = 1;
-    v->cpu  = state.current.cpu;
+    v->cpu  = current.cpu;
 
     if (state.skip_tests)
         return NULL;
 
     /* Associate this function with each other function that was last used
      * as part of the same report group */
-    f->prev      = state.current.func;
-    f->test_name = state.current.test_name;
+    f->prev      = current.func;
+    f->test_name = current.test_name;
 
-    state.current.func     = f;
-    state.current.func_ver = v;
+    current.func     = f;
+    current.func_ver = v;
     checkasm_srand(cfg.seed);
 
-    if (state.current.cpu)
+    if (current.cpu)
         state.num_checked++;
 
     if (cfg.bench)
@@ -861,15 +864,14 @@ void *checkasm_check_func(void *const func, const char *const name, ...)
 #define DEF_FAIL_FUNC(funcname)                                                          \
     int funcname(const char *const msg, ...)                                             \
     {                                                                                    \
-        CheckasmFuncVersion *const v = state.current.func_ver;                           \
+        CheckasmFuncVersion *const v = current.func_ver;                                 \
         if (v && v->ok) {                                                                \
             va_list arg;                                                                 \
                                                                                          \
             if (!state.should_fail) {                                                    \
                 print_cpu_name();                                                        \
                 checkasm_fprintf(stderr, COLOR_RED, "FAILURE:");                         \
-                fprintf(stderr, " %s_%s (", state.current.func->name,                    \
-                        cpu_suffix(v->cpu));                                             \
+                fprintf(stderr, " %s_%s (", current.func->name, cpu_suffix(v->cpu));     \
                 va_start(arg, msg);                                                      \
                 vfprintf(stderr, msg, arg);                                              \
                 va_end(arg);                                                             \
@@ -919,7 +921,7 @@ void checkasm_report(const char *const name, ...)
         assert(!state.skip_tests);
 
         print_cpu_name();
-        pad_length -= fprintf(stderr, " - %s.%s", state.current.test_name, report_name);
+        pad_length -= fprintf(stderr, " - %s.%s", current.test_name, report_name);
         fprintf(stderr, "%*c", imax(pad_length, 0) + 2, '[');
 
         int fails = state.num_failed - state.prev_failed;
@@ -937,23 +939,23 @@ void checkasm_report(const char *const name, ...)
 
         state.prev_checked = state.num_checked;
         state.prev_failed  = state.num_failed;
-    } else if (!state.current.cpu) {
+    } else if (!current.cpu) {
         /* Calculate the amount of padding required
          * to make the output vertically aligned */
-        int length = (int) (strlen(state.current.test_name) + strlen(report_name));
+        int length = (int) (strlen(current.test_name) + strlen(report_name));
         if (length > state.max_report_name_length)
             state.max_report_name_length = length;
     }
 
     /* Store the report name with each function in this report group */
-    CheckasmFunc *func = state.current.func;
+    CheckasmFunc *func = current.func;
     while (func) {
         if (!func->report_name)
             func->report_name = checkasm_strdup(report_name);
         func = func->prev;
     }
 
-    state.current.func = NULL; /* reset current function for new report */
+    current.func = NULL; /* reset current function for new report */
     handle_interrupt();
 }
 
