@@ -70,6 +70,7 @@ checkasm_checked_call_func checkasm_get_checked_call_ptr(void)
 
 /* Internal state */
 static CheckasmConfig cfg;
+static CheckasmStats  stats; /* temporary buffer for function measurements */
 
 /* Current function/test state, reset after each test run */
 static struct {
@@ -92,12 +93,11 @@ static struct {
     int prev_checked, prev_failed;
 
     /* Miscellaneous state */
-    CheckasmStats stats;
-    int           suffix_length;
-    int           max_function_name_length;
-    int           max_report_name_length;
-    int           should_fail;
-    double        var_sum, var_max;
+    int    suffix_length;
+    int    max_function_name_length;
+    int    max_report_name_length;
+    int    should_fail;
+    double var_sum, var_max;
 
     /* Timing code measurements (aggregated over multiple trials) */
     CheckasmMeasurement nop_cycles;
@@ -411,13 +411,13 @@ int checkasm_bench_runs(void)
         return 0;
 
     /* This limit should be impossible to hit in practice */
-    if (state.stats.nb_samples == CHECKASM_STATS_SAMPLES)
+    if (stats.nb_samples == CHECKASM_STATS_SAMPLES)
         return 0;
 
     /* Try and gather at least 30 samples for statistical validity, even if
      * it means exceeding the time budget */
-    if (current.cycles < state.target_cycles || state.stats.nb_samples < 30)
-        return state.stats.next_count;
+    if (current.cycles < state.target_cycles || stats.nb_samples < 30)
+        return stats.next_count;
     else
         return 0;
 }
@@ -425,8 +425,8 @@ int checkasm_bench_runs(void)
 /* Update benchmark results of the current function */
 void checkasm_bench_update(const int iterations, const uint64_t cycles)
 {
-    checkasm_stats_add(&state.stats, (CheckasmSample) { cycles, iterations });
-    checkasm_stats_count_grow(&state.stats, cycles, state.target_cycles);
+    checkasm_stats_add(&stats, (CheckasmSample) { cycles, iterations });
+    checkasm_stats_count_grow(&stats, cycles, state.target_cycles);
     current.cycles += cycles;
 }
 
@@ -434,10 +434,10 @@ void checkasm_bench_finish(void)
 {
     CheckasmFuncVersion *const v = current.func_ver;
     if (v && current.cycles) {
-        const CheckasmVar cycles = checkasm_stats_estimate(&state.stats);
+        const CheckasmVar cycles = checkasm_stats_estimate(&stats);
 
         /* Accumulate multiple bench_new() calls */
-        checkasm_measurement_update(&v->cycles, state.stats);
+        checkasm_measurement_update(&v->cycles, stats);
 
         /* Keep track of min/max/avg (log) variance */
         state.var_sum += cycles.lvar;
@@ -445,7 +445,7 @@ void checkasm_bench_finish(void)
         state.num_benched++;
     }
 
-    checkasm_stats_reset(&state.stats);
+    checkasm_stats_reset(&stats);
     current.cycles = 0;
 }
 
@@ -739,7 +739,7 @@ int checkasm_run(const CheckasmConfig *config)
         if (checkasm_perf_init())
             return 1;
 
-        checkasm_stats_reset(&state.stats);
+        checkasm_stats_reset(&stats);
         checkasm_measurement_init(&state.nop_cycles);
         checkasm_measurement_init(&state.perf_scale);
         checkasm_measure_perf_scale(&state.perf_scale);
