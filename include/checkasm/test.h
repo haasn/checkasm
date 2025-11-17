@@ -58,9 +58,14 @@ CHECKASM_API checkasm_jmp_buf *checkasm_get_context(void);
  */
 CHECKASM_API int checkasm_should_fail(CheckasmCpu cpu_flags);
 
+static void *checkasm_func_ref;
+static void *checkasm_func_new;
+#define func_ref (*(func_type **) &checkasm_func_ref)
+#define func_new (*(func_type **) &checkasm_func_new)
+
 /* Decide whether or not the specified function needs to be tested */
 #define check_func(func, ...)                                                            \
-    (func_ref = (func_type *) checkasm_check_func((func_new = func), __VA_ARGS__))
+    (checkasm_func_ref = checkasm_check_func((checkasm_func_new = func), __VA_ARGS__))
 
 /* Declare the function prototype. The first argument is the return value,
  * the remaining arguments are the function parameters. Naming parameters
@@ -68,7 +73,6 @@ CHECKASM_API int checkasm_should_fail(CheckasmCpu cpu_flags);
 #define declare_func(ret, ...)                                                           \
     declare_new(ret, __VA_ARGS__);                                                       \
     typedef ret func_type(__VA_ARGS__);                                                  \
-    func_type  *func_ref, *func_new;                                                     \
     if (checkasm_save_context(checkasm_get_context()))                                   \
         checkasm_handle_signal();
 
@@ -114,13 +118,13 @@ CHECKASM_API const CheckasmPerf *checkasm_get_perf(void);
 #define CHECKASM_PERF_CALL4(...)                                                         \
     do {                                                                                 \
         int tidx = 0;                                                                    \
-        func_new(__VA_ARGS__);                                                           \
+        bench_func(__VA_ARGS__);                                                         \
         tidx = 1;                                                                        \
-        func_new(__VA_ARGS__);                                                           \
+        bench_func(__VA_ARGS__);                                                         \
         tidx = 2;                                                                        \
-        func_new(__VA_ARGS__);                                                           \
+        bench_func(__VA_ARGS__);                                                         \
         tidx = 3;                                                                        \
-        func_new(__VA_ARGS__);                                                           \
+        bench_func(__VA_ARGS__);                                                         \
         (void) tidx;                                                                     \
     } while (0)
 
@@ -138,7 +142,7 @@ CHECKASM_API const CheckasmPerf *checkasm_get_perf(void);
     do {                                                                                 \
         time = perf.start();                                                             \
         for (int tidx = 0; tidx < count; tidx++)                                         \
-            func_new(__VA_ARGS__);                                                       \
+            bench_func(__VA_ARGS__);                                                     \
         time = perf.stop(time);                                                          \
     } while (0)
 
@@ -192,6 +196,7 @@ CHECKASM_API void checkasm_bench_finish(void);
 #define bench_new(...)                                                                   \
     do {                                                                                 \
         if (checkasm_bench_func()) {                                                     \
+            func_type *const bench_func = checkasm_func_new;                             \
             checkasm_set_signal_handler_state(1);                                        \
             for (int truns; (truns = checkasm_bench_runs());) {                          \
                 uint64_t time;                                                           \
@@ -212,5 +217,12 @@ CHECKASM_API void checkasm_bench_finish(void);
  * calls for functions which modifies their input buffer(s) to ensure that
  * throughput, and not latency, is measured. */
 #define alternate(a, b) ((tidx & 1) ? (b) : (a))
+
+/* Suppress unused variable warnings */
+static inline void checkasm_unused(void)
+{
+    (void) checkasm_func_ref;
+    (void) checkasm_func_new;
+}
 
 #endif /* CHECKASM_TEST_H */
