@@ -111,8 +111,12 @@ cdata.set10('HAVE_ELF_AUX_INFO',            have_elf_aux_info)
 cdata.set10('HAVE_LINUX_PERF',              have_linux_perf)
 
 if arch_x86
-  cdata.set10('PIC', true)
-  cdata.set10('FORCE_VEX_ENCODING', cc.get_define('__AVX__').strip() != '')
+  cdata_asm = configuration_data()
+  cdata_asm.set('PREFIX', cc.symbols_have_underscore_prefix())
+  cdata_asm.set10('ARCH_X86_64', arch_x86_64)
+  cdata_asm.set10('ARCH_X86_32', arch_x86_32)
+  cdata_asm.set10('PIC', true)
+  cdata_asm.set10('FORCE_VEX_ENCODING', cc.get_define('__AVX__').strip() != '')
 endif
 
 if arch_aarch64
@@ -190,7 +194,7 @@ elif arch_x86
   configure_file(
     output: 'checkasm_config.asm',
     output_format: 'nasm',
-    configuration: cdata,
+    configuration: cdata_asm,
     install: false,
   )
   checkasm_sources += files(
