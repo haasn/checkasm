@@ -32,6 +32,8 @@
 #ifndef __ARM_ARCH
 #ifdef _M_ARM
 #define __ARM_ARCH _M_ARM
+#else
+#define __ARM_ARCH 0
 #endif
 #endif
 
