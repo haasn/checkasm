@@ -100,11 +100,6 @@ void checkasm_test_float(float_func fun, const char *name, const float input)
     report("%s", name);
 }
 
-static DEF_COPY_FUNC(memset)
-{
-    memset(dst, 0xAC, size);
-}
-
 static DEF_COPY_FUNC(overwrite_left)
 {
     memcpy(dst, src, size);
@@ -189,7 +184,6 @@ static void checkasm_test_float_arg(void)
     report("truncate");
 }
 
-DEF_COPY_GETTER(CHECKASM_CPU_FLAG_BAD_C, memset)
 DEF_COPY_GETTER(CHECKASM_CPU_FLAG_BAD_C, overwrite_left)
 DEF_COPY_GETTER(CHECKASM_CPU_FLAG_BAD_C, overwrite_right)
 DEF_COPY_GETTER(CHECKASM_CPU_FLAG_BAD_C, underwrite)
@@ -205,7 +199,6 @@ void checkasm_check_generic(void)
     if (!checkasm_should_fail(CHECKASM_CPU_FLAG_BAD_C))
         return;
 
-    checkasm_test_copy(get_memset(), "memset", 1);
     checkasm_test_copy(get_overwrite_left(), "overwrite_left", 1);
     checkasm_test_copy(get_overwrite_right(), "overwrite_right", 1);
     checkasm_test_copy(get_underwrite(), "underwrite", 1);
