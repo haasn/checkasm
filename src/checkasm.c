@@ -971,7 +971,6 @@ static void print_usage(const char *const progname)
             "    --bench -b                 Benchmark the tested functions\n"
             "    --csv, --tsv, --json,      Choose output format for benchmarks\n"
             "    --html\n"
-            "separated values.\n"
             "    --function=<pattern> -f    Test only the functions matching "
             "<pattern>\n"
             "    --help -h                  Print this usage info\n"
