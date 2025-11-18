@@ -37,6 +37,23 @@
 #endif
 #endif
 
+.macro v4bx rd
+#if __ARM_ARCH >= 5 || defined(__ARM_ARCH_4T__)
+        bx              \rd
+#else
+        mov             pc, \rd
+#endif
+.endm
+
+.macro v4blx rd
+#if __ARM_ARCH >= 5
+        blx             \rd
+#else
+        mov             lr,  pc
+        v4bx            \rd
+#endif
+.endm
+
 .macro movrel_local rd, val, offset=0
 #if (__ARM_ARCH >= 7 || defined(__ARM_ARCH_6T2__)) && !defined(PIC)
         movw            \rd, #:lower16:\val+\offset
@@ -147,16 +164,7 @@ function checked_call_\variant, export=1
         ldr             r2,  [sp, #ARG_STACK_A + pushed]
         ldr             r3,  [sp, #ARG_STACK_A + pushed + 4]
         @ Call the target function
-#if __ARM_ARCH >= 5
-        blx             r12
-#else
-        mov             lr,  pc
-#if __ARM_ARCH >= 5 || defined(__ARM_ARCH_4T__)
-        bx              r12
-#else
-        mov             pc, r12
-#endif
-#endif
+        v4blx           r12
 
         @ Load the number of stack parameters, stack canary and its reference
         ldr             r12, [sp, #ARG_STACK_A + pushed + 8 + 4*(MAX_ARGS-4)]
