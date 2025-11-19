@@ -846,8 +846,12 @@ void *checkasm_check_func(void *const func, const char *const name, ...)
                 current.func_ver      = v;
             }
 
+            /* Skip functions without a working reference */
+            if (!v->cpu && v->state != CHECKASM_FUNC_OK)
+                return NULL;
+
             /* Only test functions that haven't already been tested */
-            if (v->func == func || (!v->cpu && v->state != CHECKASM_FUNC_OK))
+            if (v->func == func)
                 return NULL;
 
             if (v->state == CHECKASM_FUNC_OK)
