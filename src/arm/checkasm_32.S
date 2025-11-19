@@ -266,7 +266,7 @@ clobbercheck vfp
 function has_neon, export=1, visible=1
 #if (defined(__APPLE__) && __ARM_ARCH >= 7) || defined(_WIN32)
         mov             r0, #1
-        bx              lr
+        v4bx            lr
 #else
         push            {lr}
         mov             r0, #16 /* AT_HWCAP */
@@ -282,7 +282,7 @@ endfunc
 function has_vfp, export=1, visible=1
 #if defined(__APPLE__) || defined(_WIN32)
         mov             r0, #1
-        bx              lr
+        v4bx            lr
 #else
         push            {lr}
         mov             r0, #16 /* AT_HWCAP */
