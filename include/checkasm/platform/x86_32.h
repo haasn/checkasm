@@ -54,7 +54,7 @@ CHECKASM_API void checkasm_empty_mmx(void);
         = (ret (*)(void *, __VA_ARGS__, int, int, int, int, int, int, int, int, int,     \
                    int, int, int, int, int, int))(void *) checked_call_fn(ret);          \
     int emms_needed = 0;                                                                 \
-    (void) emms_needed;
+    (void) emms_needed
 
 #define call_new(...)                                                                    \
     (checkasm_set_signal_handler_state(1),                                               \

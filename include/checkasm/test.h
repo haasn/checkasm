@@ -69,7 +69,7 @@ static void *checkasm_func_new;
  * is optional. */
 #define declare_func(ret, ...)                                                           \
     declare_new(ret, __VA_ARGS__);                                                       \
-    typedef ret func_type(__VA_ARGS__);
+    typedef ret func_type(__VA_ARGS__)
 
 #ifndef declare_func_emms
   #define declare_func_emms(cpu_flags, ret, ...) declare_func(ret, __VA_ARGS__)

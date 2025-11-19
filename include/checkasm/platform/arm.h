@@ -42,7 +42,7 @@ CHECKASM_API checkasm_checked_call_func checkasm_get_checked_call_ptr(void);
                         int, int, int, int, int, int, int, int, int, int)                \
         = (ret (*)(void *, int, __VA_ARGS__, int, int, int, int, int, int, int, int,     \
                    int, int, int, int, int, int, int,                                    \
-                   int))(void *) checkasm_get_checked_call_ptr();
+                   int))(void *) checkasm_get_checked_call_ptr()
 
 #define call_new(...)                                                                    \
     (checkasm_set_signal_handler_state(1),                                               \

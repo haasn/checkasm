@@ -111,7 +111,7 @@ CHECKASM_API void checkasm_empty_mmx(void);
     (void) emms_needed;                                                                  \
     init_clobber_mask(__VA_ARGS__, void *, void *, void *, void *, void *, void *,       \
                       void *, void *, void *, void *, void *, void *, void *, void *,    \
-                      void *);
+                      void *)
 
 #define call_new(...)                                                                    \
     (checkasm_set_signal_handler_state(1), checkasm_simd_warmup(),                       \
