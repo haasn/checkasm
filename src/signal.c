@@ -148,14 +148,15 @@ COLD void checkasm_set_signal_handlers(void)
     handlers_set = 1;
 }
 
-void checkasm_handle_signal(void)
+const char *checkasm_get_last_signal_desc(void)
 {
-    const int s = sig;
-    if (s == SIGINT || s == SIGTERM)
-        return; /* function was interrupted */
-
-    checkasm_fail_func(s == SIGFPE   ? "fatal arithmetic error"
-                       : s == SIGILL ? "illegal instruction"
-                       : s == SIGBUS ? "bus error"
-                                     : "segmentation fault");
+    switch (sig) {
+    case SIGFPE:  return "fatal arithmetic error";
+    case SIGILL:  return "illegal instruction";
+    case SIGBUS:  return "bus error";
+    case SIGSEGV: return "segmentation fault";
+    case SIGINT:  return "interrupted";
+    case SIGTERM: return "terminated";
+    default:      return NULL;
+    }
 }

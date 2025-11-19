@@ -93,7 +93,8 @@ static struct {
     int    num_checked;
     int    num_failed;
     int    num_benched;
-    int    prev_checked, prev_failed; /* reset by report() */
+    int    prev_checked, prev_failed;   /* reset by report() */
+    int    saved_checked, saved_failed; /* for restoring after a crash */
     double var_sum, var_max;
 } current;
 
@@ -498,10 +499,26 @@ static void check_cpu_flag(const CheckasmCpuInfo *cpu)
         for (int i = 0; i < cfg.nb_tests; i++) {
             if (cfg.test_pattern && wildstrcmp(cfg.tests[i].name, cfg.test_pattern))
                 continue;
+            current.test_name = cfg.tests[i].name;
+
+            if (checkasm_save_context(checkasm_get_context())) {
+                const char *signal = checkasm_get_last_signal_desc();
+                handle_interrupt();
+                checkasm_fail_internal("%s", signal);
+
+                /* We want to associate this (and any prior) failures with the
+                 * correct report group, so remember the failure state until we
+                 * reach the same position in the test() function again */
+                current.func_ver->state = CHECKASM_FUNC_CRASHED;
+                current.saved_checked   = current.num_checked - current.prev_checked;
+                current.saved_failed    = current.num_failed - current.prev_failed;
+                current.num_failed      = current.prev_failed;
+                current.num_checked     = current.prev_checked;
+                current.func            = NULL;
+            }
+
             checkasm_srand(cfg.seed);
-            current.test_name   = cfg.tests[i].name;
             current.should_fail = 0; // reset between tests
-            handle_interrupt();
             cfg.tests[i].func();
 
             if (cfg.bench) {
@@ -817,6 +834,18 @@ void *checkasm_check_func(void *const func, const char *const name, ...)
     if (v->func) {
         CheckasmFuncVersion *prev;
         do {
+            if (v->state == CHECKASM_FUNC_CRASHED) {
+                /* This function threw a signal last time; so restore the
+                 * retained test state for the next report() call */
+                v->state = CHECKASM_FUNC_FAILED;
+                current.num_checked += current.saved_checked;
+                current.num_failed += current.saved_failed;
+                current.saved_checked = 0;
+                current.saved_failed  = 0;
+                current.func          = f;
+                current.func_ver      = v;
+            }
+
             /* Only test functions that haven't already been tested */
             if (v->func == func || (!v->cpu && v->state != CHECKASM_FUNC_OK))
                 return NULL;

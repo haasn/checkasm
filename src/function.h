@@ -35,6 +35,7 @@
 typedef enum CheckasmFuncState {
     CHECKASM_FUNC_OK,
     CHECKASM_FUNC_FAILED,
+    CHECKASM_FUNC_CRASHED, /* signal handler triggered */
 } CheckasmFuncState;
 
 typedef struct CheckasmFuncVersion {

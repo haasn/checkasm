@@ -98,7 +98,8 @@ void checkasm_json_push(CheckasmJson *json, const char *const key, char type);
 void checkasm_json_pop(CheckasmJson *json, char type);
 
 /* Platform specific signal handling */
-void checkasm_set_signal_handlers(void);
+void        checkasm_set_signal_handlers(void);
+const char *checkasm_get_last_signal_desc(void);
 
 /* Set to 1 if the process should terminate. The current test will continue
  * executing until the next report() call, then the process will exit. */
