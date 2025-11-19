@@ -206,12 +206,29 @@ static void checkasm_test_check_declare(void)
     report("check_declare");
 }
 
+/* Ensure we can override func_ref/func_new */
+static void checkasm_test_override_funcs(void)
+{
+    declare_func(int, int);
+
+    if (check_func(identity_ref, "override_funcs")) {
+        func_ref = identity_ref;
+        func_new = identity_new;
+
+        call_ref(0);
+        call_new(0);
+    }
+
+    report("override_funcs");
+}
+
 void checkasm_check_generic(void)
 {
     checkasm_test_copy(checkasm_copy_c, "copy_generic", 1);
     checkasm_test_float(checkasm_sqrt, "sqrt_generic", 2.0f);
     checkasm_test_float_arg();
     checkasm_test_retval();
+    checkasm_test_override_funcs();
 
     if (!checkasm_should_fail(CHECKASM_CPU_FLAG_BAD_C))
         return;
