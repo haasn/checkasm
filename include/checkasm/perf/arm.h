@@ -29,7 +29,7 @@
 #ifndef CHECKASM_PERF_ARM_H
 #define CHECKASM_PERF_ARM_H
 
-#if !defined(_MSC_VER) && __ARM_ARCH >= 7
+#if !defined(_MSC_VER) && defined(__ARM_ARCH) && __ARM_ARCH >= 7
 
   #include <stdint.h>
 
@@ -53,5 +53,5 @@ static inline uint64_t checkasm_counter(void)
   #undef CHECKASM_PERF_ASM_NAME
   #undef CHECKASM_PERF_ASM_UNIT
 
-#endif /* !defined(_MSC_VER) && __ARM_ARCH >= 7 */
+#endif /* !defined(_MSC_VER) && defined(__ARM_ARCH) && __ARM_ARCH >= 7 */
 #endif /* CHECKASM_PERF_ARM_H */
