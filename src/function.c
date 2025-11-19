@@ -36,19 +36,23 @@
 /* Deallocate a tree */
 static void func_uninit(CheckasmFunc *const f)
 {
-    if (f) {
-        CheckasmFuncVersion *v = f->versions.next;
-        while (v) {
-            CheckasmFuncVersion *next = v->next;
-            free(v);
-            v = next;
-        }
+    if (!f)
+        return;
 
-        func_uninit(f->child[0]);
-        func_uninit(f->child[1]);
-        free(f->report_name);
-        free(f);
+    CheckasmFuncVersion *v = f->versions.next;
+    while (v) {
+        CheckasmFuncVersion *next = v->next;
+        free(v);
+        v = next;
     }
+
+    CheckasmFunc *const left  = f->child[0];
+    CheckasmFunc *const right = f->child[1];
+    free(f->report_name);
+    free(f);
+
+    func_uninit(right);
+    func_uninit(left);
 }
 
 void checkasm_func_tree_uninit(CheckasmFuncTree *tree)
