@@ -327,11 +327,16 @@ test-debian-riscv64:
 
 test-debian-loongarch64:
     extends:
-        - .test-common
         - .debian-amd64-common
     variables:
         QEMU_CPU: max-loongarch-cpu
         QEMU_LD_PREFIX: /opt/cross-tools/target/
+    script:
+        - meson setup build --buildtype release
+                            --werror
+                            --cross-file crossfiles/loongarch64-linux.meson
+        - cd build && ninja
+        - meson test -v
 
 .bench-common:
     stage: bench
@@ -396,3 +401,16 @@ bench-debian-riscv64:
     variables:
         QEMU_CPU: rv64,v=true,vext_spec=v1.0,vlen=256,elen=64
         QEMU_LD_PREFIX: /usr/riscv64-linux-gnu/
+
+bench-debian-loongarch64:
+    extends: .debian-amd64-common
+    needs: ["test-debian-loongarch64"]
+    stage: bench
+    script:
+        - meson setup build --buildtype release
+                            --cross-file crossfiles/loongarch64-linux.meson
+        - cd build && ninja
+        - time meson test --bench -v
+    variables:
+        QEMU_CPU: max-loongarch-cpu
+        QEMU_LD_PREFIX: /opt/cross-tools/target/
