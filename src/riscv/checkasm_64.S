@@ -113,7 +113,7 @@ function init_riscv, export=1, ext=v
   ret
 endfunc
 
-function checked_call, export=1, ext=v
+function checked_call, export=1, ext=v, visible=1
   /* Save the function ptr, RA, SP, unallocatable and callee-saved registers */
   la.tls.ie t0, saved_regs
   add t0, tp, t0

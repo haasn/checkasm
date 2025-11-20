@@ -43,6 +43,9 @@
 #define PASTE(a,b) a ## b
 #define CONCAT(a,b) PASTE(a,b)
 
+#define QUOTE2(x) #x
+#define QUOTE(x) QUOTE2(x)
+
 #ifdef PREFIX
 #define EXTERN CONCAT(_,PRIVATE_PREFIX)
 #else
@@ -56,7 +59,7 @@
     .endif
 .endm
 
-.macro function name, export=0, ext=
+.macro function name, export=0, ext=, visible=0
     .macro endfunc
 #ifdef __ELF__
         .size   \name, . - \name
@@ -64,6 +67,14 @@
         .option pop
         .purgem endfunc
     .endm
+#if defined(_WIN32) && defined(BUILDING_DLL)
+    .if \export && \visible
+        .section .drectve
+        .ascii "-export:"
+        .ascii QUOTE(EXTERN)
+        .ascii "\name "
+    .endif
+#endif
         .text
         .option push
     .ifnb \ext
@@ -73,9 +84,13 @@
         .global EXTERN\name
 #ifdef __ELF__
         .type   EXTERN\name, %function
-        .hidden EXTERN\name
+        .if !\visible
+            .hidden EXTERN\name
+        .endif
 #elif defined(__MACH__)
-        .private_extern EXTERN\name
+        .if !\visible
+            .private_extern EXTERN\name
+        .endif
 #endif
 EXTERN\name:
     .else
