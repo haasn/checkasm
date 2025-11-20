@@ -392,7 +392,7 @@ bench-debian-riscv64:
         - meson setup build --buildtype release
                             --cross-file crossfiles/riscv64-linux.meson
         - cd build && ninja
-        - time meson test -v
+        - time meson test --bench -v
     variables:
         QEMU_CPU: rv64,v=true,vext_spec=v1.0,vlen=256,elen=64
         QEMU_LD_PREFIX: /usr/riscv64-linux-gnu/
