@@ -43,6 +43,9 @@ have_pthread_setaffinity_np = cc.has_function('pthread_setaffinity_np',
   args: test_args,
   dependencies: thread_dependency,
 )
+if not have_pthread_setaffinity_np
+  thread_dependency = []
+endif
 
 have_ioctl = cc.has_function('ioctl', prefix : '#include <sys/ioctl.h>', args : test_args)
 have_isatty = cc.has_function('isatty', prefix : '#include <unistd.h>', args : test_args)
