@@ -27,8 +27,6 @@
 
 #include "config.h"
 
-#include <errno.h>
-
 #if HAVE_GETAUXVAL || HAVE_ELF_AUX_INFO
   #include <sys/auxv.h>
 #endif
@@ -42,13 +40,10 @@ COLD unsigned long checkasm_getauxval(unsigned long type)
     return getauxval(type);
 #elif HAVE_ELF_AUX_INFO
     unsigned long aux = 0;
-    int           ret = elf_aux_info(type, &aux, sizeof(aux));
-    if (ret != 0)
-        errno = ret;
+    elf_aux_info(type, &aux, sizeof(aux));
     return aux;
 #else
     (void) type;
-    errno = ENOSYS;
     return 0;
 #endif
 }
