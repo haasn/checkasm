@@ -44,6 +44,8 @@ have_pthread_setaffinity_np = cc.has_function('pthread_setaffinity_np',
   dependencies: thread_dependency,
 )
 
+have_ioctl = cc.has_function('ioctl', prefix : '#include <sys/ioctl.h>', args : test_args)
+have_isatty = cc.has_function('isatty', prefix : '#include <unistd.h>', args : test_args)
 have_sigaction = cc.has_function('sigaction', prefix : '#include <signal.h>', args : test_args)
 have_siglongjmp = cc.has_function('siglongjmp', prefix : '#include <setjmp.h>', args : test_args)
 
@@ -91,9 +93,10 @@ cdata.set10('ARCH_RV64',                    arch_rv64)
 cdata.set10('ARCH_LOONGARCH',               arch_loongarch)
 cdata.set10('ARCH_LOONGARCH32',             arch_loongarch32)
 cdata.set10('ARCH_LOONGARCH64',             arch_loongarch64)
-cdata.set10('HAVE_UNISTD_H',                cc.check_header('unistd.h'))
 cdata.set10('HAVE_PTHREAD_NP_H',            have_pthread_np)
 cdata.set10('HAVE_PTHREAD_SETAFFINITY_NP',  have_pthread_setaffinity_np)
+cdata.set10('HAVE_IOCTL',                   have_ioctl)
+cdata.set10('HAVE_ISATTY',                  have_isatty)
 cdata.set10('HAVE_SIGACTION',               have_sigaction)
 cdata.set10('HAVE_SIGLONGJMP',              have_siglongjmp)
 cdata.set10('HAVE_GETAUXVAL',               have_getauxval)

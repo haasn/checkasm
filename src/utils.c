@@ -37,17 +37,18 @@
 
 #include "config.h"
 
-#if HAVE_UNISTD_H
-  #include <unistd.h>
-#endif
-
 #ifdef _WIN32
   #include <windows.h>
   #ifndef ENABLE_VIRTUAL_TERMINAL_PROCESSING
     #define ENABLE_VIRTUAL_TERMINAL_PROCESSING 0x04
   #endif
 #else
-  #include <sys/ioctl.h>
+  #if HAVE_ISATTY
+    #include <unistd.h>
+  #endif
+  #if HAVE_IOCTL
+    #include <sys/ioctl.h>
+  #endif
 #endif
 
 #if defined(__APPLE__) && defined(__MACH__)
@@ -273,7 +274,7 @@ COLD void checkasm_setup_fprintf(FILE *const f)
                     && GetConsoleMode(con, &con_mode)
                     && SetConsoleMode(con, con_mode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
   #endif
-#elif HAVE_UNISTD_H
+#elif HAVE_ISATTY
     if (isatty(f == stderr ? 2 : 1)) {
         const char *const term = getenv("TERM");
         use_printf_color       = term && strcmp(term, "dumb");
@@ -287,7 +288,7 @@ static int get_terminal_width(void)
     CONSOLE_SCREEN_BUFFER_INFO csbi;
     if (GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi))
         return csbi.srWindow.Right - csbi.srWindow.Left + 1;
-#else
+#elif HAVE_IOCTL && defined(TIOCGWINSZ)
     struct winsize w;
     if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) != -1)
         return w.ws_col;
