@@ -76,10 +76,16 @@ clobber_v_upper \r
 // Write into the stack of the caller, overwriting the arguments that are on
 // the stack. This is legal to do.
 function clobber_stack_args_aarch64, export=1
-        mov             x0, #0x42
-        str             x0, [sp, #0]
-        str             x0, [sp, #8]
-        str             x0, [sp, #16]
+        mov             w0, #0x42
+#ifdef __APPLE__
+        str             w0, [sp, #0]
+        str             w0, [sp, #4]
+        str             w0, [sp, #8]
+#else
+        str             w0, [sp, #0]
+        str             w0, [sp, #8]
+        str             w0, [sp, #16]
+#endif
         ret
 endfunc
 
@@ -88,11 +94,21 @@ endfunc
 // Write into the stack of the caller, writing past the arguments on the stack
 // that we are allowed to touch.
 function clobber_stack_aarch64, export=1
-        mov             x0, #0x42
-        str             x0, [sp, #0]
-        str             x0, [sp, #8]
-        str             x0, [sp, #16]
-        str             x0, [sp, #24]
+        mov             w0, #0x42
+#ifdef __APPLE__
+        // This test isn't actually ever executed on Apple platforms, as
+        // we don't have a checked_call wrapper there, but keep an equivalent
+        // version of this function anyway.
+        str             w0, [sp, #0]
+        str             w0, [sp, #4]
+        str             w0, [sp, #8]
+        str             w0, [sp, #12]
+#else
+        str             w0, [sp, #0]
+        str             w0, [sp, #8]
+        str             w0, [sp, #16]
+        str             w0, [sp, #24]
+#endif
         ret
 endfunc
 
