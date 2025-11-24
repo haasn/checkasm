@@ -101,6 +101,28 @@ DEF_MANY_ARGS_FUNC(check_clobber_upper_stack0_aarch64);
 DEF_MANY_ARGS_FUNC(check_clobber_upper_stack1_aarch64);
 DEF_MANY_ARGS_FUNC(check_clobber_upper_stack2_aarch64);
 
+// A function with MAX_ARGS (15) arguments
+typedef void(max_int_args_func)(int, int, int, int, int, int, int, int, int, int, int,
+                                int, int, int, int);
+typedef void(max_int64_args_func)(int64_t, int64_t, int64_t, int64_t, int64_t, int64_t,
+                                  int64_t, int64_t, int64_t, int64_t, int64_t, int64_t,
+                                  int64_t, int64_t, int64_t);
+
+#define DEF_MAX_INT_ARGS_FUNC(NAME)                                                      \
+    void checkasm_##NAME(int, int, int, int, int, int, int, int, int, int, int, int,     \
+                         int, int, int)
+#define DEF_MAX_INT_ARGS_GETTER(FLAG, NAME)                                              \
+    DEF_GETTER(FLAG, NAME, max_int_args_func, NULL)
+#define DEF_MAX_INT64_ARGS_FUNC(NAME)                                                    \
+    void checkasm_##NAME(int64_t, int64_t, int64_t, int64_t, int64_t, int64_t, int64_t,  \
+                         int64_t, int64_t, int64_t, int64_t, int64_t, int64_t, int64_t,  \
+                         int64_t)
+#define DEF_MAX_INT64_ARGS_GETTER(FLAG, NAME)                                            \
+    DEF_GETTER(FLAG, NAME, max_int64_args_func, NULL)
+
+DEF_MAX_INT_ARGS_FUNC(check_max_int_args_aarch64);
+DEF_MAX_INT64_ARGS_FUNC(check_max_int64_args_aarch64);
+
 static noop_func *get_clobber_x(int reg)
 {
     if (!(checkasm_get_cpu_flags() & CHECKASM_CPU_FLAG_AARCH64))
@@ -226,6 +248,9 @@ DEF_NOOP_GETTER(CHECKASM_CPU_FLAG_AARCH64, sigill_aarch64)
 DEF_MANY_ARGS_GETTER(CHECKASM_CPU_FLAG_AARCH64, clobber_stack_args_aarch64)
 DEF_MANY_ARGS_GETTER(CHECKASM_CPU_FLAG_AARCH64, clobber_stack_aarch64)
 
+DEF_MAX_INT_ARGS_GETTER(CHECKASM_CPU_FLAG_AARCH64, check_max_int_args_aarch64)
+DEF_MAX_INT64_ARGS_GETTER(CHECKASM_CPU_FLAG_AARCH64, check_max_int64_args_aarch64)
+
 static void check_clobber_x(int from, int to)
 {
     declare_func(void, int);
@@ -308,6 +333,32 @@ static void checkasm_test_many_args(many_args_func fun, const char *name)
     report("%s", name);
 }
 
+static void checkasm_test_max_int_args(max_int_args_func fun, const char *name)
+{
+    declare_func(void, int, int, int, int, int, int, int, int, int, int, int, int, int,
+                 int, int);
+
+    if (check_func(fun, "%s", name)) {
+        (void) func_ref;
+        call_new(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15);
+    }
+
+    report("%s", name);
+}
+
+static void checkasm_test_max_int64_args(max_int64_args_func fun, const char *name)
+{
+    declare_func(void, int64_t, int64_t, int64_t, int64_t, int64_t, int64_t, int64_t,
+                 int64_t, int64_t, int64_t, int64_t, int64_t, int64_t, int64_t, int64_t);
+
+    if (check_func(fun, "%s", name)) {
+        (void) func_ref;
+        call_new(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15);
+    }
+
+    report("%s", name);
+}
+
 void checkasm_check_aarch64(void)
 {
     check_clobber_x(0, 18);
@@ -316,6 +367,10 @@ void checkasm_check_aarch64(void)
     check_clobber_d(16, 32);
     check_clobber_v_upper(8, 16);
     checkasm_test_many_args(get_clobber_stack_args_aarch64(), "clobber_stack_args");
+
+    checkasm_test_max_int_args(get_check_max_int_args_aarch64(), "check_max_int_args");
+    checkasm_test_max_int64_args(get_check_max_int64_args_aarch64(),
+                                 "check_max_int64_args");
 #ifdef __APPLE__
     // We don't have a checked_call wrapper on Darwin - skip the rest of the
     // tests that rely on that.
