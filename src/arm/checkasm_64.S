@@ -105,7 +105,7 @@ function stack_clobber, export=1, visible=1
 endfunc
 
 // + 16 for stack canary reference
-#define ARG_STACK ((8*(MAX_ARGS - 8) + 15) & ~15 + 16)
+#define ARG_STACK (((8*(MAX_ARGS - 8) + 15) & ~15) + 16)
 
 function checked_call, export=1, visible=1
         stp             x29, x30, [sp, #-16]!
@@ -135,7 +135,11 @@ function checked_call, export=1, visible=1
 .equ pos, 0
 .rept MAX_ARGS-8
         // Skip the first 8 args, that are loaded into registers
+#ifdef __APPLE__
+        ldr             x9, [x29, #16 + pos]
+#else
         ldr             x9, [x29, #16 + 8*8 + pos]
+#endif
         str             x9, [sp, #pos]
 .equ pos, pos + 8
 .endr
@@ -149,6 +153,46 @@ function checked_call, export=1, visible=1
         ldp             x16, x17, [x9], #32
         ldp             x8,  x9,  [x9]
 
+#ifdef __APPLE__
+        // We can have up to MAX_ARGS to the function. That would leave
+        // (MAX_ARGS-8)*8 bytes of arguments on the stack - thus we'd
+        // inspect the tail of numbers at that position. However, if
+        // there are fewer arguments (or some of the arguments on the stack
+        // are packed as 4 byte arguments), we could potentially have
+        // 8+2*(MAX_ARGS-8) tail numbers on before the location we read.
+
+        // For stack overflows, the callee is free to overwrite the parameters
+        // that were passed on the stack (if any), so we can only check after
+        // that point. First load a number from the tail, after the last
+        // potential argument:
+        ldr             w16, [x29, #16 + (MAX_ARGS-8)*8]
+        // Calculate the number of 4 byte stack slots used for arguments
+        sub             w17, w16, #8
+        // if (w17 < 0) w17 = 0;
+        bic             w17, w17, w17, asr #31
+        // Load the first non-parameter value from the stack, that should be
+        // left untouched by the function. Store a copy of it inverted, so that
+        // e.g. overwriting everything with zero would be noticed.
+        ldr             w17, [sp, x17, lsl #2]
+        mvn             w17, w17
+        str             w17, [sp, #ARG_STACK-8]
+        // Load the target function pointer
+        add             x17, x29, #16 + (MAX_ARGS-8)*8 + 4 + 4 // +4 for offset to following arguments, +4 for rounding
+        add             x17, x17, x16, lsl #2
+        bic             x17, x17, #0x7 // Align to 8 byte boundary for the function pointer
+        ldr             x16, [x17]
+
+        // Call the target function
+        blr             x16
+
+        // Load the number of stack parameters, stack canary and its reference
+        ldr             w16, [x29, #16 + (MAX_ARGS-8)*8]
+        sub             w17, w16, #8
+        bic             w17, w17, w17, asr #31
+        ldr             w17, [sp, x17, lsl #2]
+        ldr             w16, [sp, #ARG_STACK-8]
+        mvn             w17, w17
+#else
         // For stack overflows, the callee is free to overwrite the parameters
         // that were passed on the stack (if any), so we can only check after
         // that point. First figure out how many parameters the function
@@ -171,15 +215,17 @@ function checked_call, export=1, visible=1
         blr             x12
 
         // Load the number of stack parameters, stack canary and its reference
-        ldr             w2,  [x29, #16 + 8*8 + (MAX_ARGS-8)*8]
-        ldr             x2,  [sp, x2, lsl #3]
-        ldr             x3,  [sp, #ARG_STACK-8]
+        ldr             w16, [x29, #16 + 8*8 + (MAX_ARGS-8)*8]
+        ldr             x16, [sp, x16, lsl #3]
+        ldr             x17, [sp, #ARG_STACK-8]
+        mvn             x17, x17
+#endif
 
         add             sp,  sp,  #ARG_STACK
+        // Back up the return value
         stp             x0,  x1,  [sp, #-16]!
 
-        mvn             x3,  x3
-        cmp             x2,  x3
+        cmp             x16, x17
         b.ne            2f
 
         movrel          x9, register_init

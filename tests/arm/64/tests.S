@@ -96,9 +96,6 @@ endfunc
 function clobber_stack_aarch64, export=1
         mov             w0, #0x42
 #ifdef __APPLE__
-        // This test isn't actually ever executed on Apple platforms, as
-        // we don't have a checked_call wrapper there, but keep an equivalent
-        // version of this function anyway.
         str             w0, [sp, #0]
         str             w0, [sp, #4]
         str             w0, [sp, #8]
@@ -212,6 +209,8 @@ endfunc
 
 .macro check_clobber_stack arg
 function check_clobber_upper_stack\arg\()_aarch64, export=1
+        // This assumes the stack argument layout that isn't used on Apple
+        // platforms. This test isn't executed on Apple platforms at all.
         ldr             x0, [sp, #8*\arg]
         lsr             x0, x0, #32
         cbnz            x0, 9f

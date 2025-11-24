@@ -29,12 +29,14 @@
 #ifndef CHECKASM_PLATFORM_AARCH64_H
 #define CHECKASM_PLATFORM_AARCH64_H
 
-#ifndef __APPLE__
-
-  #include "checkasm/attributes.h"
-  #include <stdint.h>
+#include "checkasm/attributes.h"
+#include <stdint.h>
 
 CHECKASM_API void checkasm_stack_clobber(uint64_t clobber, ...);
+
+#define CLOB (UINT64_C(0xdeadbeefdeadbeef))
+
+#ifndef __APPLE__
 
   #define declare_new(ret, ...)                                                          \
       ret (*checked_call)(void *, int, int, int, int, int, int, int, __VA_ARGS__, int,   \
@@ -44,7 +46,6 @@ CHECKASM_API void checkasm_stack_clobber(uint64_t clobber, ...);
                      int, int, int, int, int, int, int, int, int, int, int, int, int,    \
                      int))(void *) checkasm_checked_call
 
-  #define CLOB (UINT64_C(0xdeadbeefdeadbeef))
   #define call_new(...)                                                                  \
       (checkasm_set_signal_handler_state(1),                                             \
        checkasm_stack_clobber(CLOB, CLOB, CLOB, CLOB, CLOB, CLOB, CLOB, CLOB, CLOB,      \
@@ -55,9 +56,21 @@ CHECKASM_API void checkasm_stack_clobber(uint64_t clobber, ...);
       checkasm_set_signal_handler_state(0)
 
 #else /* __APPLE__ */
-  #define declare_new(ret, ...)
+  #define declare_new(ret, ...)                                                          \
+      ret (*checked_call)(__VA_ARGS__, int, int, int, int, int, int, int, int, int, int, \
+                          int, int, int, int, int, int, int, int, int, int, int, int,    \
+                          int, void *)                                                   \
+          = (ret (*)(__VA_ARGS__, int, int, int, int, int, int, int, int, int, int, int, \
+                     int, int, int, int, int, int, int, int, int, int, int, int,         \
+                     void *))(void *) checkasm_checked_call
+
   #define call_new(...)                                                                  \
-      (checkasm_set_signal_handler_state(1), ((func_type *) func_new)(__VA_ARGS__));     \
+      (checkasm_set_signal_handler_state(1),                                             \
+       checkasm_stack_clobber(CLOB, CLOB, CLOB, CLOB, CLOB, CLOB, CLOB, CLOB, CLOB,      \
+                              CLOB, CLOB, CLOB, CLOB, CLOB, CLOB, CLOB, CLOB, CLOB,      \
+                              CLOB, CLOB, CLOB, CLOB, CLOB),                             \
+       checked_call(__VA_ARGS__, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9,  \
+                    8, 7, 6, 5, 4, 3, 2, 1, 0, func_new));                               \
       checkasm_set_signal_handler_state(0)
 #endif
 
