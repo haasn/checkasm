@@ -99,7 +99,14 @@ function clobber_stack_aarch64, export=1
         str             w0, [sp, #0]
         str             w0, [sp, #4]
         str             w0, [sp, #8]
+        // This write on its own falls within the 8 byte stack slot of
+        // the third stack argument (above), which we are allowed to clobber,
+        // so the wrapper won't notice it; we need to write past it for it to
+        // be noticed.
         str             w0, [sp, #12]
+        // Write past the 8 byte stack slot of the third/fourth argument, to
+        // allow checked_call to catch it.
+        str             w0, [sp, #16]
 #else
         str             w0, [sp, #0]
         str             w0, [sp, #8]

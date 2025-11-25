@@ -76,40 +76,22 @@
   #define init_clobber_mask(...) unsigned clobber_mask = 0
 #endif
 
-#ifndef __APPLE__
+#define declare_new(ret, ...)                                                            \
+    ret (*checked_call)(__VA_ARGS__, int64_t, int64_t, int64_t, int64_t, int64_t,        \
+                        int64_t, int64_t, int64_t, int64_t, int64_t, int64_t, int64_t,   \
+                        int64_t, int64_t, int64_t, int64_t, void *, unsigned)            \
+        = (ret (*)(__VA_ARGS__, int64_t, int64_t, int64_t, int64_t, int64_t, int64_t,    \
+                   int64_t, int64_t, int64_t, int64_t, int64_t, int64_t, int64_t,        \
+                   int64_t, int64_t, int64_t, void *,                                    \
+                   unsigned))(void *) checkasm_checked_call;                             \
+    init_clobber_mask(__VA_ARGS__, void *, void *, void *, void *, void *, void *,       \
+                      void *, void *, void *, void *, void *, void *, void *, void *)
 
-  #define declare_new(ret, ...)                                                          \
-      ret (*checked_call)(__VA_ARGS__, int, int, int, int, int, int, int, int, int, int, \
-                          int, int, int, int, int, int, void *, unsigned)                \
-          = (ret (*)(__VA_ARGS__, int, int, int, int, int, int, int, int, int, int, int, \
-                     int, int, int, int, int, void *,                                    \
-                     unsigned))(void *) checkasm_checked_call;                           \
-      init_clobber_mask(__VA_ARGS__, void *, void *, void *, void *, void *, void *,     \
-                        void *, void *, void *, void *, void *, void *, void *, void *)
-
-  #define call_new(...)                                                                  \
-      (checkasm_set_signal_handler_state(1),                                             \
-       checked_call(__VA_ARGS__, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0,   \
-                    func_new, clobber_mask));                                            \
-      checkasm_set_signal_handler_state(0)
-
-#else /* __APPLE__ */
-  #define declare_new(ret, ...)                                                          \
-      ret (*checked_call)(__VA_ARGS__, int, int, int, int, int, int, int, int, int, int, \
-                          int, int, int, int, int, int, int, int, int, int, int, int,    \
-                          int, void *, unsigned)                                         \
-          = (ret (*)(__VA_ARGS__, int, int, int, int, int, int, int, int, int, int, int, \
-                     int, int, int, int, int, int, int, int, int, int, int, int, void *, \
-                     unsigned))(void *) checkasm_checked_call;                           \
-      init_clobber_mask(__VA_ARGS__, void *, void *, void *, void *, void *, void *,     \
-                        void *, void *, void *, void *, void *, void *, void *, void *)
-
-  #define call_new(...)                                                                  \
-      (checkasm_set_signal_handler_state(1),                                             \
-       checked_call(__VA_ARGS__, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9,  \
-                    8, 7, 6, 5, 4, 3, 2, 1, 0, func_new, clobber_mask));                 \
-      checkasm_set_signal_handler_state(0)
-#endif
+#define call_new(...)                                                                    \
+    (checkasm_set_signal_handler_state(1),                                               \
+     checked_call(__VA_ARGS__, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0,     \
+                  func_new, clobber_mask));                                              \
+    checkasm_set_signal_handler_state(0)
 
 /* ARM doesn't benefit from anything more than 16-byte alignment. */
 #define CHECKASM_ALIGNMENT 16

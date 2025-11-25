@@ -127,34 +127,6 @@ function checked_call, export=1, visible=1
 .equ pos, pos + 8
 .endr
 
-#ifdef __APPLE__
-        // We can have up to MAX_ARGS to the function. That would leave
-        // (MAX_ARGS-8)*8 bytes of arguments on the stack - thus we'd
-        // inspect the tail of numbers at that position. However, if
-        // there are fewer arguments (or some of the arguments on the stack
-        // are packed as 4 byte arguments), we could potentially have
-        // 8+2*(MAX_ARGS-8) tail numbers on before the location we read.
-
-        // For stack overflows, the callee is free to overwrite the parameters
-        // that were passed on the stack (if any), so we can only check after
-        // that point. First load a number from the tail, after the last
-        // potential argument:
-        ldr             w16, [x29, #16 + (MAX_ARGS-8)*8]
-        // Calculate the number of 4 byte stack slots used for arguments
-        sub             w17, w16, #8
-        // if (w17 < 0) w17 = 0;
-        bic             w17, w17, w17, asr #31
-        // Load the first non-parameter value from the stack, that should be
-        // left untouched by the function. Store a copy of it inverted, so that
-        // e.g. overwriting everything with zero would be noticed.
-        ldr             w17, [sp, x17, lsl #2]
-        mvn             w17, w17
-        str             w17, [sp, #ARG_STACK-8]
-        // Calculate the location of the target function pointer
-        add             x17, x29, #16 + (MAX_ARGS-8)*8 + 4 + 4 // +4 for offset to following arguments, +4 for rounding
-        add             x17, x17, x16, lsl #2
-        bic             x17, x17, #0x7 // Align to 8 byte boundary for the function pointer
-#else
         // For stack overflows, the callee is free to overwrite the parameters
         // that were passed on the stack (if any), so we can only check after
         // that point. First figure out how many parameters the function
@@ -173,7 +145,6 @@ function checked_call, export=1, visible=1
         // Calculate the location of the target function pointer
         add             x17, x29, #16 + (MAX_ARGS-8)*8 + 8
         add             x17, x17, x16, lsl #3
-#endif
         // Load the target function pointer
         ldr             x16, [x17]
         // Load the clobber mask
@@ -223,15 +194,9 @@ function checked_call, export=1, visible=1
         ldr             w16, [x29, #16 + (MAX_ARGS-8)*8]
         sub             w17, w16, #8
         bic             w17, w17, w17, asr #31
-#ifdef __APPLE__
-        ldr             w17, [sp, x17, lsl #2]
-        ldr             w16, [sp, #ARG_STACK-8]
-        mvn             w17, w17
-#else
         ldr             x16, [sp, x17, lsl #3]
         ldr             x17, [sp, #ARG_STACK-8]
         mvn             x17, x17
-#endif
 
         add             sp,  sp,  #ARG_STACK
         // Back up the return value
