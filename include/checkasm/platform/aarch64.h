@@ -32,45 +32,82 @@
 #include "checkasm/attributes.h"
 #include <stdint.h>
 
-CHECKASM_API void checkasm_stack_clobber(uint64_t clobber, ...);
+/* The upper 32 bits of 32-bit data types are undefined when passed as function
+ * parameters. In practice those bits usually end up being zero which may hide
+ * certain bugs, such as using a register containing undefined bits as a pointer
+ * offset, so we want to intentionally clobber those bits with junk to expose
+ * any issues. The following set of macros automatically calculates a bitmask
+ * specifying which parameters should have their upper halves clobbered. */
+/* Up to 8 floating-point parameters are passed in float registers, which are
+ * handled orthogonally from integer parameters passed in GPR registers. */
+#define IGNORED_FP_ARGS 8
 
-#define CLOB (UINT64_C(0xdeadbeefdeadbeef))
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
+  #define clobber_type(arg)                                                              \
+      _Generic((void (*)(void *, arg)) NULL,                                             \
+          void (*)(void *, int32_t): clobber_mask |= 1 << mpos++,                        \
+          void (*)(void *, uint32_t): clobber_mask |= 1 << mpos++,                       \
+          void (*)(void *, float): mpos += (fp_args++ >= IGNORED_FP_ARGS),               \
+          void (*)(void *, double): mpos += (fp_args++ >= IGNORED_FP_ARGS),              \
+          default: mpos++)
+
+  #define init_clobber_mask(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, ...)            \
+      unsigned clobber_mask = 0;                                                         \
+      {                                                                                  \
+          int mpos = 0, fp_args = 0;                                                     \
+          clobber_type(a);                                                               \
+          clobber_type(b);                                                               \
+          clobber_type(c);                                                               \
+          clobber_type(d);                                                               \
+          clobber_type(e);                                                               \
+          clobber_type(f);                                                               \
+          clobber_type(g);                                                               \
+          clobber_type(h);                                                               \
+          clobber_type(i);                                                               \
+          clobber_type(j);                                                               \
+          clobber_type(k);                                                               \
+          clobber_type(l);                                                               \
+          clobber_type(m);                                                               \
+          clobber_type(n);                                                               \
+          clobber_type(o);                                                               \
+      }
+#else
+  /* Skip parameter clobbering on compilers without support for _Generic() */
+  #define init_clobber_mask(...) unsigned clobber_mask = 0
+#endif
 
 #ifndef __APPLE__
 
   #define declare_new(ret, ...)                                                          \
-      ret (*checked_call)(void *, int, int, int, int, int, int, int, __VA_ARGS__, int,   \
-                          int, int, int, int, int, int, int, int, int, int, int, int,    \
-                          int, int, int)                                                 \
-          = (ret (*)(void *, int, int, int, int, int, int, int, __VA_ARGS__, int, int,   \
-                     int, int, int, int, int, int, int, int, int, int, int, int, int,    \
-                     int))(void *) checkasm_checked_call
+      ret (*checked_call)(__VA_ARGS__, int, int, int, int, int, int, int, int, int, int, \
+                          int, int, int, int, int, int, void *, unsigned)                \
+          = (ret (*)(__VA_ARGS__, int, int, int, int, int, int, int, int, int, int, int, \
+                     int, int, int, int, int, void *,                                    \
+                     unsigned))(void *) checkasm_checked_call;                           \
+      init_clobber_mask(__VA_ARGS__, void *, void *, void *, void *, void *, void *,     \
+                        void *, void *, void *, void *, void *, void *, void *, void *)
 
   #define call_new(...)                                                                  \
       (checkasm_set_signal_handler_state(1),                                             \
-       checkasm_stack_clobber(CLOB, CLOB, CLOB, CLOB, CLOB, CLOB, CLOB, CLOB, CLOB,      \
-                              CLOB, CLOB, CLOB, CLOB, CLOB, CLOB, CLOB, CLOB, CLOB,      \
-                              CLOB, CLOB, CLOB, CLOB, CLOB),                             \
-       checked_call(func_new, 0, 0, 0, 0, 0, 0, 0, __VA_ARGS__, 7, 6, 5, 4, 3, 2, 1, 0,  \
-                    0, 0, 0, 0, 0, 0, 0, 0));                                            \
+       checked_call(__VA_ARGS__, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0,   \
+                    func_new, clobber_mask));                                            \
       checkasm_set_signal_handler_state(0)
 
 #else /* __APPLE__ */
   #define declare_new(ret, ...)                                                          \
       ret (*checked_call)(__VA_ARGS__, int, int, int, int, int, int, int, int, int, int, \
                           int, int, int, int, int, int, int, int, int, int, int, int,    \
-                          int, void *)                                                   \
+                          int, void *, unsigned)                                         \
           = (ret (*)(__VA_ARGS__, int, int, int, int, int, int, int, int, int, int, int, \
-                     int, int, int, int, int, int, int, int, int, int, int, int,         \
-                     void *))(void *) checkasm_checked_call
+                     int, int, int, int, int, int, int, int, int, int, int, int, void *, \
+                     unsigned))(void *) checkasm_checked_call;                           \
+      init_clobber_mask(__VA_ARGS__, void *, void *, void *, void *, void *, void *,     \
+                        void *, void *, void *, void *, void *, void *, void *, void *)
 
   #define call_new(...)                                                                  \
       (checkasm_set_signal_handler_state(1),                                             \
-       checkasm_stack_clobber(CLOB, CLOB, CLOB, CLOB, CLOB, CLOB, CLOB, CLOB, CLOB,      \
-                              CLOB, CLOB, CLOB, CLOB, CLOB, CLOB, CLOB, CLOB, CLOB,      \
-                              CLOB, CLOB, CLOB, CLOB, CLOB),                             \
        checked_call(__VA_ARGS__, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9,  \
-                    8, 7, 6, 5, 4, 3, 2, 1, 0, func_new));                               \
+                    8, 7, 6, 5, 4, 3, 2, 1, 0, func_new, clobber_mask));                 \
       checkasm_set_signal_handler_state(0)
 #endif
 

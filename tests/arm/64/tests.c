@@ -371,13 +371,7 @@ void checkasm_check_aarch64(void)
     checkasm_test_max_int_args(get_check_max_int_args_aarch64(), "check_max_int_args");
     checkasm_test_max_int64_args(get_check_max_int64_args_aarch64(),
                                  "check_max_int64_args");
-#ifdef __APPLE__
-    // The checked_call wrapper on Apple platforms can't ensure that
-    // the upper halves of 32 bit arguments are clobbered.
-    (void) check_clobber_arg_upper;
-#else
     check_clobber_arg_upper();
-#endif
 
     if (!checkasm_should_fail(CHECKASM_CPU_FLAG_AARCH64))
         return;

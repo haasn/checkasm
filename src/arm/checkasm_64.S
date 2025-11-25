@@ -91,19 +91,6 @@ endconst
 // max number of args used by any asm function.
 #define MAX_ARGS 15
 
-#define CLOBBER_STACK ((8*MAX_ARGS + 15) & ~15)
-
-function stack_clobber, export=1, visible=1
-        mov             x3,  sp
-        mov             x2,  #CLOBBER_STACK
-1:
-        stp             x0,  x1,  [sp, #-16]!
-        subs            x2,  x2,  #16
-        b.gt            1b
-        mov             sp,  x3
-        ret
-endfunc
-
 // + 16 for stack canary reference
 #define ARG_STACK (((8*(MAX_ARGS - 8) + 15) & ~15) + 16)
 
@@ -135,23 +122,10 @@ function checked_call, export=1, visible=1
 .equ pos, 0
 .rept MAX_ARGS-8
         // Skip the first 8 args, that are loaded into registers
-#ifdef __APPLE__
         ldr             x9, [x29, #16 + pos]
-#else
-        ldr             x9, [x29, #16 + 8*8 + pos]
-#endif
         str             x9, [sp, #pos]
 .equ pos, pos + 8
 .endr
-
-        // Fill x8-x17 with garbage. This doesn't have to be preserved,
-        // but avoids relying on them having any particular value.
-        movrel          x9, register_init
-        ldp             x10, x11, [x9], #32
-        ldp             x12, x13, [x9], #32
-        ldp             x14, x15, [x9], #32
-        ldp             x16, x17, [x9], #32
-        ldp             x8,  x9,  [x9]
 
 #ifdef __APPLE__
         // We can have up to MAX_ARGS to the function. That would leave
@@ -176,11 +150,71 @@ function checked_call, export=1, visible=1
         ldr             w17, [sp, x17, lsl #2]
         mvn             w17, w17
         str             w17, [sp, #ARG_STACK-8]
-        // Load the target function pointer
+        // Calculate the location of the target function pointer
         add             x17, x29, #16 + (MAX_ARGS-8)*8 + 4 + 4 // +4 for offset to following arguments, +4 for rounding
         add             x17, x17, x16, lsl #2
         bic             x17, x17, #0x7 // Align to 8 byte boundary for the function pointer
+#else
+        // For stack overflows, the callee is free to overwrite the parameters
+        // that were passed on the stack (if any), so we can only check after
+        // that point. First figure out how many parameters the function
+        // really took on the stack:
+        ldr             w16, [x29, #16 + (MAX_ARGS-8)*8]
+        // Calculate the number of 8 byte stack slots used for arguments
+        sub             w17, w16, #8
+        // if (w17 < 0) w17 = 0;
+        bic             w17, w17, w17, asr #31
+        // Load the first non-parameter value from the stack, that should be
+        // left untouched by the function. Store a copy of it inverted, so that
+        // e.g. overwriting everything with zero would be noticed.
+        ldr             x17, [sp, x17, lsl #3]
+        mvn             x17, x17
+        str             x17, [sp, #ARG_STACK-8]
+        // Calculate the location of the target function pointer
+        add             x17, x29, #16 + (MAX_ARGS-8)*8 + 8
+        add             x17, x17, x16, lsl #3
+#endif
+        // Load the target function pointer
         ldr             x16, [x17]
+        // Load the clobber mask
+        ldr             w17, [x17, #8]
+
+        // Clobber the upper half of register parameters, for 32 bit parameters
+        // indicated by clobber_mask
+        mov             x8, #0xbeef00000000
+        movk            x8, #0xdead, lsl #48
+.macro clobber_upper reg, bit
+        tst             w17, #(1 << \bit)
+        csel            x9, xzr, x8, eq
+        orr             \reg, \reg, x9
+.endm
+.irpc n, 01234567
+        clobber_upper   x\n, \n
+.endr
+#ifndef __APPLE__
+        // Also clobber the upper half of 32 bit parameters on the stack,
+        // on non-Apple platforms, according to clobber_mask
+        mov             w10, #(1 << 8)
+        lsr             x8, x8, #32 // Shift the clobber pattern down to the low end
+.equ pos, 0
+.rept MAX_ARGS-8
+        tst             w17, w10
+        b.eq            1f
+        str             w8, [sp, #pos + 4]
+1:
+        lsl             w10, w10, #1
+.equ pos, pos + 8
+.endr
+#endif
+
+        // Fill x8-x15,x17 with garbage. This doesn't have to be preserved,
+        // but avoids relying on them having any particular value.
+        movrel          x17, register_init
+        ldp             x8,  x9,  [x17], #32
+        ldp             x10, x11, [x17], #32
+        ldp             x12, x13, [x17], #32
+        ldp             x14, x15, [x17], #32
+        ldr             x17,      [x17]
 
         // Call the target function
         blr             x16
@@ -189,34 +223,12 @@ function checked_call, export=1, visible=1
         ldr             w16, [x29, #16 + (MAX_ARGS-8)*8]
         sub             w17, w16, #8
         bic             w17, w17, w17, asr #31
+#ifdef __APPLE__
         ldr             w17, [sp, x17, lsl #2]
         ldr             w16, [sp, #ARG_STACK-8]
         mvn             w17, w17
 #else
-        // For stack overflows, the callee is free to overwrite the parameters
-        // that were passed on the stack (if any), so we can only check after
-        // that point. First figure out how many parameters the function
-        // really took on the stack:
-        ldr             w2,  [x29, #16 + 8*8 + (MAX_ARGS-8)*8]
-        // Load the first non-parameter value from the stack, that should be
-        // left untouched by the function. Store a copy of it inverted, so that
-        // e.g. overwriting everything with zero would be noticed.
-        ldr             x2,  [sp, x2, lsl #3]
-        mvn             x2,  x2
-        str             x2,  [sp, #ARG_STACK-8]
-
-        // Load the in-register arguments
-        mov             x12, x0
-        ldp             x0,  x1,  [x29, #16]
-        ldp             x2,  x3,  [x29, #32]
-        ldp             x4,  x5,  [x29, #48]
-        ldp             x6,  x7,  [x29, #64]
-        // Call the target function
-        blr             x12
-
-        // Load the number of stack parameters, stack canary and its reference
-        ldr             w16, [x29, #16 + 8*8 + (MAX_ARGS-8)*8]
-        ldr             x16, [sp, x16, lsl #3]
+        ldr             x16, [sp, x17, lsl #3]
         ldr             x17, [sp, #ARG_STACK-8]
         mvn             x17, x17
 #endif

@@ -209,13 +209,17 @@ endfunc
 
 .macro check_clobber_stack arg
 function check_clobber_upper_stack\arg\()_aarch64, export=1
+#ifndef __APPLE__
         // This assumes the stack argument layout that isn't used on Apple
-        // platforms. This test isn't executed on Apple platforms at all.
+        // platforms. On Apple platforms, 32 bit arguments are packed tightly,
+        // on the stack, so there's nothing that can be clobbered - just
+        // return success.
         ldr             x0, [sp, #8*\arg]
         lsr             x0, x0, #32
         cbnz            x0, 9f
         .inst 0 // udf #0
 9:
+#endif
         ret
 endfunc
 .endm
