@@ -30,6 +30,9 @@
 #if HAVE_GETAUXVAL || HAVE_ELF_AUX_INFO
   #include <sys/auxv.h>
 #endif
+#ifdef __APPLE__
+  #include <sys/sysctl.h>
+#endif
 
 #include "cpu.h"
 #include "internal.h"
@@ -45,5 +48,17 @@ COLD unsigned long checkasm_getauxval(unsigned long type)
 #else
     (void) type;
     return 0;
+#endif
+}
+
+COLD const char *checkasm_get_brand_string(char *buf, size_t buflen)
+{
+#ifdef __APPLE__
+    if (sysctlbyname("machdep.cpu.brand_string", buf, &buflen, NULL, 0) != 0) {
+        return NULL;
+    }
+    return buf;
+#else
+    return NULL;
 #endif
 }

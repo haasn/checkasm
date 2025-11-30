@@ -669,11 +669,18 @@ static void print_info(void)
     for (size_t len = strlen(name); len && name[len - 1] == ' '; len--)
         name[len - 1] = '\0'; /* trim trailing whitespace */
     fprintf(stderr, " - CPU: %s (%08X)\n", name, cpuid);
-#elif ARCH_RV64
+#else
+    char        buf[64];
+    const char *name = checkasm_get_brand_string(buf, sizeof(buf));
+    if (name)
+        fprintf(stderr, " - CPU: %s\n", name);
+#endif
+#if ARCH_RV64
     const unsigned vlenb = checkasm_init_riscv();
     if (vlenb)
         fprintf(stderr, " - CPU: VLEN = %d bits\n", vlenb * 8);
-#elif ARCH_AARCH64 && HAVE_SVE
+#endif
+#if ARCH_AARCH64 && HAVE_SVE
     if (checkasm_has_sve()) {
         const unsigned sve_len = checkasm_sve_length();
         fprintf(stderr, " - CPU: SVE = %d bits\n", sve_len);

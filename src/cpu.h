@@ -29,6 +29,7 @@
 #define CHECKASM_CPU_H
 
 #include "config.h"
+#include <stddef.h>
 
 #if ARCH_X86
 
@@ -67,5 +68,6 @@ int checkasm_has_vfp(void);
 #endif
 
 unsigned long checkasm_getauxval(unsigned long);
+const char *checkasm_get_brand_string(char *buf, size_t buflen);
 
 #endif /* CHECKASM_CPU_H */
