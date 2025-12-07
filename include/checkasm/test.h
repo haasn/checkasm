@@ -210,10 +210,10 @@ CHECKASM_API int  checkasm_bench_runs(void);
 CHECKASM_API void checkasm_bench_update(int iterations, uint64_t cycles);
 CHECKASM_API void checkasm_bench_finish(void);
 
-#define bench_new(...)                                                                   \
+#define checkasm_bench(func, ...)                                                        \
     do {                                                                                 \
         if (checkasm_bench_func()) {                                                     \
-            func_type *const bench_func = checkasm_func_new;                             \
+            func_type *const bench_func = (func);                                        \
             checkasm_set_signal_handler_state(1);                                        \
             for (int truns; (truns = checkasm_bench_runs());) {                          \
                 uint64_t time;                                                           \
@@ -226,9 +226,12 @@ CHECKASM_API void checkasm_bench_finish(void);
         } else {                                                                         \
             const int tidx = 0;                                                          \
             (void) tidx;                                                                 \
-            call_new(__VA_ARGS__);                                                       \
+            checkasm_call_checked(func, __VA_ARGS__);                                    \
         }                                                                                \
     } while (0)
+
+#define checkasm_bench_new(...) checkasm_bench(func_new, __VA_ARGS__)
+#define bench_new               checkasm_bench_new
 
 /* Alternates between two pointers. Intended to be used within bench_new()
  * calls for functions which modifies their input buffer(s) to ensure that
