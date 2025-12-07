@@ -64,9 +64,13 @@ static void *checkasm_func_ref;
 static void *checkasm_func_new;
 #define func_ref (*(func_type **) &checkasm_func_ref)
 #define func_new (*(func_type **) &checkasm_func_new)
-#define check_func(func, ...)                                                            \
+
+#define checkasm_check_func(func, ...)                                                   \
     (checkasm_func_ref = (void *) checkasm_check_key(                                    \
          (CheckasmKey) (checkasm_func_new = func), __VA_ARGS__))
+
+#define check_func checkasm_check_func
+#define check_key  checkasm_check_key
 
 /* Declare the function prototype. The first argument is the return value,
  * the remaining arguments are the function parameters. Naming parameters
