@@ -31,10 +31,6 @@
 
 #define declare_new(ret, ...)
 
-#define call_new(...)                                                                    \
-    (checkasm_set_signal_handler_state(1), ((func_type *) func_new)(__VA_ARGS__));       \
-    checkasm_set_signal_handler_state(0)
-
 #define CHECKASM_ALIGNMENT 8
 
 #endif /* CHECKASM_PLATFORM_GENERIC_H */

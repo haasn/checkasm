@@ -50,6 +50,18 @@ CHECKASM_API int  checkasm_fail_func(const char *msg, ...) CHECKASM_PRINTF(1, 2)
 CHECKASM_API void checkasm_report(const char *name, ...) CHECKASM_PRINTF(1, 2);
 CHECKASM_API void checkasm_set_signal_handler_state(int enabled);
 
+/* Call an arbitrary function while handling signals. Use checkasm_call_checked()
+ * instead when testing new/asm function versions. */
+#define checkasm_call(func, ...)                                                         \
+    (checkasm_set_signal_handler_state(1), (func) (__VA_ARGS__));                        \
+    checkasm_set_signal_handler_state(0)
+
+/* Call an assembly function (matching the signature declared by declare_new()),
+ * while handling signals and common assembly errors. */
+#ifndef checkasm_call_checked
+  #define checkasm_call_checked(func, ...) checkasm_call((func_type *) func, __VA_ARGS__)
+#endif
+
 /* Mark a block of tests as expected to fail when any of `cpu_flags` are set
  * (or -1 to always expect a failure). Returns whether or not these functions
  * should be executed. (If not, such tests should be silently skipped.)
@@ -69,12 +81,19 @@ static void *checkasm_func_new;
     (checkasm_func_ref = (void *) checkasm_check_key(                                    \
          (CheckasmKey) (checkasm_func_new = func), __VA_ARGS__))
 
-#define check_func checkasm_check_func
-#define check_key  checkasm_check_key
+#define checkasm_call_ref(...) checkasm_call((func_type *) checkasm_func_ref, __VA_ARGS__)
+#define checkasm_call_new(...)                                                           \
+    checkasm_call_checked((func_type *) checkasm_func_new, __VA_ARGS__)
 
-/* Declare the function prototype. The first argument is the return value,
- * the remaining arguments are the function parameters. Naming parameters
- * is optional. */
+/* Short-hand aliases */
+#define check_key  checkasm_check_key
+#define check_func checkasm_check_func
+#define call_ref   checkasm_call_ref
+#define call_new   checkasm_call_new
+
+/* Declare the function prototype (for checked calls). The first argument is
+ * the return value, the remaining arguments are the function parameters.
+ * Naming parameters is optional. */
 #define declare_func(ret, ...)                                                           \
     declare_new(ret, __VA_ARGS__);                                                       \
     typedef ret func_type(__VA_ARGS__)
@@ -88,11 +107,6 @@ static void *checkasm_func_new;
 
 /* Print the test outcome */
 #define report checkasm_report
-
-/* Call the reference function */
-#define call_ref(...)                                                                    \
-    (checkasm_set_signal_handler_state(1), func_ref(__VA_ARGS__));                       \
-    checkasm_set_signal_handler_state(0)
 
 /* Verifies that clobbered callee-saved registers
  * are properly saved and restored */

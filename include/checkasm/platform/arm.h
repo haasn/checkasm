@@ -44,10 +44,10 @@ CHECKASM_API checkasm_checked_call_func checkasm_get_checked_call_ptr(void);
                    int, int, int, int, int, int, int,                                    \
                    int))(void *) checkasm_get_checked_call_ptr()
 
-#define call_new(...)                                                                    \
+#define checkasm_call_checked(func, ...)                                                 \
     (checkasm_set_signal_handler_state(1),                                               \
-     checked_call(func_new, 0, __VA_ARGS__, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 0, 0,  \
-                  0, 0));                                                                \
+     checked_call(func, 0, __VA_ARGS__, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 0, 0, 0,   \
+                  0));                                                                   \
     checkasm_set_signal_handler_state(0)
 
 /* ARM doesn't benefit from anything more than 16-byte alignment. */

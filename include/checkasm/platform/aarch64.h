@@ -87,10 +87,10 @@
     init_clobber_mask(__VA_ARGS__, void *, void *, void *, void *, void *, void *,       \
                       void *, void *, void *, void *, void *, void *, void *, void *)
 
-#define call_new(...)                                                                    \
+#define checkasm_call_checked(func, ...)                                                 \
     (checkasm_set_signal_handler_state(1),                                               \
      checked_call(__VA_ARGS__, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0,     \
-                  func_new, clobber_mask));                                              \
+                  func, clobber_mask));                                                  \
     checkasm_set_signal_handler_state(0)
 
 /* ARM doesn't benefit from anything more than 16-byte alignment. */
