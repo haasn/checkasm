@@ -817,28 +817,28 @@ int checkasm_run(const CheckasmConfig *config)
 /* Decide whether or not the specified function needs to be tested and
  * allocate/initialize data structures if needed. Returns a pointer to a
  * reference function if the function should be tested, otherwise NULL */
-void *checkasm_check_func(void *const func, const char *const name, ...)
+CheckasmKey checkasm_check_key(const CheckasmKey version, const char *const name, ...)
 {
     char    name_buf[256];
     va_list arg;
 
     if (checkasm_interrupted)
-        return NULL;
+        return 0;
 
     va_start(arg, name);
     int name_length = vsnprintf(name_buf, sizeof(name_buf), name, arg);
     va_end(arg);
 
-    if (!func || name_length <= 0 || (size_t) name_length >= sizeof(name_buf)
+    if (!version || name_length <= 0 || (size_t) name_length >= sizeof(name_buf)
         || (cfg.function_pattern && wildstrcmp(name_buf, cfg.function_pattern))) {
-        return NULL;
+        return 0;
     }
 
     CheckasmFunc *const  f   = checkasm_func_get(&current.tree, name_buf);
     CheckasmFuncVersion *v   = &f->versions;
-    void                *ref = func;
+    CheckasmKey          ref = version;
 
-    if (v->func) {
+    if (v->key) {
         CheckasmFuncVersion *prev;
         do {
             if (v->state == CHECKASM_FUNC_CRASHED) {
@@ -855,14 +855,14 @@ void *checkasm_check_func(void *const func, const char *const name, ...)
 
             /* Skip functions without a working reference */
             if (!v->cpu && v->state != CHECKASM_FUNC_OK)
-                return NULL;
+                return 0;
 
             /* Only test functions that haven't already been tested */
-            if (v->func == func)
-                return NULL;
+            if (v->key == version)
+                return 0;
 
             if (v->state == CHECKASM_FUNC_OK)
-                ref = v->func;
+                ref = v->key;
 
             prev = v;
         } while ((v = v->next));
@@ -874,12 +874,12 @@ void *checkasm_check_func(void *const func, const char *const name, ...)
     if (name_length > state.max_function_name_length)
         state.max_function_name_length = name_length;
 
-    v->func  = func;
+    v->key   = version;
     v->state = CHECKASM_FUNC_OK;
     v->cpu   = current.cpu;
 
     if (state.skip_tests)
-        return NULL;
+        return 0;
 
     /* Associate this function with each other function that was last used
      * as part of the same report group */

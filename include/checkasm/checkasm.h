@@ -33,7 +33,8 @@
 
 #include "checkasm/attributes.h"
 
-typedef uint64_t CheckasmCpu;
+typedef uint64_t  CheckasmCpu;
+typedef uintptr_t CheckasmKey;
 
 typedef struct CheckasmCpuInfo {
     const char *name;

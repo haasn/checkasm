@@ -40,8 +40,12 @@
  * Internal checkasm API. Used inside tests *
  ********************************************/
 
-CHECKASM_API void *checkasm_check_func(void *func, const char *name, ...)
+/* Decide whether or not the specified function version needs to be tested,
+ * identified by an arbitrary nonzero key. Returns the key identifying
+ * the reference version, or 0 if this check should not execute. */
+CHECKASM_API CheckasmKey checkasm_check_key(CheckasmKey version, const char *name, ...)
     CHECKASM_PRINTF(2, 3);
+
 CHECKASM_API int  checkasm_fail_func(const char *msg, ...) CHECKASM_PRINTF(1, 2);
 CHECKASM_API void checkasm_report(const char *name, ...) CHECKASM_PRINTF(1, 2);
 CHECKASM_API void checkasm_set_signal_handler_state(int enabled);
@@ -55,14 +59,14 @@ CHECKASM_API void checkasm_set_signal_handler_state(int enabled);
  */
 CHECKASM_API int checkasm_should_fail(CheckasmCpu cpu_flags);
 
+/* Wrapper around `checkasm_check` for normal, callable function pointers */
 static void *checkasm_func_ref;
 static void *checkasm_func_new;
 #define func_ref (*(func_type **) &checkasm_func_ref)
 #define func_new (*(func_type **) &checkasm_func_new)
-
-/* Decide whether or not the specified function needs to be tested */
 #define check_func(func, ...)                                                            \
-    (checkasm_func_ref = checkasm_check_func((checkasm_func_new = func), __VA_ARGS__))
+    (checkasm_func_ref = (void *) checkasm_check_key(                                    \
+         (CheckasmKey) (checkasm_func_new = func), __VA_ARGS__))
 
 /* Declare the function prototype. The first argument is the return value,
  * the remaining arguments are the function parameters. Naming parameters
