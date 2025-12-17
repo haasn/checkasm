@@ -163,19 +163,19 @@ void checkasm_randomize(void *bufp, size_t bytes)
 {
     uint8_t *buf = bufp;
     while (bytes--)
-        *buf++ = checkasm_rand() & 0xFF;
+        *buf++ = checkasm_rand_uint32() & 0xFF;
 }
 
 void checkasm_randomize_mask8(uint8_t *buf, int width, uint8_t mask)
 {
     while (width--)
-        *buf++ = checkasm_rand() & mask;
+        *buf++ = checkasm_rand_uint32() & mask;
 }
 
 void checkasm_randomize_mask16(uint16_t *buf, int width, uint16_t mask)
 {
     while (width--)
-        *buf++ = checkasm_rand() & mask;
+        *buf++ = checkasm_rand_uint32() & mask;
 }
 
 void checkasm_clear(void *buf, size_t bytes)
@@ -248,12 +248,12 @@ void checkasm_init(void *buf, size_t bytes)
                 mask = shift_rand(mask_pixel);                                           \
             }                                                                            \
                                                                                          \
-            const PIXEL low  = checkasm_rand() & mask;                                   \
+            const PIXEL low  = checkasm_rand_uint32() & mask;                            \
             const PIXEL high = mask_pixel - low;                                         \
             switch (mode) {                                                              \
             case PAT_ZERO:  buf[i] = 0; break;                                           \
             case PAT_ONE:   buf[i] = mask_pixel; break;                                  \
-            case PAT_RAND:  buf[i] = checkasm_rand() & mask_pixel; break;                \
+            case PAT_RAND:  buf[i] = checkasm_rand_uint32() & mask_pixel; break;         \
             case PAT_LOW:   buf[i] = low; break;                                         \
             case PAT_HIGH:  buf[i] = high; break;                                        \
             case PAT_ALTLO: buf[i] = (i & 1) ? high : low; break;                        \
