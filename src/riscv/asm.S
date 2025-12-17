@@ -158,6 +158,11 @@ EXTERN\name:
         end_data
 .endm
 
+#ifndef __riscv_zicfilp
+.macro  lpad    lpl
+        auipc   zero, \lpl
+.endm
+#endif
 
 #define L(x) .L ## x
 
