@@ -159,6 +159,37 @@ double checkasm_randf(void)
     return checkasm_rand_uint32() / (double) UINT32_MAX;
 }
 
+/* Marsaglia polar method */
+static inline double marsaglia(double *z2)
+{
+    double u1, u2, w;
+    do {
+        u1 = 2.0 / UINT32_MAX * checkasm_rand_uint32() - 1.0;
+        u2 = 2.0 / UINT32_MAX * checkasm_rand_uint32() - 1.0;
+        w  = u1 * u1 + u2 * u2;
+    } while (w >= 1.0);
+
+    w   = sqrt((-2.0 * log(w)) / w);
+    *z2 = u2 * w;
+    return u1 * w;
+}
+
+double checkasm_rand_norm(void)
+{
+    static int    cached;
+    static double cache;
+    if ((cached = !cached)) {
+        return marsaglia(&cache);
+    } else {
+        return cache;
+    }
+}
+
+double checkasm_rand_dist(CheckasmDist dist)
+{
+    return dist.mean + dist.stddev * checkasm_rand_norm();
+}
+
 void checkasm_randomize(void *bufp, size_t bytes)
 {
     uint8_t *buf = bufp;

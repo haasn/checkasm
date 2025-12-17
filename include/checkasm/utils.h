@@ -33,13 +33,24 @@
 
 #include "checkasm/attributes.h"
 
-/* Various functions for generating uniformly distributed random variables */
+/* Generate uniformly distributed random variables */
 CHECKASM_API int      checkasm_rand(void);        /* [0, INT_MAX] */
 CHECKASM_API double   checkasm_randf(void);       /* [0.0, 1.0) */
 CHECKASM_API uint32_t checkasm_rand_uint32(void); /* [0, UINT32_MAX] */
 CHECKASM_API int32_t  checkasm_rand_int32(void);  /* [INT32_MIX, INT32_MAX] */
 
-/* memory manipulation / initialization utilities */
+/* Generate normally distributed random variables according to a given
+ * distribution */
+typedef struct CheckasmDist {
+    double mean;
+    double stddev;
+} CheckasmDist;
+
+#define checkasm_dist_standard ((CheckasmDist) { 0.0, 1.0 })
+CHECKASM_API double checkasm_rand_dist(CheckasmDist);
+CHECKASM_API double checkasm_rand_norm(void); /* standard distribution */
+
+/* Memory manipulation / initialization utilities */
 CHECKASM_API void checkasm_randomize(void *buf, size_t bytes);
 CHECKASM_API void checkasm_randomize_mask8(uint8_t *buf, int width, uint8_t mask);
 CHECKASM_API void checkasm_randomize_mask16(uint16_t *buf, int width, uint16_t mask);
