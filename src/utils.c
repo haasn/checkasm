@@ -28,6 +28,7 @@
 
 #include <assert.h>
 #include <inttypes.h>
+#include <limits.h>
 #include <math.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -123,7 +124,7 @@ void checkasm_srand(unsigned seed)
     xs_state[3] = ~seed;
 }
 
-int checkasm_rand(void)
+uint32_t checkasm_rand_uint32(void)
 {
     const uint32_t x = xs_state[0];
     const uint32_t t = x ^ (x << 11);
@@ -133,10 +134,24 @@ int checkasm_rand(void)
     xs_state[2] = xs_state[3];
     uint32_t w  = xs_state[3];
 
-    w           = (w ^ (w >> 19)) ^ (t ^ (t >> 8));
-    xs_state[3] = w;
+    return xs_state[3] = (w ^ (w >> 19)) ^ (t ^ (t >> 8));
+}
 
-    return w >> 1;
+int32_t checkasm_rand_int32(void)
+{
+    union {
+        uint32_t u;
+        int32_t  i;
+    } res;
+
+    res.u = checkasm_rand_uint32();
+    return res.i;
+}
+
+int checkasm_rand(void)
+{
+    static_assert(sizeof(int) <= sizeof(uint32_t), "int larger than 32 bits");
+    return checkasm_rand_uint32() & INT_MAX;
 }
 
 void checkasm_randomize(void *bufp, size_t bytes)
