@@ -1,11 +1,9 @@
 #include "tests.h"
 
-int checkasm_get_vlenb(void);
-
 uint64_t checkasm_get_cpu_flags_riscv(void)
 {
     uint64_t flags = CHECKASM_CPU_FLAG_RISCV;
-    if (checkasm_get_vlenb())
+    if (checkasm_has_vector())
         flags |= CHECKASM_CPU_FLAG_RVV;
     return flags;
 }

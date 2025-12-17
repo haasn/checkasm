@@ -675,10 +675,10 @@ static void print_info(void)
     if (name)
         fprintf(stderr, " - CPU: %s\n", name);
 #endif
-#if ARCH_RV64
-    const unsigned vlenb = checkasm_init_riscv();
-    if (vlenb)
-        fprintf(stderr, " - CPU: VLEN = %d bits\n", vlenb * 8);
+#if ARCH_RISCV
+    const int vlen = checkasm_vlen();
+    if (vlen > 0)
+        fprintf(stderr, " - CPU: VLEN = %d bits\n", vlen);
 #endif
 #if ARCH_AARCH64 && HAVE_SVE
     if (checkasm_has_sve()) {

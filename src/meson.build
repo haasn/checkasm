@@ -59,6 +59,13 @@ if (arch_aarch64 or arch_arm or arch_loongarch or arch_ppc64le or arch_riscv)
     have_elf_aux_info = cc.has_function('elf_aux_info', prefix : '#include <sys/auxv.h>', args : test_args)
 endif
 
+have_sys_hwprobe_h = false
+have_asm_hwprobe_h = false
+if arch_riscv
+    have_sys_hwprobe_h = cc.check_header('sys/hwprobe.h')
+    have_asm_hwprobe_h = cc.check_header('asm/hwprobe.h')
+endif
+
 api_export_flags = []
 api_export_flags_asm = []
 if host_machine.system() == 'windows'
@@ -135,6 +142,11 @@ if arch_aarch64
   endforeach
 endif
 
+if arch_riscv
+  cdata.set10('HAVE_SYS_HWPROBE_H', have_sys_hwprobe_h)
+  cdata.set10('HAVE_ASM_HWPROBE_H', have_asm_hwprobe_h)
+endif
+
 checkasm_config = []
 checkasm_config += configure_file(
   output: 'config.h',
@@ -169,10 +181,13 @@ if arch_aarch64
 elif arch_arm
   checkasm_asm_sources = files('arm/checkasm_32.S')
   checkasm_sources += files('perf/arm.c')
-elif arch_rv64
-  checkasm_sources += files('riscv/checkasm_64.S')
 elif arch_loongarch
   checkasm_sources += files('loongarch/checkasm.S')
+elif arch_riscv
+  if arch_rv64
+    checkasm_sources += files('riscv/checkasm_64.S')
+  endif
+  checkasm_sources += files('riscv/cpu.c')
 elif arch_x86
   add_languages('nasm', native: false)
   configure_file(

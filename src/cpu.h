@@ -39,9 +39,11 @@ unsigned checkasm_init_x86(char *name);
 
 #elif ARCH_RISCV
 
-/* Initializes internal state for checkasm_checked_call().
- * Returns the vector length in bytes, or 0 if no RVV */
-int checkasm_init_riscv(void);
+/* Checks if vector registers are supported. */
+int checkasm_has_vector(void);
+
+/* Returns the vector length in bits, 0 if unavailable. */
+unsigned checkasm_vlen(void);
 
 #elif ARCH_AARCH64
 
