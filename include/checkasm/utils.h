@@ -55,6 +55,13 @@ CHECKASM_API void checkasm_randomize(void *buf, size_t bytes);
 CHECKASM_API void checkasm_randomize_mask8(uint8_t *buf, int width, uint8_t mask);
 CHECKASM_API void checkasm_randomize_mask16(uint16_t *buf, int width, uint16_t mask);
 
+CHECKASM_API void checkasm_randomize_range(double *buf, int width, double range);
+CHECKASM_API void checkasm_randomize_rangef(float *buf, int width, float range);
+CHECKASM_API void checkasm_randomize_dist(double *buf, int width, CheckasmDist);
+CHECKASM_API void checkasm_randomize_distf(float *buf, int width, CheckasmDist);
+CHECKASM_API void checkasm_randomize_norm(double *buf, int width);
+CHECKASM_API void checkasm_randomize_normf(float *buf, int width);
+
 CHECKASM_API void checkasm_clear(void *buf, size_t bytes);
 CHECKASM_API void checkasm_clear8(uint8_t *buf, int width, uint8_t val);
 CHECKASM_API void checkasm_clear16(uint16_t *buf, int width, uint16_t val);

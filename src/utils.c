@@ -209,6 +209,53 @@ void checkasm_randomize_mask16(uint16_t *buf, int width, uint16_t mask)
         *buf++ = checkasm_rand_uint32() & mask;
 }
 
+void checkasm_randomize_range(double *buf, int width, double range)
+{
+    while (width--)
+        *buf++ = checkasm_randf() * range;
+}
+
+void checkasm_randomize_rangef(float *buf, int width, float range)
+{
+    while (width--)
+        *buf++ = checkasm_randf() * range;
+}
+
+#define RANDOMIZE_DIST(buf, width, mean, stddev)                                         \
+    do {                                                                                 \
+        if ((width) & 1) {                                                               \
+            *(buf)++ = (mean) + (stddev) * checkasm_rand_norm();                         \
+            (width) ^= 1;                                                                \
+        }                                                                                \
+                                                                                         \
+        for (; width; width -= 2) {                                                      \
+            double z1, z2;                                                               \
+            z1       = marsaglia(&z2);                                                   \
+            *(buf)++ = (mean) + (stddev) * z1;                                           \
+            *(buf)++ = (mean) + (stddev) * z2;                                           \
+        }                                                                                \
+    } while (0)
+
+void checkasm_randomize_dist(double *buf, int width, CheckasmDist dist)
+{
+    RANDOMIZE_DIST(buf, width, dist.mean, dist.stddev);
+}
+
+void checkasm_randomize_distf(float *buf, int width, CheckasmDist dist)
+{
+    RANDOMIZE_DIST(buf, width, dist.mean, dist.stddev);
+}
+
+void checkasm_randomize_norm(double *buf, int width)
+{
+    RANDOMIZE_DIST(buf, width, 0.0, 1.0);
+}
+
+void checkasm_randomize_normf(float *buf, int width)
+{
+    RANDOMIZE_DIST(buf, width, 0.0, 1.0);
+}
+
 void checkasm_clear(void *buf, size_t bytes)
 {
     memset(buf, 0xAA, bytes);
