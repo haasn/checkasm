@@ -112,24 +112,14 @@ CHECKASM_API int checkasm_double_near_abs_eps_array(const double *a, const doubl
   #define CHECKASM_ALIGN(x) x __attribute__((aligned(CHECKASM_ALIGNMENT)))
 #endif
 
-#define CHECKASM_ROUND(x, a) (((x) + ((a) - 1)) & ~((a) - 1))
-#define PIXEL_RECT(name, w, h)                                                           \
-    CHECKASM_ALIGN(pixel name##_buf[((h) + 32) * (CHECKASM_ROUND(w, 64) + 64) + 64]);    \
-    ptrdiff_t name##_stride = sizeof(pixel) * (CHECKASM_ROUND(w, 64) + 64);              \
-    (void) name##_stride;                                                                \
-    int name##_buf_h = (h) + 32;                                                         \
-    (void) name##_buf_h;                                                                 \
-    pixel *name = name##_buf + (CHECKASM_ROUND(w, 64) + 64) * 16 + 64
-
-#define CLEAR_PIXEL_RECT(name)     CLEAR_BUF(name##_buf)
-#define RANDOMIZE_PIXEL_RECT(name) RANDOMIZE_BUF(name##_buf)
+#define DECL_CHECK_FUNC(NAME, TYPE)                                                      \
+    int (NAME)(const char *const file, const int line, const TYPE *const buf1,           \
+               const ptrdiff_t stride1, const TYPE *const buf2, const ptrdiff_t stride2, \
+               const int w, const int h, const char *const buf_name, const int align_w,  \
+               const int align_h, const int padding)
 
 #define DECL_CHECKASM_CHECK_FUNC(type)                                                   \
-    CHECKASM_API int checkasm_check_impl_##type(                                         \
-        const char *const file, const int line, const type *const buf1,                  \
-        const ptrdiff_t stride1, const type *const buf2, const ptrdiff_t stride2,        \
-        const int w, const int h, const char *const name, const int align_w,             \
-        const int align_h, const int padding)
+    CHECKASM_API DECL_CHECK_FUNC(checkasm_check_impl_##type, type)
 
 DECL_CHECKASM_CHECK_FUNC(int);
 DECL_CHECKASM_CHECK_FUNC(int8_t);
@@ -156,9 +146,27 @@ CHECKASM_API int checkasm_check_impl_float_ulp(const char *file, int line,
 #define checkasm_check(type, ...)        checkasm_check2(type, __VA_ARGS__, 0, 0, 0)
 #define checkasm_check_padded(type, ...) checkasm_check2(type, __VA_ARGS__)
 
-#define checkasm_check_pixel(...)              checkasm_check(PIXEL_TYPE, __VA_ARGS__)
-#define checkasm_check_pixel_padded(...)       checkasm_check2(PIXEL_TYPE, __VA_ARGS__, 1, 1, 8)
-#define checkasm_check_pixel_padded_align(...) checkasm_check2(PIXEL_TYPE, __VA_ARGS__, 8)
-#define checkasm_check_coef(...)               checkasm_check(COEF_TYPE, __VA_ARGS__)
+/* Helpers for defining aligned, padded rectangular buffers */
+#define CHECKASM_ROUND(x, a) (((x) + ((a) - 1)) & ~((a) - 1))
+#define BUF_RECT(type, name, w, h)                                                       \
+    DECL_CHECK_FUNC(*checkasm_check_impl_##name##_type, type)                            \
+        = checkasm_check_impl_##type;                                                    \
+    CHECKASM_ALIGN(type name##_buf[((h) + 32) * (CHECKASM_ROUND(w, 64) + 64) + 64]);     \
+    ptrdiff_t name##_stride = sizeof(type) * (CHECKASM_ROUND(w, 64) + 64);               \
+    int       name##_buf_h  = (h) + 32;                                                  \
+    (void) checkasm_check_impl(name##_type);                                             \
+    (void) name##_stride;                                                                \
+    (void) name##_buf_h;                                                                 \
+    type *name = name##_buf + (CHECKASM_ROUND(w, 64) + 64) * 16 + 64
+
+#define CLEAR_BUF_RECT(name)      CLEAR_BUF(name##_buf)
+#define INITIALIZE_BUF_RECT(name) INITIALIZE_BUF(name##_buf)
+#define RANDOMIZE_BUF_RECT(name)  RANDOMIZE_BUF(name##_buf)
+
+#define checkasm_check_rect(rect1, ...) checkasm_check(rect1##_type, rect1, __VA_ARGS__)
+#define checkasm_check_rect_padded(rect1, ...)                                           \
+    checkasm_check_padded(rect1##_type, rect1, __VA_ARGS__, 1, 1, 8)
+#define checkasm_check_rect_padded_align(rect1, ...)                                     \
+    checkasm_check_padded(rect1##_type, rect1, __VA_ARGS__, 8)
 
 #endif /* CHECKASM_UTILS_H */
