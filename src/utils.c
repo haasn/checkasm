@@ -154,6 +154,11 @@ int checkasm_rand(void)
     return checkasm_rand_uint32() & INT_MAX;
 }
 
+double checkasm_randf(void)
+{
+    return checkasm_rand_uint32() / (double) UINT32_MAX;
+}
+
 void checkasm_randomize(void *bufp, size_t bytes)
 {
     uint8_t *buf = bufp;

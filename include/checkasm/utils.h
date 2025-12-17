@@ -35,6 +35,7 @@
 
 /* Various functions for generating uniformly distributed random variables */
 CHECKASM_API int      checkasm_rand(void);        /* [0, INT_MAX] */
+CHECKASM_API double   checkasm_randf(void);       /* [0.0, 1.0) */
 CHECKASM_API uint32_t checkasm_rand_uint32(void); /* [0, UINT32_MAX] */
 CHECKASM_API int32_t  checkasm_rand_int32(void);  /* [INT32_MIX, INT32_MAX] */
 
