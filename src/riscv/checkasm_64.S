@@ -81,37 +81,6 @@ error_message_stack:
 endconst
 
 thread_local saved_regs, quads=29 # 4 + 12 + 12
-data vlenb_compliant, words=1
-
-// This function detects non-compliant RVV 0.7.1 hardware which reports support
-//  for the V extension through HWCAP, by intentionally setting tail and mask
-//  agnostic vector configurations that were only introduced in RVV 0.9 spec.
-// Existing non-compliant (pre RVV 1.0) hardware will set the VILL bit in VTYPE
-//  (indicating an illegal vector configuration) which is stored in the XLEN-1
-//  bit position, thus a simple sign check is sufficient for detection.
-// This work around is inexpensive and harmless on compliant hardware, but we
-//  should still consider removing it once all non-compliant RVV 0.7.1 hardware
-//  is out of service.
-function init_riscv, export=1, ext=v
-  addi sp, sp, -16
-  sd ra, (sp)
-  li a0, 16 # AT_HWCAP
-  call checkasm_getauxval
-  srl a0, a0, 'v' - 'a' # HWCAP_RVV
-  and a0, a0, 1
-  beqz a0, 0f
-  vsetvli t0, zero, e8, m1, ta, ma
-  csrr a0, vtype
-  sgtz a0, a0
-  beqz a0, 0f
-  csrr a0, vlenb
-0:
-  la t0, vlenb_compliant
-  sw a0, (t0)
-  ld ra, (sp)
-  addi sp, sp, 16
-  ret
-endfunc
 
 function checked_call, export=1, ext=v, visible=1
   /* Save the function ptr, RA, SP, unallocatable and callee-saved registers */
@@ -129,8 +98,7 @@ function checked_call, export=1, ext=v, visible=1
 .endr
 
   /* Check for vector extension */
-  la a0, vlenb_compliant
-  lw a0, (a0)
+  jal checkasm_has_vector
   beqz a0, 0f
 
   /* Clobber vector configuration */
