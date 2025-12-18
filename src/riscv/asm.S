@@ -37,7 +37,7 @@
 #endif
 
 #ifndef PRIVATE_PREFIX
-#define PRIVATE_PREFIX dav1d_
+#define PRIVATE_PREFIX checkasm_
 #endif
 
 #define PASTE(a,b) a ## b
