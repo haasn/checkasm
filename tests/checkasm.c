@@ -11,8 +11,9 @@ static const CheckasmCpuInfo cpus[] = {
     { "AVX-512",         "avx512",  CHECKASM_CPU_FLAG_AVX512  },
 #endif
 #if ARCH_RISCV
-    { "Generic RISC-V",  "riscv",   CHECKASM_CPU_FLAG_RISCV   },
-    { "RVV",             "rvv",     CHECKASM_CPU_FLAG_RVV     },
+    { "Generic RISC-V",  "rvi",     CHECKASM_CPU_FLAG_RVI     },
+    { "Floating point",  "rvf",     CHECKASM_CPU_FLAG_RVF     },
+    { "Vector",          "rvv",     CHECKASM_CPU_FLAG_RVV     },
 #endif
 #if ARCH_AARCH64
     { "Generic aarch64", "aarch64", CHECKASM_CPU_FLAG_AARCH64 },

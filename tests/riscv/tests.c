@@ -2,7 +2,9 @@
 
 uint64_t checkasm_get_cpu_flags_riscv(void)
 {
-    uint64_t flags = CHECKASM_CPU_FLAG_RISCV;
+    uint64_t flags = CHECKASM_CPU_FLAG_RVI;
+    if (checkasm_has_float())
+        flags |= CHECKASM_CPU_FLAG_RVF;
     if (checkasm_has_vector())
         flags |= CHECKASM_CPU_FLAG_RVV;
     return flags;
@@ -42,10 +44,43 @@ DEF_NOOP_FUNC(clobber_t4);
 DEF_NOOP_FUNC(clobber_t5);
 DEF_NOOP_FUNC(clobber_t6);
 
+DEF_NOOP_FUNC(clobber_ft0);
+DEF_NOOP_FUNC(clobber_ft1);
+DEF_NOOP_FUNC(clobber_ft2);
+DEF_NOOP_FUNC(clobber_ft3);
+DEF_NOOP_FUNC(clobber_ft4);
+DEF_NOOP_FUNC(clobber_ft5);
+DEF_NOOP_FUNC(clobber_ft6);
+DEF_NOOP_FUNC(clobber_ft7);
+DEF_NOOP_FUNC(clobber_fs0);
+DEF_NOOP_FUNC(clobber_fs1);
+DEF_NOOP_FUNC(clobber_fa0);
+DEF_NOOP_FUNC(clobber_fa1);
+DEF_NOOP_FUNC(clobber_fa2);
+DEF_NOOP_FUNC(clobber_fa3);
+DEF_NOOP_FUNC(clobber_fa4);
+DEF_NOOP_FUNC(clobber_fa5);
+DEF_NOOP_FUNC(clobber_fa6);
+DEF_NOOP_FUNC(clobber_fa7);
+DEF_NOOP_FUNC(clobber_fs2);
+DEF_NOOP_FUNC(clobber_fs3);
+DEF_NOOP_FUNC(clobber_fs4);
+DEF_NOOP_FUNC(clobber_fs5);
+DEF_NOOP_FUNC(clobber_fs6);
+DEF_NOOP_FUNC(clobber_fs7);
+DEF_NOOP_FUNC(clobber_fs8);
+DEF_NOOP_FUNC(clobber_fs9);
+DEF_NOOP_FUNC(clobber_fs10);
+DEF_NOOP_FUNC(clobber_fs11);
+DEF_NOOP_FUNC(clobber_ft8);
+DEF_NOOP_FUNC(clobber_ft9);
+DEF_NOOP_FUNC(clobber_ft10);
+DEF_NOOP_FUNC(clobber_ft11);
+
 DEF_NOOP_FUNC(sigill_riscv);
 DEF_NOOP_FUNC(corrupt_stack_riscv);
-DEF_NOOP_GETTER(CHECKASM_CPU_FLAG_RISCV, sigill_riscv)
-DEF_NOOP_GETTER(CHECKASM_CPU_FLAG_RISCV, corrupt_stack_riscv)
+DEF_NOOP_GETTER(CHECKASM_CPU_FLAG_RVI, sigill_riscv)
+DEF_NOOP_GETTER(CHECKASM_CPU_FLAG_RVI, corrupt_stack_riscv)
 
 typedef struct RiscvRegister {
     const char *name;
@@ -72,6 +107,46 @@ static const RiscvRegister registers_safe[] = {
     { NULL, NULL                }
 };
 
+static const RiscvRegister float_registers_safe[] = {
+    { "ft0",  checkasm_clobber_ft0  },
+    { "ft1",  checkasm_clobber_ft1  },
+    { "ft2",  checkasm_clobber_ft2  },
+    { "ft3",  checkasm_clobber_ft3  },
+    { "ft4",  checkasm_clobber_ft4  },
+    { "ft5",  checkasm_clobber_ft5  },
+    { "ft6",  checkasm_clobber_ft6  },
+    { "ft7",  checkasm_clobber_ft7  },
+#ifdef __riscv_float_abi_soft
+    { "fs0",  checkasm_clobber_fs0  },
+    { "fs1",  checkasm_clobber_fs1  },
+#endif
+    { "fa0",  checkasm_clobber_fa0  },
+    { "fa1",  checkasm_clobber_fa1  },
+    { "fa2",  checkasm_clobber_fa2  },
+    { "fa3",  checkasm_clobber_fa3  },
+    { "fa4",  checkasm_clobber_fa4  },
+    { "fa5",  checkasm_clobber_fa5  },
+    { "fa6",  checkasm_clobber_fa6  },
+    { "fa7",  checkasm_clobber_fa7  },
+#ifdef __riscv_float_abi_soft
+    { "fs2",  checkasm_clobber_fs2  },
+    { "fs3",  checkasm_clobber_fs3  },
+    { "fs4",  checkasm_clobber_fs4  },
+    { "fs5",  checkasm_clobber_fs5  },
+    { "fs6",  checkasm_clobber_fs6  },
+    { "fs7",  checkasm_clobber_fs7  },
+    { "fs8",  checkasm_clobber_fs8  },
+    { "fs9",  checkasm_clobber_fs9  },
+    { "fs10", checkasm_clobber_fs10 },
+    { "fs11", checkasm_clobber_fs11 },
+#endif
+    { "ft8",  checkasm_clobber_ft8  },
+    { "ft9",  checkasm_clobber_ft9  },
+    { "ft10", checkasm_clobber_ft10 },
+    { "ft11", checkasm_clobber_ft11 },
+    { NULL,   NULL                  },
+};
+
 static const RiscvRegister registers_unsafe[] = {
     { "s0",  checkasm_clobber_s0  },
     { "s1",  checkasm_clobber_s1  },
@@ -91,9 +166,10 @@ static const RiscvRegister registers_unsafe[] = {
     { NULL,  NULL                 }
 };
 
-static void check_clobber(const RiscvRegister *registers)
+static void check_clobber(uint64_t mask, unsigned char letter,
+                          const RiscvRegister *registers)
 {
-    const uint64_t flag = checkasm_get_cpu_flags() & CHECKASM_CPU_FLAG_RISCV;
+    const uint64_t flag = checkasm_get_cpu_flags() & mask;
     declare_func(void, int);
 
     for (int i = 0; registers[i].name; i++) {
@@ -103,19 +179,20 @@ static void check_clobber(const RiscvRegister *registers)
         }
     }
 
-    report("clobber");
+    report("clobber_%c", letter);
 }
 
 void checkasm_check_riscv(void)
 {
     checkasm_test_copy(get_copy_rvv(), "copy_rvv", 1);
-    check_clobber(registers_safe);
+    check_clobber(CHECKASM_CPU_FLAG_RVI, 'x', registers_safe);
+    check_clobber(CHECKASM_CPU_FLAG_RVF, 'f', float_registers_safe);
 
 #if ARCH_RV64
     if (!checkasm_should_fail(1))
         return;
     checkasm_test_noop(get_sigill_riscv(), "sigill");
     checkasm_test_noop(get_corrupt_stack_riscv(), "corrupt_stack");
-    check_clobber(registers_unsafe);
+    check_clobber(CHECKASM_CPU_FLAG_RVI, 'x', registers_unsafe);
 #endif
 }

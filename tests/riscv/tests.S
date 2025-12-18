@@ -64,6 +64,19 @@ function clobber_ra, export=1
   jr t0
 endfunc
 
+.macro clobber_f_fn reg
+  function clobber_\reg, export=1, ext=f
+    fmv.w.x fa0, zero
+    ret
+  endfunc
+.endm
+
+.irp reg, ft0, ft1, ft2, ft3, ft4, ft5, ft6, ft7, fs0, fs1, \
+          fa0, fa1, fa2, fa3, fa4, fa5, fa6, fa7, fs2, fs3, \
+          fs4, fs5, fs6, fs7, fs8, fs9, fs10, fs11, ft8, ft9, ft10, ft11
+clobber_f_fn \reg
+.endr
+
 function sigill_riscv, export=1
   .word 0
 endfunc
