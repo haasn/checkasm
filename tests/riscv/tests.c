@@ -166,6 +166,24 @@ static const RiscvRegister registers_unsafe[] = {
     { NULL,  NULL                 }
 };
 
+static const RiscvRegister float_registers_unsafe[] = {
+#ifndef __riscv_float_abi_soft
+    { "fs0",  checkasm_clobber_fs0  },
+    { "fs1",  checkasm_clobber_fs1  },
+    { "fs2",  checkasm_clobber_fs2  },
+    { "fs3",  checkasm_clobber_fs3  },
+    { "fs4",  checkasm_clobber_fs4  },
+    { "fs5",  checkasm_clobber_fs5  },
+    { "fs6",  checkasm_clobber_fs6  },
+    { "fs7",  checkasm_clobber_fs7  },
+    { "fs8",  checkasm_clobber_fs8  },
+    { "fs9",  checkasm_clobber_fs9  },
+    { "fs10", checkasm_clobber_fs10 },
+    { "fs11", checkasm_clobber_fs11 },
+#endif
+    { NULL,  NULL                 }
+};
+
 static void check_clobber(uint64_t mask, unsigned char letter,
                           const RiscvRegister *registers)
 {
@@ -193,4 +211,5 @@ void checkasm_check_riscv(void)
     checkasm_test_noop(get_sigill_riscv(), "sigill");
     checkasm_test_noop(get_corrupt_stack_riscv(), "corrupt_stack");
     check_clobber(CHECKASM_CPU_FLAG_RVI, 'x', registers_unsafe);
+    check_clobber(CHECKASM_CPU_FLAG_RVF, 'f', float_registers_unsafe);
 }
