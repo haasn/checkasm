@@ -52,6 +52,11 @@ int checkasm_has_vector(void);
 /* Returns the vector length in bits, 0 if unavailable. */
 unsigned checkasm_vlen(void);
 
+void checkasm_checked_call_i(void);
+void checkasm_checked_call_if(void);
+void checkasm_checked_call_iv(void);
+void checkasm_checked_call_ifv(void);
+
 #elif ARCH_AARCH64
 
 /* Returns a nonzero value if SVE is available, 0 otherwise */

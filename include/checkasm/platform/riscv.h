@@ -29,26 +29,20 @@
 #ifndef CHECKASM_PLATFORM_RISCV_H
 #define CHECKASM_PLATFORM_RISCV_H
 
-#if __riscv_xlen == 64
-#define declare_new(ret, ...)                                                            \
-    ret (*checked_call)(void *, int, int, int, int, int, int, int, __VA_ARGS__, int,     \
-                        int, int, int, int, int, int, int, int, int, int, int, int, int, \
-                        int, int)                                                        \
-        = (ret (*)(void *, int, int, int, int, int, int, int, __VA_ARGS__, int, int,     \
-                   int, int, int, int, int, int, int, int, int, int, int, int, int,      \
-                   int))(void *) checkasm_checked_call
+void checkasm_set_function(void *);
+void *checkasm_checked_call_ptr(void);
 
-#define checkasm_call_checked(func, ...)                                                 \
-    (checkasm_set_signal_handler_state(1),                                               \
-     checkasm_push_stack_guard((uintptr_t[16]){ 0, 0 }), \
-     checkasm_clobber_args(),                                                            \
-     checked_call(func, 0, 0, 0, 0, 0, 0, 0, __VA_ARGS__, 7, 6, 5, 4, 3, 2, 1, 0, 0, 0,  \
-                  0, 0, 0, 0, 0, 0));                                                    \
-    checkasm_pop_stack_guard(), \
+#define declare_new(ret, ...) \
+    ret (*checked_call)(__VA_ARGS__) = checkasm_checked_call_ptr()
+
+#define checkasm_call_checked(func, ...)                                     \
+    (checkasm_set_signal_handler_state(1),                                   \
+     checkasm_push_stack_guard((uintptr_t[16]){ 0, 0 }),                     \
+     checkasm_clobber_args(),                                                \
+     checkasm_set_function(func),                                            \
+     checked_call(__VA_ARGS__));                                             \
+    checkasm_pop_stack_guard();                                              \
     checkasm_set_signal_handler_state(0)
-#else
-#define declare_new(ret, ...) do { } while (0)
-#endif
 #define CHECKASM_ALIGNMENT 16
 
 void checkasm_clobber_args(void);

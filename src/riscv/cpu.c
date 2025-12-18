@@ -159,3 +159,28 @@ unsigned checkasm_vlen(void)
         : "=r" (value));
     return ((unsigned)value) * 8;
 }
+
+void *checkasm_checked_call_ptr(void)
+{
+    void *checked_call = NULL;
+    int flags = checkasm_cpu_flags();
+
+    switch (flags) {
+#ifdef __riscv_float_abi_soft
+        case 0:
+            checked_call = checkasm_checked_call_i;
+            break;
+        case RISCV_VECTOR:
+            checked_call = checkasm_checked_call_iv;
+            break;
+#endif
+        case RISCV_FLOAT:
+            checked_call = checkasm_checked_call_if;
+            break;
+        case RISCV_FLOAT | RISCV_VECTOR:
+            checked_call = checkasm_checked_call_ifv;
+            break;
+    }
+    assert(checked_call != NULL);
+    return checked_call;
+}
