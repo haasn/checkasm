@@ -43,6 +43,9 @@ unsigned checkasm_init_x86(char *name);
 /* Gets the CPU identification registers. */
 int checkasm_get_cpuids(uint32_t *vendor, uint64_t *arch, uint64_t *imp);
 
+/* Checks if floating point registers are supported. */
+int checkasm_has_float(void);
+
 /* Checks if vector registers are supported. */
 int checkasm_has_vector(void);
 

@@ -72,7 +72,7 @@ int checkasm_get_cpuids(uint32_t *vendor, uint64_t *arch, uint64_t *imp)
 }
 
 /* CPU capabilities relevant to the checked call harness. */
-// Bit 0 reserved for float.
+#define RISCV_FLOAT  (1 << 0)
 #define RISCV_VECTOR (1 << 1)
 
 static int checkasm_hwprobe(void)
@@ -84,6 +84,8 @@ static int checkasm_hwprobe(void)
     };
 
     if (__riscv_hwprobe(pairs, ARRAY_SIZE(pairs), 0, NULL, 0) == 0) {
+        if (pairs[0].value & RISCV_HWPROBE_IMA_FD)
+            flags |= RISCV_FLOAT;
 #ifdef RISCV_HWPROBE_EXT_ZVE32X
         if (pairs[0].value & RISCV_HWPROBE_EXT_ZVE32X)
             flags |= RISCV_VECTOR;
@@ -96,15 +98,21 @@ static int checkasm_hwprobe(void)
     }
     /*
      * We purposedly do not fallback to HWCAP on Linux. Kernel versions without
-     * `hwprobe()` and do not support vectors.
+     * `hwprobe()` have hard-coded float support (on or off) and do not support
+     * other register extensions such as vectors.
      */
 #elif HAVE_GETAUXVAL || HAVE_ELF_AUX_INFO
     {
         const unsigned long hwcap = checkasm_getauxval(AT_HWCAP);
 
+        if (hwcap & HWCAP_RV('F'))
+            flags |= RISCV_FLOAT;
         if (hwcap & HWCAP_RV('V'))
             flags |= RISCV_VECTOR;
     }
+#endif
+#ifdef __riscv_f
+    flags |= RISCV_FLOAT;
 #endif
 #ifdef __riscv_vector
     flags |= RISCV_VECTOR;
@@ -123,6 +131,11 @@ static int checkasm_cpu_flags(void)
     }
 
     return flags;
+}
+
+int checkasm_has_float(void)
+{
+    return (checkasm_cpu_flags() & RISCV_FLOAT) != 0;
 }
 
 int checkasm_has_vector(void)
