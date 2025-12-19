@@ -52,6 +52,25 @@ static int __riscv_hwprobe(struct riscv_hwprobe *pairs, size_t pair_count,
 #define HWCAP_RV(letter) (1ul << ((letter) - 'A'))
 #endif
 
+int checkasm_get_cpuids(uint32_t *vendor, uint64_t *arch, uint64_t *imp)
+{
+#if HAVE_SYS_HWPROBE_H || HAVE_ASM_HWPROBE_H
+    struct riscv_hwprobe pairs[] = {
+        { RISCV_HWPROBE_KEY_MVENDORID, 0 },
+        { RISCV_HWPROBE_KEY_MARCHID,   0 },
+        { RISCV_HWPROBE_KEY_MIMPID,    0 },
+    };
+
+    if (__riscv_hwprobe(pairs, ARRAY_SIZE(pairs), 0, NULL, 0) == 0) {
+        *vendor = (uint32_t)pairs[0].value;
+        *arch = pairs[1].value;
+        *imp = pairs[2].value;
+        return 0;
+    }
+#endif
+    return -1;
+}
+
 /* CPU capabilities relevant to the checked call harness. */
 // Bit 0 reserved for float.
 #define RISCV_VECTOR (1 << 1)

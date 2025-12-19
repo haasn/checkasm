@@ -30,6 +30,7 @@
 
 #include "config.h"
 #include <stddef.h>
+#include <stdint.h>
 
 #if ARCH_X86
 
@@ -38,6 +39,9 @@
 unsigned checkasm_init_x86(char *name);
 
 #elif ARCH_RISCV
+
+/* Gets the CPU identification registers. */
+int checkasm_get_cpuids(uint32_t *vendor, uint64_t *arch, uint64_t *imp);
 
 /* Checks if vector registers are supported. */
 int checkasm_has_vector(void);

@@ -676,6 +676,16 @@ static void print_info(void)
         fprintf(stderr, " - CPU: %s\n", name);
 #endif
 #if ARCH_RISCV
+    uint32_t vendorid;
+    uint64_t archid, impid;
+    if (checkasm_get_cpuids(&vendorid, &archid, &impid) == 0) {
+        unsigned bank = vendorid >> 7, offset = vendorid & 0x7f;
+        const char *name = checkasm_get_jedec_vendor_name(bank, offset);
+
+        fprintf(stderr, " - CPU: %s (%u, 0x%02x) arch 0x%"PRIX64", "
+                "imp 0x%"PRIx64"\n", name, bank, offset, archid, impid);
+    }
+
     const int vlen = checkasm_vlen();
     if (vlen > 0)
         fprintf(stderr, " - CPU: VLEN = %d bits\n", vlen);
