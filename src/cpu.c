@@ -62,3 +62,48 @@ COLD const char *checkasm_get_brand_string(char *buf, size_t buflen)
     return NULL;
 #endif
 }
+
+struct jedec_vendor {
+    unsigned char bank;
+    unsigned char offset;
+    char name[14];
+};
+
+static const struct jedec_vendor vendors[] = {
+    /* From JEDEC JEP106 (see OpenOCD's `jep106.inc` for a free equivalent). */
+    /* /!\ Must be sorted by bank then offset /!\ */
+    {  0, 0x01, "AMD"           },
+    {  0, 0x09, "Intel"         },
+    {  0, 0x29, "Microchip"     },
+    {  0, 0x48, "Apple"         },
+    {  2, 0x27, "MIPS"          },
+    {  3, 0x6B, "NVIDIA"        },
+    {  4, 0x3B, "ARM"           },
+    {  6, 0x1E, "Andes Tech"    },
+    {  9, 0x09, "SiFive Inc"    },
+    { 10, 0x03, "Codasip GmbH"  },
+    { 11, 0x37, "T-Head"        }, // formerly C-Sky
+    { 14, 0x10, "SpacemiT"      },
+    { 15, 0x21, "Tenstorrent"   },
+};
+
+static COLD int jvcmp(const void *pa, const void *pb)
+{
+    const struct jedec_vendor *va = pa, *vb = pb;
+    int a = (va->bank << 7) | va->offset;
+    int b = (vb->bank << 7) | vb->offset;
+
+    return a - b;
+}
+
+COLD const char *checkasm_get_jedec_vendor_name(unsigned bank, unsigned offset)
+{
+    const struct jedec_vendor key = { bank, offset, "" };
+    const struct jedec_vendor *v;
+
+    if (bank == 0 && offset == 0)
+        return "N/A"; // used for non-commercial RISC-V designs.
+
+    v = bsearch(&key, vendors, ARRAY_SIZE(vendors), sizeof (*v), jvcmp);
+    return (v != NULL) ? v->name : "unknown";
+}
