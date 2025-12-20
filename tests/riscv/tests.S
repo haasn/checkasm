@@ -76,8 +76,10 @@ function sigill_riscv, export=1
   .word 0
 endfunc
 
+#if __riscv_xlen >= 64
 function corrupt_stack_riscv, export=1
   li t0, 0
   sd t0, (sp)
   ret
 endfunc
+#endif

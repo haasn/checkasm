@@ -45,7 +45,7 @@ if arch_x86
     'x86/tests.asm',
     'x86/tests.c',
   )
-elif arch_rv64
+elif arch_riscv
   checkasm_test_sources += files(
     'riscv/tests.S',
     'riscv/tests.c',
