@@ -188,11 +188,11 @@ void checkasm_check_riscv(void)
     check_clobber(CHECKASM_CPU_FLAG_RVI, 'x', registers_safe);
     check_clobber(CHECKASM_CPU_FLAG_RVF, 'f', float_registers_safe);
 
-#if ARCH_RV64
     if (!checkasm_should_fail(1))
         return;
     checkasm_test_noop(get_sigill_riscv(), "sigill");
     checkasm_test_noop(get_corrupt_stack_riscv(), "corrupt_stack");
+#if ARCH_RV64
     check_clobber(CHECKASM_CPU_FLAG_RVI, 'x', registers_unsafe);
 #endif
 }
