@@ -29,6 +29,7 @@
 #ifndef CHECKASM_PLATFORM_RISCV_H
 #define CHECKASM_PLATFORM_RISCV_H
 
+#if __riscv_xlen == 64
 #define declare_new(ret, ...)                                                            \
     ret (*checked_call)(void *, int, int, int, int, int, int, int, __VA_ARGS__, int,     \
                         int, int, int, int, int, int, int, int, int, int, int, int, int, \
@@ -43,7 +44,9 @@
      checked_call(func, 0, 0, 0, 0, 0, 0, 0, __VA_ARGS__, 7, 6, 5, 4, 3, 2, 1, 0, 0, 0,  \
                   0, 0, 0, 0, 0, 0));                                                    \
     checkasm_set_signal_handler_state(0)
-
+#else
+#define declare_new(ret, ...) do { } while (0)
+#endif
 #define CHECKASM_ALIGNMENT 16
 
 void checkasm_clobber_args(void);
