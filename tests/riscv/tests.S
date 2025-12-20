@@ -30,11 +30,6 @@
 #include "src/config.h"
 #include "src/riscv/asm.S"
 
-function get_vlenb, export=1, ext=zve32x
-  csrr a0, vlenb
-  ret
-endfunc
-
 function copy_rvv, export=1, ext=zve32x
   vsetvli t0, a2, e8, m8, ta, ma
   vle8.v v0, (a1)
