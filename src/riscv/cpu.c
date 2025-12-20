@@ -145,10 +145,17 @@ int checkasm_has_vector(void)
 
 unsigned checkasm_vlen(void)
 {
-    unsigned long value = 0;
+    unsigned long value;
 
-    if (checkasm_has_vector())
-        __asm__ ("csrr %0, vlenb\n" : "=r" (value));
+    if (!checkasm_has_vector())
+        return 0;
 
+    __asm__ (
+        ".option push\n"
+        ".option arch, +zicsr\n"
+        ".option arch, +zve32x\n"
+        "csrr    %0, vlenb\n"
+        ".option pop"
+        : "=r" (value));
     return ((unsigned)value) * 8;
 }
