@@ -654,10 +654,10 @@ static int check_err(const char *const file, const int line, const char *const n
 
 #define cmp_int(a, b, len) (!memcmp(a, b, (len) * sizeof(*(a))))
 #define DEF_CHECKASM_CHECK_FUNC(type, fmt, fmtw)                                         \
-    int checkasm_check_##type(const char *file, int line, const type *buf1,              \
-                              ptrdiff_t stride1, const type *buf2, ptrdiff_t stride2,    \
-                              int w, int h, const char *name, int align_w, int align_h,  \
-                              int padding)                                               \
+    int checkasm_check_impl_##type(const char *file, int line, const type *buf1,         \
+                                   ptrdiff_t stride1, const type *buf2,                  \
+                                   ptrdiff_t stride2, int w, int h, const char *name,    \
+                                   int align_w, int align_h, int padding)                \
     {                                                                                    \
         DEF_CHECKASM_CHECK_BODY(cmp_int, type, fmt, fmtw);                               \
     }
@@ -672,10 +672,10 @@ DEF_CHECKASM_CHECK_FUNC(uint8_t,  "%02" PRIx8,  2)
 DEF_CHECKASM_CHECK_FUNC(uint16_t, "%04" PRIx16, 4)
 DEF_CHECKASM_CHECK_FUNC(uint32_t, "%08" PRIx32, 8)
 
-int checkasm_check_float_ulp(const char *file, int line, const float *buf1,
-                             ptrdiff_t stride1, const float *buf2, ptrdiff_t stride2,
-                             int w, int h, const char *name, unsigned max_ulp,
-                             int align_w, int align_h, int padding)
+int checkasm_check_impl_float_ulp(const char *file, int line, const float *buf1,
+                                  ptrdiff_t stride1, const float *buf2, ptrdiff_t stride2,
+                                  int w, int h, const char *name, unsigned max_ulp,
+                                  int align_w, int align_h, int padding)
 {
 #define cmp_float(a, b, len) float_near_ulp_array(a, b, max_ulp, len)
     DEF_CHECKASM_CHECK_BODY(cmp_float, float, "%7g", 7);

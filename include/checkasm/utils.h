@@ -125,7 +125,7 @@ CHECKASM_API int checkasm_double_near_abs_eps_array(const double *a, const doubl
 #define RANDOMIZE_PIXEL_RECT(name) RANDOMIZE_BUF(name##_buf)
 
 #define DECL_CHECKASM_CHECK_FUNC(type)                                                   \
-    CHECKASM_API int checkasm_check_##type(                                              \
+    CHECKASM_API int checkasm_check_impl_##type(                                         \
         const char *const file, const int line, const type *const buf1,                  \
         const ptrdiff_t stride1, const type *const buf2, const ptrdiff_t stride2,        \
         const int w, const int h, const char *const name, const int align_w,             \
@@ -141,19 +141,18 @@ DECL_CHECKASM_CHECK_FUNC(uint8_t);
 DECL_CHECKASM_CHECK_FUNC(uint16_t);
 DECL_CHECKASM_CHECK_FUNC(uint32_t);
 
-CHECKASM_API int checkasm_check_float_ulp(const char *file, int line, const float *buf1,
-                                          ptrdiff_t stride1, const float *buf2,
-                                          ptrdiff_t stride2, int w, int h,
-                                          const char *name, unsigned max_ulp, int align_w,
-                                          int align_h, int padding);
+CHECKASM_API int checkasm_check_impl_float_ulp(const char *file, int line,
+                                               const float *buf1, ptrdiff_t stride1,
+                                               const float *buf2, ptrdiff_t stride2,
+                                               int w, int h, const char *name,
+                                               unsigned max_ulp, int align_w, int align_h,
+                                               int padding);
 
-#ifndef CONCAT
-  #define CONCAT2(a, b) a##b
-  #define CONCAT(a, b)  CONCAT2(a, b)
-#endif
+#define checkasm_check_impl2(type) checkasm_check_impl_##type
+#define checkasm_check_impl(type)  checkasm_check_impl2(type)
 
-#define checkasm_check2(type, ...)                                                       \
-    CONCAT(checkasm_check_, type)(__FILE__, __LINE__, __VA_ARGS__)
+#define checkasm_check1(type, ...)       checkasm_check_impl_##type(__VA_ARGS__)
+#define checkasm_check2(type, ...)       checkasm_check1(type, __FILE__, __LINE__, __VA_ARGS__)
 #define checkasm_check(type, ...)        checkasm_check2(type, __VA_ARGS__, 0, 0, 0)
 #define checkasm_check_padded(type, ...) checkasm_check2(type, __VA_ARGS__)
 
