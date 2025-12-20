@@ -30,6 +30,9 @@
 function clobber_args, export=1, visible=1
         .irp    n, 0, 1, 2, 3, 4, 5, 6, 7
         li      a\n, -\n
+#ifndef __riscv_float_abi_soft
+        fcvt.s.w    fa\n, a\n
+#endif
         .endr
         ret
 endfunc
