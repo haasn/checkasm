@@ -80,3 +80,4 @@ function corrupt_stack_riscv, export=1
   li t0, 0
   sd t0, (sp)
   ret
+endfunc
