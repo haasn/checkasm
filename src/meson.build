@@ -187,7 +187,7 @@ elif arch_riscv
   if arch_rv64
     checkasm_sources += files('riscv/checkasm_64.S')
   endif
-  checkasm_sources += files('riscv/cpu.c')
+  checkasm_sources += files('riscv/cpu.c', 'riscv/callcheck.S')
 elif arch_x86
   add_languages('nasm', native: false)
   configure_file(
