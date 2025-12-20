@@ -50,10 +50,16 @@ CHECKASM_API int  checkasm_fail_func(const char *msg, ...) CHECKASM_PRINTF(1, 2)
 CHECKASM_API void checkasm_report(const char *name, ...) CHECKASM_PRINTF(1, 2);
 CHECKASM_API void checkasm_set_signal_handler_state(int enabled);
 
+CHECKASM_API void checkasm_push_stack_guard(uintptr_t guard[static 2]);
+CHECKASM_API void checkasm_pop_stack_guard(void);
+
 /* Call an arbitrary function while handling signals. Use checkasm_call_checked()
  * instead when testing new/asm function versions. */
-#define checkasm_call(func, ...)                                                         \
-    (checkasm_set_signal_handler_state(1), (func) (__VA_ARGS__));                        \
+#define checkasm_call(func, ...)                        \
+    (checkasm_set_signal_handler_state(1),              \
+     checkasm_push_stack_guard((uintptr_t[16]){ 0, 0 }), \
+     (func) (__VA_ARGS__));                             \
+    checkasm_pop_stack_guard();                         \
     checkasm_set_signal_handler_state(0)
 
 /* Call an assembly function (matching the signature declared by declare_new()),

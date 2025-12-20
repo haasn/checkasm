@@ -162,6 +162,7 @@ checkasm_sources = files(
   'function.c',
   'perf.c',
   'signal.c',
+  'stackguard.c',
   'stats.c',
   'utils.c',
 )
