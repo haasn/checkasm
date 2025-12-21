@@ -42,10 +42,10 @@ function copy_rvv, export=1, ext=zve32x
 endfunc
 
 .macro clobber_fn reg
-  function clobber_\reg, export=1
-    li \reg, 0
-    ret
-  endfunc
+function clobber_\reg, export=1
+        not     \reg, \reg
+        ret
+endfunc
 .endm
 
 .irp reg, sp, gp, t0, t1, t2, s0, s1, a0, a1, a2, a3, a4, a5, a6, a7, \
@@ -54,16 +54,18 @@ clobber_fn \reg
 .endr
 
 function clobber_ra, export=1
-  mv t0, ra
-  li ra, 0
-  jr t0
+        mv      t0, ra
+        not     ra, ra
+        jr      t0
 endfunc
 
 .macro clobber_f_fn reg
-  function clobber_\reg, export=1, ext=f
-    fmv.w.x fa0, zero
-    ret
-  endfunc
+function clobber_\reg, export=1, ext=f
+        fmv.x.w t0, \reg
+        not     t0, t0
+        fmv.w.x \reg, zero
+        ret
+endfunc
 .endm
 
 .irp reg, ft0, ft1, ft2, ft3, ft4, ft5, ft6, ft7, fs0, fs1, \
