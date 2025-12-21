@@ -207,6 +207,7 @@ COLD const char *checkasm_get_arm_cpuinfo(char *buf, size_t buflen, int affinity
         return NULL;
 
     int                implementer = -1, part = -1, processor = -1;
+    char               model[100] = "";
     struct arm_core_id cores[5];
     unsigned           nb_cores = 0;
 
@@ -238,6 +239,8 @@ COLD const char *checkasm_get_arm_cpuinfo(char *buf, size_t buflen, int affinity
                 part = (int) strtol(value, NULL, 0);
             } else if (!strcmp(line, "processor")) {
                 processor = (int) strtol(value, NULL, 0);
+            } else if (!strcmp(line, "Model")) {
+                snprintf(model, sizeof(model), "%s", value);
             }
         } else if (line[0] == '\0') {
             /* We got an empty line; interpret that as terminating the
@@ -261,8 +264,13 @@ COLD const char *checkasm_get_arm_cpuinfo(char *buf, size_t buflen, int affinity
 
     fclose(f);
 
-    if (nb_cores == 0)
+    if (model[0] == '\0' && nb_cores == 0)
         return NULL;
+
+    if (nb_cores == 0) {
+        snprintf(buf, buflen, "%s", model);
+        return buf;
+    }
 
     size_t pos = 0;
     for (unsigned i = 0; i < nb_cores; i++) {
@@ -276,6 +284,9 @@ COLD const char *checkasm_get_arm_cpuinfo(char *buf, size_t buflen, int affinity
         pos += snprintf(buf + pos, buflen - pos, "%s%s %s", i > 0 ? ", " : "",
                         implementer, part);
     }
+
+    if (pos < buflen && model[0] != '\0')
+        pos += snprintf(buf + pos, buflen - pos, " (%s)", model);
 
     return buf;
 }
