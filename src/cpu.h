@@ -107,4 +107,8 @@ unsigned long checkasm_getauxval(unsigned long);
 const char *checkasm_get_brand_string(char *buf, size_t buflen);
 const char *checkasm_get_jedec_vendor_name(unsigned bank, unsigned offset);
 
+#if (ARCH_ARM || ARCH_AARCH64) && defined(__linux__)
+const char *checkasm_get_arm_cpuinfo(char *buf, size_t buflen);
+#endif
+
 #endif /* CHECKASM_CPU_H */

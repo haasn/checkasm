@@ -58,6 +58,8 @@ COLD const char *checkasm_get_brand_string(char *buf, size_t buflen)
         return NULL;
     }
     return buf;
+#elif (ARCH_ARM || ARCH_AARCH64) && defined(__linux__)
+    return checkasm_get_arm_cpuinfo(buf, buflen);
 #else
     return NULL;
 #endif
