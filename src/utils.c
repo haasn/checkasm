@@ -70,9 +70,12 @@ static ALWAYS_INLINE uint64_t gettime_nsec(int is_seed)
 #ifdef _WIN32
     static LARGE_INTEGER freq;
     LARGE_INTEGER        ts;
-    if (!freq.QuadPart)
-        QueryPerformanceFrequency(&freq);
-    QueryPerformanceCounter(&ts);
+    if (!freq.QuadPart) {
+        if (!QueryPerformanceFrequency(&freq))
+            return -1;
+    }
+    if (!QueryPerformanceCounter(&ts))
+        return -1;
     return UINT64_C(1000000000) * ts.QuadPart / freq.QuadPart;
 #elif defined(__APPLE__) && defined(__MACH__)
     static mach_timebase_info_data_t tb_info;
@@ -81,18 +84,23 @@ static ALWAYS_INLINE uint64_t gettime_nsec(int is_seed)
             return -1;
     }
     return mach_absolute_time() * tb_info.numer / tb_info.denom;
-#else
+#elif HAVE_CLOCK_GETTIME
     struct timespec ts;
+    clockid_t id;
     if (!is_seed) {
   #ifdef CLOCK_MONOTONIC_RAW
-      clock_gettime(CLOCK_MONOTONIC_RAW, &ts);
+      id = CLOCK_MONOTONIC_RAW;
   #else
-      clock_gettime(CLOCK_MONOTONIC, &ts);
+      id = CLOCK_MONOTONIC;
   #endif
     } else {
-      clock_gettime(CLOCK_REALTIME, &ts);
+      id = CLOCK_REALTIME;
     }
+    if (clock_gettime(id, &ts) < 0)
+        return -1;
     return UINT64_C(1000000000) * ts.tv_sec + ts.tv_nsec;
+#else
+    return -1;
 #endif
 }
 

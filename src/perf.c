@@ -58,6 +58,12 @@ const CheckasmPerf *checkasm_get_perf(void)
 
 COLD int checkasm_perf_init(void)
 {
+    /* checkasm_gettime_nsec() is needed to validate asm timers */
+    if (checkasm_gettime_nsec() == (uint64_t) -1) {
+        fprintf(stderr, "checkasm: timers are not available on this system\n");
+        return 1;
+    }
+
 #if defined(CHECKASM_PERF_ASM) && CHECKASM_HAVE_LONGJMP
     if (!checkasm_save_context(checkasm_context)) {
         /* Try calling the asm timer to see if it works */
@@ -111,12 +117,7 @@ COLD int checkasm_perf_init(void)
         return 0;
 #endif
 
-    /* Generic fallback to gettime() */
-    if (checkasm_gettime_nsec() == (uint64_t) -1) {
-        fprintf(stderr, "checkasm: checkasm_gettime_nsec() returned nonsense\n");
-        return 1;
-    }
-
+    /* Generic fallback to gettime() if supported */
     checkasm_perf.start = checkasm_gettime_nsec;
     checkasm_perf.stop  = checkasm_gettime_nsec_diff;
     checkasm_perf.name  = "gettime";
@@ -240,7 +241,7 @@ COLD void checkasm_measure_perf_scale(CheckasmMeasurement *meas)
         uint64_t nsec = checkasm_gettime_nsec();
         for (int i = 0; i < iters; i++)
             checkasm_noop(NULL);
-        nsec = checkasm_gettime_nsec() - nsec;
+        nsec = checkasm_gettime_nsec_diff(nsec);
 
         assert(cycles <= INT_MAX);
         checkasm_stats_add(&stats, (CheckasmSample) { nsec, (int) cycles });

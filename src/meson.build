@@ -47,6 +47,8 @@ if not have_pthread_setaffinity_np
   thread_dependency = []
 endif
 
+
+have_clock_gettime = cc.has_function('clock_gettime', prefix : '#include <time.h>', args : test_args, dependencies : rt_dependency)
 have_ioctl = cc.has_function('ioctl', prefix : '#include <sys/ioctl.h>', args : test_args)
 have_isatty = cc.has_function('isatty', prefix : '#include <unistd.h>', args : test_args)
 have_sigaction = cc.has_function('sigaction', prefix : '#include <signal.h>', args : test_args)
@@ -104,6 +106,7 @@ cdata.set10('ARCH_LOONGARCH32',             arch_loongarch32)
 cdata.set10('ARCH_LOONGARCH64',             arch_loongarch64)
 cdata.set10('HAVE_PTHREAD_NP_H',            have_pthread_np)
 cdata.set10('HAVE_PTHREAD_SETAFFINITY_NP',  have_pthread_setaffinity_np)
+cdata.set10('HAVE_CLOCK_GETTIME',           have_clock_gettime)
 cdata.set10('HAVE_IOCTL',                   have_ioctl)
 cdata.set10('HAVE_ISATTY',                  have_isatty)
 cdata.set10('HAVE_SIGACTION',               have_sigaction)
