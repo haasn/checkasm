@@ -192,7 +192,5 @@ void checkasm_check_riscv(void)
         return;
     checkasm_test_noop(get_sigill_riscv(), "sigill");
     checkasm_test_noop(get_corrupt_stack_riscv(), "corrupt_stack");
-#if ARCH_RV64
     check_clobber(CHECKASM_CPU_FLAG_RVI, 'x', registers_unsafe);
-#endif
 }
