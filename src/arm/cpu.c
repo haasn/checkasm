@@ -200,13 +200,13 @@ COLD static void find_implementer_part(const struct arm_core_id *core,
     }
 }
 
-COLD const char *checkasm_get_arm_cpuinfo(char *buf, size_t buflen)
+COLD const char *checkasm_get_arm_cpuinfo(char *buf, size_t buflen, int affinity)
 {
     FILE *f = fopen("/proc/cpuinfo", "r");
     if (!f)
         return NULL;
 
-    int                implementer = -1, part = -1;
+    int                implementer = -1, part = -1, processor = -1;
     struct arm_core_id cores[5];
     unsigned           nb_cores = 0;
 
@@ -236,11 +236,14 @@ COLD const char *checkasm_get_arm_cpuinfo(char *buf, size_t buflen)
                 implementer = (int) strtol(value, NULL, 0);
             } else if (!strcmp(line, "CPU part")) {
                 part = (int) strtol(value, NULL, 0);
+            } else if (!strcmp(line, "processor")) {
+                processor = (int) strtol(value, NULL, 0);
             }
         } else if (line[0] == '\0') {
             /* We got an empty line; interpret that as terminating the
              * current processor. */
-            if (implementer != -1 && part != -1) {
+            if (implementer != -1 && part != -1
+                && (affinity < 0 || affinity == processor)) {
                 struct arm_core_id core = { implementer, part };
                 unsigned           i;
                 for (i = 0; i < nb_cores; i++)
@@ -252,7 +255,7 @@ COLD const char *checkasm_get_arm_cpuinfo(char *buf, size_t buflen)
                     cores[nb_cores++] = core;
             }
             /* Reset variables for the next processor. */
-            implementer = part = -1;
+            implementer = part = processor = -1;
         }
     }
 

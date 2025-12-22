@@ -51,7 +51,7 @@ COLD unsigned long checkasm_getauxval(unsigned long type)
 #endif
 }
 
-COLD const char *checkasm_get_brand_string(char *buf, size_t buflen)
+COLD const char *checkasm_get_brand_string(char *buf, size_t buflen, int affinity)
 {
 #ifdef __APPLE__
     if (sysctlbyname("machdep.cpu.brand_string", buf, &buflen, NULL, 0) != 0) {
@@ -59,7 +59,7 @@ COLD const char *checkasm_get_brand_string(char *buf, size_t buflen)
     }
     return buf;
 #elif (ARCH_ARM || ARCH_AARCH64) && defined(__linux__)
-    return checkasm_get_arm_cpuinfo(buf, buflen);
+    return checkasm_get_arm_cpuinfo(buf, buflen, affinity);
 #else
     return NULL;
 #endif

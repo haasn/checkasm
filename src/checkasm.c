@@ -675,7 +675,8 @@ static void print_info(void)
     fprintf(stderr, " - CPU: %s (%08X)\n", name, cpuid);
 #else
     char        buf[64];
-    const char *name = checkasm_get_brand_string(buf, sizeof(buf));
+    const char *name = checkasm_get_brand_string(
+        buf, sizeof(buf), cfg.cpu_affinity_set ? (int) cfg.cpu_affinity : -1);
     if (name)
         fprintf(stderr, " - CPU: %s\n", name);
 #endif
