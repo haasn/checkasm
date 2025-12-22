@@ -99,11 +99,8 @@ static COLD int jvcmp(const void *pa, const void *pb)
 COLD const char *checkasm_get_jedec_vendor_name(unsigned bank, unsigned offset)
 {
     const struct jedec_vendor key = { bank, offset, "" };
-    const struct jedec_vendor *v;
+    const struct jedec_vendor *v = bsearch(&key, vendors, ARRAY_SIZE(vendors),
+                                           sizeof (*v), jvcmp);
 
-    if (bank == 0 && offset == 0)
-        return "N/A"; // used for non-commercial RISC-V designs.
-
-    v = bsearch(&key, vendors, ARRAY_SIZE(vendors), sizeof (*v), jvcmp);
     return (v != NULL) ? v->name : "unknown";
 }

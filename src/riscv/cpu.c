@@ -31,6 +31,7 @@
 
 #include <stdatomic.h>
 #include <stdbool.h>
+#include <inttypes.h>
 #include <limits.h>
 #if HAVE_SYS_HWPROBE_H
 #include <sys/hwprobe.h>
@@ -52,7 +53,7 @@ static int __riscv_hwprobe(struct riscv_hwprobe *pairs, size_t pair_count,
 #define HWCAP_RV(letter) (1ul << ((letter) - 'A'))
 #endif
 
-int checkasm_get_cpuids(uint32_t *vendor, uint64_t *arch, uint64_t *imp)
+int checkasm_get_cpuids(uint32_t *vendor, uintptr_t *arch, uintptr_t *imp)
 {
 #if HAVE_SYS_HWPROBE_H || HAVE_ASM_HWPROBE_H
     struct riscv_hwprobe pairs[] = {
@@ -63,12 +64,43 @@ int checkasm_get_cpuids(uint32_t *vendor, uint64_t *arch, uint64_t *imp)
 
     if (__riscv_hwprobe(pairs, ARRAY_SIZE(pairs), 0, NULL, 0) == 0) {
         *vendor = (uint32_t)pairs[0].value;
-        *arch = pairs[1].value;
-        *imp = pairs[2].value;
+        *arch = (uintptr_t)pairs[1].value;
+        *imp = (uintptr_t)pairs[2].value;
         return 0;
     }
 #endif
     return -1;
+}
+
+const char *checkasm_get_riscv_vendor_name(uint32_t vendorid)
+{
+    if (vendorid > 0) {
+        unsigned bank = vendorid >> 7, offset = vendorid & 0x7f;
+
+        return checkasm_get_jedec_vendor_name(bank, offset);
+    } else {
+        return "Unspecified";
+    }
+}
+
+const char *checkasm_get_riscv_arch_name(char *buf, size_t buflen,
+                                         uint32_t vendor, uintptr_t arch)
+{
+    if (arch & INTPTR_MIN) { // Proprietary vendor-specific architecture
+        arch &= INTPTR_MAX;
+        snprintf(buf, buflen, "vendor arch 0x%"PRIXPTR, arch);
+        return buf;
+
+    } else {
+        switch (arch) { // Open core listed in ISA manual.
+            case   0: return "Unspecified";
+            case   5: return "Spike";
+            case  42: return "QEMU";
+            default:
+                snprintf(buf, buflen, "open arch %"PRIuPTR, arch);
+                return buf;
+        }
+    }
 }
 
 /* CPU capabilities relevant to the checked call harness. */

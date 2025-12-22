@@ -673,13 +673,16 @@ static void print_info(void)
 #endif
 #if ARCH_RISCV
     uint32_t vendorid;
-    uint64_t archid, impid;
-    if (checkasm_get_cpuids(&vendorid, &archid, &impid) == 0) {
-        unsigned bank = vendorid >> 7, offset = vendorid & 0x7f;
-        const char *name = checkasm_get_jedec_vendor_name(bank, offset);
+    uintptr_t archid, impid;
 
-        fprintf(stderr, " - CPU: %s (%u, 0x%02x) arch 0x%"PRIX64", "
-                "imp 0x%"PRIx64"\n", name, bank, offset, archid, impid);
+    if (checkasm_get_cpuids(&vendorid, &archid, &impid) == 0) {
+        char buf[32];
+        const char *vendor = checkasm_get_riscv_vendor_name(vendorid);
+        const char *arch = checkasm_get_riscv_arch_name(buf, sizeof (buf),
+                                                        vendorid, archid);
+
+        fprintf(stderr, " - CPU: %s, %s, imp 0x%"PRIXPTR"\n",
+                vendor, arch, impid);
     }
 
     const int vlen = checkasm_vlen();

@@ -41,7 +41,10 @@ unsigned checkasm_init_x86(char *name);
 #elif ARCH_RISCV
 
 /* Gets the CPU identification registers. */
-int checkasm_get_cpuids(uint32_t *vendor, uint64_t *arch, uint64_t *imp);
+int checkasm_get_cpuids(uint32_t *vendor, uintptr_t *arch, uintptr_t *imp);
+const char *checkasm_get_riscv_vendor_name(uint32_t vendorid);
+const char *checkasm_get_riscv_arch_name(char *buf, size_t len,
+                                         uint32_t vendorid, uintptr_t archid);
 
 /* Checks if floating point registers are supported. */
 int checkasm_has_float(void);
