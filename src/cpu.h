@@ -111,4 +111,8 @@ const char *checkasm_get_jedec_vendor_name(unsigned bank, unsigned offset);
 const char *checkasm_get_arm_cpuinfo(char *buf, size_t buflen, int affinity);
 #endif
 
+#if (ARCH_ARM || ARCH_AARCH64) && defined(_WIN32)
+const char *checkasm_get_arm_win32_reg(char *buf, size_t buflen, int affinity);
+#endif
+
 #endif /* CHECKASM_CPU_H */

@@ -32,6 +32,9 @@
 #include "cpu.h"
 #include "internal.h"
 
+#ifdef _WIN32
+  #include <windows.h>
+#endif
 #include <ctype.h>
 #include <string.h>
 
@@ -145,7 +148,7 @@ int checkasm_has_vfp(void)
 
 #endif // ARCH_ARM
 
-#if (ARCH_ARM || ARCH_AARCH64) && defined(__linux__)
+#if (ARCH_ARM || ARCH_AARCH64) && (defined(__linux__) || defined(_WIN32))
 struct arm_core {
     unsigned    id;
     const char *name;
@@ -200,6 +203,25 @@ COLD static void find_implementer_part(const struct arm_core_id *core,
     }
 }
 
+COLD static size_t print_cores(char *buf, size_t buflen, const struct arm_core_id *cores,
+                               unsigned nb_cores)
+{
+    size_t pos = 0;
+    for (unsigned i = 0; i < nb_cores; i++) {
+        if (pos >= buflen)
+            break;
+        char buf1[20], buf2[20];
+        snprintf(buf1, sizeof(buf1), "Implementer 0x%02x", cores[i].implementer);
+        snprintf(buf2, sizeof(buf2), "Part 0x%03x", cores[i].part);
+        const char *implementer = buf1, *part = buf2;
+        find_implementer_part(&cores[i], &implementer, &part);
+        pos += snprintf(buf + pos, buflen - pos, "%s%s %s", i > 0 ? ", " : "",
+                        implementer, part);
+    }
+    return pos;
+}
+
+  #ifdef __linux__
 COLD const char *checkasm_get_arm_cpuinfo(char *buf, size_t buflen, int affinity)
 {
     FILE *f = fopen("/proc/cpuinfo", "r");
@@ -272,22 +294,89 @@ COLD const char *checkasm_get_arm_cpuinfo(char *buf, size_t buflen, int affinity
         return buf;
     }
 
-    size_t pos = 0;
-    for (unsigned i = 0; i < nb_cores; i++) {
-        if (pos >= buflen)
-            break;
-        char buf1[20], buf2[20];
-        snprintf(buf1, sizeof(buf1), "Implementer 0x%02x", cores[i].implementer);
-        snprintf(buf2, sizeof(buf2), "Part 0x%03x", cores[i].part);
-        const char *implementer = buf1, *part = buf2;
-        find_implementer_part(&cores[i], &implementer, &part);
-        pos += snprintf(buf + pos, buflen - pos, "%s%s %s", i > 0 ? ", " : "",
-                        implementer, part);
-    }
+    size_t pos = print_cores(buf, buflen, cores, nb_cores);
 
     if (pos < buflen && model[0] != '\0')
         pos += snprintf(buf + pos, buflen - pos, " (%s)", model);
 
     return buf;
 }
+  #endif
+
+  #ifdef _WIN32
+COLD const char *checkasm_get_arm_win32_reg(char *buf, size_t buflen, int affinity)
+{
+    HKEY key;
+    if (RegOpenKeyExA(HKEY_LOCAL_MACHINE,
+                      "Hardware\\Description\\System\\CentralProcessor", 0, KEY_READ,
+                      &key)
+        != ERROR_SUCCESS)
+        return NULL;
+    DWORD index = 0;
+
+    char               cpu_name[100] = "";
+    struct arm_core_id cores[5];
+    unsigned           nb_cores = 0;
+
+    while (1) {
+        /* Iterate over all subkeys. They are named 0, 1, 2, etc, one for each
+         * processor. */
+        char  name[10];
+        DWORD name_size = sizeof(name);
+        if (RegEnumKeyExA(key, index, name, &name_size, NULL, NULL, NULL, NULL)
+            != ERROR_SUCCESS)
+            break;
+        index++;
+        unsigned processor = strtoul(name, NULL, 0);
+
+        if (affinity >= 0 && (unsigned) affinity != processor)
+            continue;
+
+        DWORD64 midr_el1;
+        DWORD   midr_el1_size = sizeof(midr_el1);
+        /* Read the register CP 4000 aka MIDR_EL1. */
+        if (RegGetValueA(key, name, "CP 4000", RRF_RT_QWORD, NULL, &midr_el1,
+                         &midr_el1_size)
+            == ERROR_SUCCESS) {
+            unsigned implementer = (midr_el1 >> 24) & 0xff;
+            unsigned part        = (midr_el1 >> 4) & 0xfff;
+
+            struct arm_core_id core = { implementer, part };
+            unsigned           i;
+            for (i = 0; i < nb_cores; i++)
+                if (memcmp(&cores[i], &core, sizeof(core)) == 0)
+                    break;
+            /* If the new core differs from all of the earlier seen ones,
+             * store the new one. */
+            if (i == nb_cores && nb_cores < ARRAY_SIZE(cores))
+                cores[nb_cores++] = core;
+        }
+        DWORD cpu_name_size = sizeof(cpu_name);
+        if (RegGetValueA(key, name, "ProcessorNameString", RRF_RT_REG_SZ, NULL, cpu_name,
+                         &cpu_name_size)
+            != ERROR_SUCCESS)
+            cpu_name[0] = '\0';
+        /* Not including "Identifier", which usually has a nondescriptive string like
+         * "ARMv8 (64-bit) Family 8 Model 800 Revision A01".
+         * Not including "VendorIdentifier"; it doesn't add much extra value,
+         * and may contain a longer string like "Qualcomm Technologies Inc". */
+    }
+    RegCloseKey(key);
+
+    if (cpu_name[0] == '\0' && nb_cores == 0)
+        return NULL;
+
+    if (nb_cores == 0) {
+        snprintf(buf, buflen, "%s", cpu_name);
+        return buf;
+    }
+
+    size_t pos = print_cores(buf, buflen, cores, nb_cores);
+
+    if (pos < buflen && cpu_name[0] != '\0')
+        pos += snprintf(buf + pos, buflen - pos, " (%s)", cpu_name);
+
+    return buf;
+}
+  #endif
 #endif
