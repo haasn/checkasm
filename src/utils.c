@@ -604,57 +604,44 @@ static int check_err(const char *const file, const int line, const char *const n
         }                                                                                \
     } while (0)
 
+#define CHECK_RECT(buf1, buf2, ystart, yend, xstart, xend, msg, compare, type, fmt,      \
+                   fmtw)                                                                 \
+    do {                                                                                 \
+        const int xw = xend - xstart;                                                    \
+        for (int y = ystart; y < yend; y++) {                                            \
+            if (compare(&buf1[y * stride1 + xstart], &buf2[y * stride2 + xstart], xw))   \
+                continue;                                                                \
+            if (check_err(file, line, name, w, h, &err))                                 \
+                return 1;                                                                \
+            /* Exclude unneeded lines on overwrite above */                              \
+            int yprint = y < 0 ? y : ystart;                                             \
+            if (msg[0])                                                                  \
+                fprintf(stderr, " %s (%dx%d, from idx [%d]):\n", msg, xend - xstart,     \
+                        yend - yprint, xstart);                                          \
+            PRINT_RECT(type, buf1, buf2, yprint, yend, xstart, xend, fmt, fmtw);         \
+            break;                                                                       \
+        }                                                                                \
+    } while (0)
+
 #define DEF_CHECKASM_CHECK_BODY(compare, type, fmt, fmtw)                                \
     do {                                                                                 \
         const int overhead   = 5 + 3 + 3;                                                \
         const int term_width = get_terminal_width() - overhead;                          \
+        const int aligned_w  = (w + align_w - 1) & ~(align_w - 1);                       \
+        const int aligned_h  = (h + align_h - 1) & ~(align_h - 1);                       \
+        stride1 /= sizeof(type);                                                         \
+        stride2 /= sizeof(type);                                                         \
                                                                                          \
-        int aligned_w = (w + align_w - 1) & ~(align_w - 1);                              \
-        int aligned_h = (h + align_h - 1) & ~(align_h - 1);                              \
-        int err       = 0;                                                               \
-        stride1 /= sizeof(*buf1);                                                        \
-        stride2 /= sizeof(*buf2);                                                        \
-        int y = 0;                                                                       \
-        for (y = 0; y < h; y++)                                                          \
-            if (!compare(&buf1[y * stride1], &buf2[y * stride2], w))                     \
-                break;                                                                   \
-        if (y != h) {                                                                    \
-            if (check_err(file, line, name, w, h, &err))                                 \
-                return 1;                                                                \
-            PRINT_RECT(type, buf1, buf2, 0, h, 0, w, fmt, fmtw);                         \
-        }                                                                                \
-        for (y = -padding; y < 0; y++)                                                   \
-            if (!compare(&buf1[y * stride1 - padding], &buf2[y * stride2 - padding],     \
-                         w + 2 * padding)) {                                             \
-                if (check_err(file, line, name, w, h, &err))                             \
-                    return 1;                                                            \
-                fprintf(stderr, " overwrite above\n");                                   \
-                break;                                                                   \
-            }                                                                            \
-        for (y = aligned_h; y < aligned_h + padding; y++)                                \
-            if (!compare(&buf1[y * stride1 - padding], &buf2[y * stride2 - padding],     \
-                         w + 2 * padding)) {                                             \
-                if (check_err(file, line, name, w, h, &err))                             \
-                    return 1;                                                            \
-                fprintf(stderr, " overwrite below\n");                                   \
-                break;                                                                   \
-            }                                                                            \
-        for (y = 0; y < h; y++)                                                          \
-            if (!compare(&buf1[y * stride1 - padding], &buf2[y * stride2 - padding],     \
-                         padding)) {                                                     \
-                if (check_err(file, line, name, w, h, &err))                             \
-                    return 1;                                                            \
-                fprintf(stderr, " overwrite left\n");                                    \
-                break;                                                                   \
-            }                                                                            \
-        for (y = 0; y < h; y++)                                                          \
-            if (!compare(&buf1[y * stride1 + aligned_w], &buf2[y * stride2 + aligned_w], \
-                         padding)) {                                                     \
-                if (check_err(file, line, name, w, h, &err))                             \
-                    return 1;                                                            \
-                fprintf(stderr, " overwrite right\n");                                   \
-                break;                                                                   \
-            }                                                                            \
+        int err = 0;                                                                     \
+        CHECK_RECT(buf1, buf2, 0, h, 0, w, "", compare, type, fmt, fmtw);                \
+        CHECK_RECT(buf1, buf2, -padding, 0, -padding, w + padding, "overwrite top",      \
+                   compare, type, fmt, fmtw);                                            \
+        CHECK_RECT(buf1, buf2, aligned_h, aligned_h + padding, -padding, w + padding,    \
+                   "overwrite bottom", compare, type, fmt, fmtw);                        \
+        CHECK_RECT(buf1, buf2, 0, h, -padding, 0, "overwrite left", compare, type, fmt,  \
+                   fmtw);                                                                \
+        CHECK_RECT(buf1, buf2, 0, h, aligned_w, aligned_w + padding, "overwrite right",  \
+                   compare, type, fmt, fmtw);                                            \
         return err;                                                                      \
     } while (0)
 
