@@ -562,7 +562,7 @@ static int check_err(const char *const file, const int line, const char *const n
     return 0;
 }
 
-#define PRINT_LINE(buf1, buf2, xstart, xend, fmt, fmtw)                                  \
+#define PRINT_LINE(buf1, buf2, xstart, xend, xpad, fmt, fmtw)                            \
     do {                                                                                 \
         for (int x = xstart; x < xend; x++) {                                            \
             if (buf1[x] != buf2[x])                                                      \
@@ -570,12 +570,45 @@ static int check_err(const char *const file, const int line, const char *const n
             else                                                                         \
                 fprintf(stderr, " " fmt, buf1[x]);                                       \
         }                                                                                \
-        for (int pad = xend; pad < xstart + display_elems; pad++)                        \
+        for (int pad = xend; pad < xstart + xpad; pad++)                                 \
             fprintf(stderr, &"          "[9 - fmtw]);                                    \
+    } while (0)
+
+#define PRINT_RECT(type, buf1, buf2, ystart, yend, xstart, xend, fmt, fmtw)              \
+    do {                                                                                 \
+        const type *ptr1          = (buf1) + ystart * stride1;                           \
+        const type *ptr2          = (buf2) + ystart * stride1;                           \
+        const int   elem_size     = 2 * (fmtw + 1) + 1;                                  \
+        const int   display_elems = imin(term_width / elem_size, xend - xstart);         \
+        for (int y = ystart; y < yend; y++) {                                            \
+            for (int xpos = xstart; xpos < xend; xpos += display_elems) {                \
+                const int xstep = imin(xpos + display_elems, xend);                      \
+                if (xpos == xstart) /* line change */                                    \
+                    checkasm_fprintf(stderr, COLOR_BLUE, "%3d: ", y);                    \
+                else                                                                     \
+                    fprintf(stderr, "     ");                                            \
+                PRINT_LINE(ptr1, ptr2, xpos, xstep, display_elems, fmt, fmtw);           \
+                fprintf(stderr, "    ");                                                 \
+                PRINT_LINE(ptr2, ptr1, xpos, xstep, display_elems, fmt, fmtw);           \
+                fprintf(stderr, "    ");                                                 \
+                for (int x = xpos; x < xstep; x++) {                                     \
+                    if (ptr1[x] != ptr2[x])                                              \
+                        checkasm_fprintf(stderr, COLOR_RED, "x");                        \
+                    else                                                                 \
+                        fprintf(stderr, ".");                                            \
+                }                                                                        \
+                fprintf(stderr, "\n");                                                   \
+            }                                                                            \
+            ptr1 += stride1;                                                             \
+            ptr2 += stride2;                                                             \
+        }                                                                                \
     } while (0)
 
 #define DEF_CHECKASM_CHECK_BODY(compare, type, fmt, fmtw)                                \
     do {                                                                                 \
+        const int overhead   = 5 + 3 + 3;                                                \
+        const int term_width = get_terminal_width() - overhead;                          \
+                                                                                         \
         int aligned_w = (w + align_w - 1) & ~(align_w - 1);                              \
         int aligned_h = (h + align_h - 1) & ~(align_h - 1);                              \
         int err       = 0;                                                               \
@@ -586,36 +619,9 @@ static int check_err(const char *const file, const int line, const char *const n
             if (!compare(&buf1[y * stride1], &buf2[y * stride2], w))                     \
                 break;                                                                   \
         if (y != h) {                                                                    \
-            const int overhead      = 5 + 3 + 3;                                         \
-            const int term_width    = get_terminal_width() - overhead;                   \
-            const int elem_size     = 2 * (fmtw + 1) + 1;                                \
-            const int display_elems = imin(term_width / elem_size, w);                   \
             if (check_err(file, line, name, w, h, &err))                                 \
                 return 1;                                                                \
-            for (y = 0; y < h; y++) {                                                    \
-                for (int xstart = 0; xstart < w; xstart += display_elems) {              \
-                    const int xend = imin(xstart + display_elems, w);                    \
-                    if (xstart == 0) /* line change */                                   \
-                        checkasm_fprintf(stderr, COLOR_BLUE, "%3d: ", y);                \
-                    else                                                                 \
-                        fprintf(stderr, "     ");                                        \
-                    PRINT_LINE(buf1, buf2, xstart, xend, fmt, fmtw);                     \
-                    fprintf(stderr, "    ");                                             \
-                    PRINT_LINE(buf2, buf1, xstart, xend, fmt, fmtw);                     \
-                    fprintf(stderr, "    ");                                             \
-                    for (int x = xstart; x < xend; x++) {                                \
-                        if (buf1[x] != buf2[x])                                          \
-                            checkasm_fprintf(stderr, COLOR_RED, "x");                    \
-                        else                                                             \
-                            fprintf(stderr, ".");                                        \
-                    }                                                                    \
-                    fprintf(stderr, "\n");                                               \
-                }                                                                        \
-                buf1 += stride1;                                                         \
-                buf2 += stride2;                                                         \
-            }                                                                            \
-            buf1 -= h * stride1;                                                         \
-            buf2 -= h * stride2;                                                         \
+            PRINT_RECT(type, buf1, buf2, 0, h, 0, w, fmt, fmtw);                         \
         }                                                                                \
         for (y = -padding; y < 0; y++)                                                   \
             if (!compare(&buf1[y * stride1 - padding], &buf2[y * stride2 - padding],     \
