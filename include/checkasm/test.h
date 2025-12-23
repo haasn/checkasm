@@ -55,17 +55,19 @@ CHECKASM_API void checkasm_pop_stack_guard(void);
 
 /* Call an arbitrary function while handling signals. Use checkasm_call_checked()
  * instead when testing new/asm function versions. */
-#define checkasm_call(func, ...)                        \
-    (checkasm_set_signal_handler_state(1),              \
-     checkasm_push_stack_guard((uintptr_t[16]){ 0, 0 }), \
-     (func) (__VA_ARGS__));                             \
-    checkasm_pop_stack_guard();                         \
+#define checkasm_call(func, ...)                                                         \
+    (checkasm_set_signal_handler_state(1), (func) (__VA_ARGS__));                        \
     checkasm_set_signal_handler_state(0)
 
 /* Call an assembly function (matching the signature declared by declare_new()),
  * while handling signals and common assembly errors. */
 #ifndef checkasm_call_checked
-  #define checkasm_call_checked(func, ...) checkasm_call((func_type *) func, __VA_ARGS__)
+  #define checkasm_call_checked(func, ...)                                               \
+      (checkasm_set_signal_handler_state(1),                                             \
+       checkasm_push_stack_guard((uintptr_t[16]) { 0, 0 }),                              \
+       ((func_type *) (func))(__VA_ARGS__));                                             \
+      checkasm_pop_stack_guard();                                                        \
+      checkasm_set_signal_handler_state(0)
 #endif
 
 /* Mark a block of tests as expected to fail when any of `cpu_flags` are set
