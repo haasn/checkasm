@@ -38,7 +38,7 @@ static _Thread_local uintptr_t *current = NULL;
  * larger size to reduce the risk of corrupting the stack frames of the test
  * cases or the `checkasm` run-time above the canary.
  */
-void checkasm_push_stack_guard(uintptr_t guard[static 2])
+void checkasm_push_stack_guard(uintptr_t guard[2])
 {
     uintptr_t cookie = (uintptr_t)(void *)checkasm_push_stack_guard;
     uintptr_t selfref = (uintptr_t)(void *)guard;
