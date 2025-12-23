@@ -569,7 +569,7 @@ int checkasm_run_on_all_cores(void (*func)(void))
 #endif
 }
 
-static int set_cpu_affinity(const uint64_t affinity)
+static int set_cpu_affinity(const unsigned affinity)
 {
     int affinity_err;
 
@@ -601,10 +601,10 @@ static int set_cpu_affinity(const uint64_t affinity)
 #endif
 
     if (affinity_err) {
-        fprintf(stderr, "checkasm: invalid cpu affinity (%" PRIx64 ")\n", affinity);
+        fprintf(stderr, "checkasm: invalid cpu affinity (%u)\n", affinity);
         return 1;
     } else {
-        fprintf(stderr, "checkasm: running on cpu %" PRIx64 "\n", affinity);
+        fprintf(stderr, "checkasm: running on cpu %u\n", affinity);
         return 0;
     }
 }
