@@ -98,6 +98,7 @@ typedef struct CheckasmConfig {
     unsigned repeat;
 
     /* If nonzero, the process will be pinned to the specified CPU (id) */
+    int      cpu_affinity_set;
     unsigned cpu_affinity;
 } CheckasmConfig;
 

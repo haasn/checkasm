@@ -572,8 +572,6 @@ int checkasm_run_on_all_cores(void (*func)(void))
 static int set_cpu_affinity(const uint64_t affinity)
 {
     int affinity_err;
-    if (!affinity)
-        return 0;
 
 #ifdef _WIN32
     HANDLE process = GetCurrentProcess();
@@ -758,7 +756,8 @@ int checkasm_run(const CheckasmConfig *config)
     cfg = *config;
 
     checkasm_set_signal_handlers();
-    set_cpu_affinity(cfg.cpu_affinity);
+    if (cfg.cpu_affinity_set)
+        set_cpu_affinity(cfg.cpu_affinity);
     checkasm_setup_fprintf(stderr);
 
     if (!cfg.seed)
@@ -1100,7 +1099,8 @@ int checkasm_main(CheckasmConfig *config, int argc, const char *argv[])
         } else if (!strcmp(argv[1], "--verbose") || !strcmp(argv[1], "-v")) {
             config->verbose = 1;
         } else if (!strncmp(argv[1], "--affinity=", 11)) {
-            const char *const s = argv[1] + 11;
+            const char *const s      = argv[1] + 11;
+            config->cpu_affinity_set = 1;
             if (!parseu(&config->cpu_affinity, s, 16)) {
                 fprintf(stderr, "checkasm: invalid cpu affinity (%s)\n", s);
                 print_usage(argv[0]);
