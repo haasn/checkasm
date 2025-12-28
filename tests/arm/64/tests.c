@@ -253,110 +253,111 @@ DEF_MAX_INT64_ARGS_GETTER(CHECKASM_CPU_FLAG_AARCH64, check_max_int64_args_aarch6
 
 static void check_clobber_x(int from, int to)
 {
-    declare_func(void, int);
+    checkasm_declare(void, int);
 
     for (int reg = from; reg < to; reg++) {
         noop_func *clobber = get_clobber_x(reg);
         if (!clobber)
             break;
 
-        if (check_func(clobber, "clobber_x%d", reg)) {
-            call_new(0);
+        if (checkasm_check_func(clobber, "clobber_x%d", reg)) {
+            checkasm_call_new(0);
         }
     }
 
-    report("clobber_x");
+    checkasm_report("clobber_x");
 }
 
 static void check_clobber_d(int from, int to)
 {
-    declare_func(void, int);
+    checkasm_declare(void, int);
 
     for (int reg = from; reg < to; reg++) {
         noop_func *clobber = get_clobber_d(reg);
         if (!clobber)
             break;
 
-        if (check_func(clobber, "clobber_d%d", reg)) {
-            call_new(0);
+        if (checkasm_check_func(clobber, "clobber_d%d", reg)) {
+            checkasm_call_new(0);
         }
     }
 
-    report("clobber_d");
+    checkasm_report("clobber_d");
 }
 
 static void check_clobber_v_upper(int from, int to)
 {
-    declare_func(void, int);
+    checkasm_declare(void, int);
 
     for (int reg = from; reg < to; reg++) {
         noop_func *clobber = get_clobber_v_upper(reg);
         if (!clobber)
             break;
 
-        if (check_func(clobber, "clobber_v%d_upper", reg)) {
-            call_new(0);
+        if (checkasm_check_func(clobber, "clobber_v%d_upper", reg)) {
+            checkasm_call_new(0);
         }
     }
 
-    report("clobber_v_upper");
+    checkasm_report("clobber_v_upper");
 }
 
 static void check_clobber_arg_upper(void)
 {
-    declare_func(void, int, int, int, int, int, int, int, int, int, int, int);
+    checkasm_declare(void, int, int, int, int, int, int, int, int, int, int, int);
 
     for (int arg = 0; arg < 11; arg++) {
         many_args_func *check_clobber = get_check_clobber_upper(arg);
         if (!check_clobber)
             break;
 
-        if (check_func(check_clobber, "check_clobber_arg_upper_%d", arg)) {
-            call_new(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
+        if (checkasm_check_func(check_clobber, "check_clobber_arg_upper_%d", arg)) {
+            checkasm_call_new(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
         }
     }
 
-    report("check_clobber_arg_upper");
+    checkasm_report("check_clobber_arg_upper");
 }
 
 static void checkasm_test_many_args(many_args_func fun, const char *name)
 {
-    declare_func(void, int, int, int, int, int, int, int, int, int, int, int);
+    checkasm_declare(void, int, int, int, int, int, int, int, int, int, int, int);
 
-    if (check_func(fun, "%s", name)) {
+    if (checkasm_check_func(fun, "%s", name)) {
         /* don't call unchecked because that one is called without wrapping,
          * and we try to cloober the stack here. */
         (void) func_ref;
-        call_new(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
+        checkasm_call_new(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
     }
 
-    report("%s", name);
+    checkasm_report("%s", name);
 }
 
 static void checkasm_test_max_int_args(max_int_args_func fun, const char *name)
 {
-    declare_func(void, int, int, int, int, int, int, int, int, int, int, int, int, int,
-                 int, int);
+    checkasm_declare(void, int, int, int, int, int, int, int, int, int, int, int, int,
+                     int, int, int);
 
-    if (check_func(fun, "%s", name)) {
+    if (checkasm_check_func(fun, "%s", name)) {
         (void) func_ref;
-        call_new(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15);
+        checkasm_call_new(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15);
     }
 
-    report("%s", name);
+    checkasm_report("%s", name);
 }
 
 static void checkasm_test_max_int64_args(max_int64_args_func fun, const char *name)
 {
-    declare_func(void, int64_t, int64_t, int64_t, int64_t, int64_t, int64_t, int64_t,
-                 int64_t, int64_t, int64_t, int64_t, int64_t, int64_t, int64_t, int64_t);
+    checkasm_declare(void, int64_t, int64_t, int64_t, int64_t, int64_t, int64_t, int64_t,
+                     int64_t, int64_t, int64_t, int64_t, int64_t, int64_t, int64_t,
+                     int64_t);
 
-    if (check_func(fun, "%s", name)) {
+    if (checkasm_check_func(fun, "%s", name)) {
         (void) func_ref;
-        call_new(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15);
+        checkasm_call_new(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15);
     }
 
-    report("%s", name);
+    checkasm_report("%s", name);
 }
 
 void checkasm_check_aarch64(void)

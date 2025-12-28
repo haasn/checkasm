@@ -43,10 +43,10 @@ void checkasm_test_copy(copy_func fun, const char *name, const int min_width)
     CHECKASM_ALIGN(uint8_t src[WIDTH]);
     INITIALIZE_BUF(src);
 
-    declare_func(void, uint8_t *dest, const uint8_t *src, size_t n);
+    checkasm_declare(void, uint8_t *dest, const uint8_t *src, size_t n);
 
     for (int w = min_width; w <= WIDTH; w *= 2) {
-        if (check_func(fun, "%s_%d", name, w)) {
+        if (checkasm_check_func(fun, "%s_%d", name, w)) {
             CLEAR_BUF_RECT(c_dst);
             CLEAR_BUF_RECT(a_dst);
 
@@ -55,46 +55,46 @@ void checkasm_test_copy(copy_func fun, const char *name, const int min_width)
              * trigger a failure. */
             for (int i = 0; i < w; i++)
                 c_dst[i] = a_dst[i] = ~src[i];
-            call_ref(c_dst, src, w);
-            call_new(a_dst, src, w);
+            checkasm_call_ref(c_dst, src, w);
+            checkasm_call_new(a_dst, src, w);
             checkasm_check_rect_padded(c_dst, c_dst_stride, a_dst, a_dst_stride, w, 1,
                                        "dst data");
 
-            bench_new(a_dst, src, w);
+            checkasm_bench_new(a_dst, src, w);
         }
     }
 
-    report("%s", name);
+    checkasm_report("%s", name);
 }
 
 void checkasm_test_noop(noop_func fun, const char *name)
 {
-    declare_func(void, int);
+    checkasm_declare(void, int);
 
-    if (check_func(fun, "%s", name)) {
+    if (checkasm_check_func(fun, "%s", name)) {
         /* don't call unchecked because some of these functions are designed to
          * e.g. intentionally corrupt the stack */
-        (void) func_ref;
-        call_new(0);
+        (void) checkasm_func_ref;
+        checkasm_call_new(0);
     }
 
-    report("%s", name);
+    checkasm_report("%s", name);
 }
 
 void checkasm_test_float(float_func fun, const char *name, const float input)
 {
-    declare_func(float, float);
+    checkasm_declare(float, float);
 
-    if (check_func(fun, "%s", name)) {
-        float x = call_ref(input);
-        float y = call_new(input);
-        if (!float_near_abs_eps(x, y, FLT_EPSILON)) {
-            if (fail())
+    if (checkasm_check_func(fun, "%s", name)) {
+        float x = checkasm_call_ref(input);
+        float y = checkasm_call_new(input);
+        if (!checkasm_float_near_abs_eps(x, y, FLT_EPSILON)) {
+            if (checkasm_fail())
                 fprintf(stderr, "expected %f, got %f\n", x, y);
         }
     }
 
-    report("%s", name);
+    checkasm_report("%s", name);
 }
 
 static DEF_COPY_FUNC(overwrite_left)
@@ -142,20 +142,20 @@ static void checkasm_test_retval(void)
 {
     const uint64_t flags = checkasm_get_cpu_flags();
 
-    declare_func(int, int);
+    checkasm_declare(int, int);
 
-    if (check_func(flags ? identity_new : identity_ref, "identity")) {
+    if (checkasm_check_func(flags ? identity_new : identity_ref, "identity")) {
         for (int i = 0; i < 10; i++) {
-            int x = call_ref(i);
-            int y = call_new(i);
+            int x = checkasm_call_ref(i);
+            int y = checkasm_call_new(i);
             if (x != y) {
-                if (fail())
+                if (checkasm_fail())
                     fprintf(stderr, "expected %d, got %d\n", x, y);
             }
         }
     }
 
-    report("identity");
+    checkasm_report("identity");
 }
 
 static int truncate_c(const float x)
@@ -165,20 +165,20 @@ static int truncate_c(const float x)
 
 static void checkasm_test_float_arg(void)
 {
-    declare_func(int, float);
+    checkasm_declare(int, float);
 
-    if (check_func(truncate_c, "truncate")) {
+    if (checkasm_check_func(truncate_c, "truncate")) {
         for (float f = 0.0f; f <= 10.0f; f += 0.5f) {
-            int x = call_ref(f);
-            int y = call_new(f);
+            int x = checkasm_call_ref(f);
+            int y = checkasm_call_new(f);
             if (x != y) {
-                if (fail())
+                if (checkasm_fail())
                     fprintf(stderr, "expected %d, got %d\n", x, y);
             }
         }
     }
 
-    report("truncate");
+    checkasm_report("truncate");
 }
 
 DEF_COPY_GETTER(CHECKASM_CPU_FLAG_BAD_C, overwrite_left)
@@ -193,30 +193,30 @@ static void checkasm_test_check_declare(void)
      * handling still works in this case */
     noop_func *func = get_segfault();
 
-    if (check_func(func, "check_declare")) {
-        declare_func(void, int);
+    if (checkasm_check_func(func, "check_declare")) {
+        checkasm_declare(void, int);
 
-        call_ref(0);
-        call_new(0);
+        checkasm_call_ref(0);
+        checkasm_call_new(0);
     }
 
-    report("check_declare");
+    checkasm_report("check_declare");
 }
 
 /* Ensure we can override func_ref/func_new */
 static void checkasm_test_override_funcs(void)
 {
-    declare_func(int, int);
+    checkasm_declare(int, int);
 
-    if (check_func(identity_ref, "override_funcs")) {
+    if (checkasm_check_func(identity_ref, "override_funcs")) {
         func_ref = identity_ref;
         func_new = identity_new;
 
-        call_ref(0);
-        call_new(0);
+        checkasm_call_ref(0);
+        checkasm_call_new(0);
     }
 
-    report("override_funcs");
+    checkasm_report("override_funcs");
 }
 
 void checkasm_check_generic(void)

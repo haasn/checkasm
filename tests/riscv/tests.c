@@ -188,16 +188,16 @@ static void check_clobber(uint64_t mask, unsigned char letter,
                           const RiscvRegister *registers)
 {
     const uint64_t flag = checkasm_get_cpu_flags() & mask;
-    declare_func(void, int);
+    checkasm_declare(void, int);
 
     for (int i = 0; registers[i].name; i++) {
         noop_func *const func = flag ? registers[i].clobber : NULL;
-        if (check_func(func, "clobber_%s", registers[i].name)) {
-            call_new(0);
+        if (checkasm_check_func(func, "clobber_%s", registers[i].name)) {
+            checkasm_call_new(0);
         }
     }
 
-    report("clobber_%c", letter);
+    checkasm_report("clobber_%c", letter);
 }
 
 void checkasm_check_riscv(void)

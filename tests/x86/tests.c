@@ -140,19 +140,19 @@ DEF_COPY_GETTER(CHECKASM_CPU_FLAG_AVX2, copy_novzeroupper_avx2)
 
 static void check_clobber(int from, int to)
 {
-    declare_func(void, int);
+    checkasm_declare(void, int);
 
     for (int reg = from; reg < to; reg++) {
         noop_func *clobber = get_clobber(reg);
         if (!clobber)
             break;
 
-        if (check_func(clobber, "clobber_r%d", reg)) {
-            call_new(0);
+        if (checkasm_check_func(clobber, "clobber_r%d", reg)) {
+            checkasm_call_new(0);
         }
     }
 
-    report("clobber");
+    checkasm_report("clobber");
 }
 
 static void test_copy_emms(copy_func fun, const char *name)
@@ -162,22 +162,22 @@ static void test_copy_emms(copy_func fun, const char *name)
     CHECKASM_ALIGN(uint8_t src[256]);
     INITIALIZE_BUF(src);
 
-    declare_func_emms(CHECKASM_CPU_FLAG_MMX, void, uint8_t *dest, const uint8_t *src,
-                      size_t n);
+    checkasm_declare_emms(CHECKASM_CPU_FLAG_MMX, void, uint8_t *dest,
+                          const uint8_t *src, size_t n);
 
     for (size_t w = 8; w <= 256; w *= 2) {
-        if (check_func(fun, "%s_%zu", name, w)) {
+        if (checkasm_check_func(fun, "%s_%zu", name, w)) {
             CLEAR_BUF(c_dst);
             CLEAR_BUF(a_dst);
 
-            call_ref(c_dst, src, w);
-            call_new(a_dst, src, w);
+            checkasm_call_ref(c_dst, src, w);
+            checkasm_call_new(a_dst, src, w);
             checkasm_check(uint8_t, c_dst, 0, a_dst, 0, 256, 1, "dst data");
-            bench_new(a_dst, src, w);
+            checkasm_bench_new(a_dst, src, w);
         }
     }
 
-    report("%s", name);
+    checkasm_report("%s", name);
 }
 
 void checkasm_check_x86(void)

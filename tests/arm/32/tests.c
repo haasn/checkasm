@@ -148,50 +148,50 @@ DEF_MANY_ARGS_GETTER(CHECKASM_CPU_FLAG_ARM, clobber_stack_arm)
 
 static void check_clobber_r(int from, int to)
 {
-    declare_func(void, int);
+    checkasm_declare(void, int);
 
     for (int reg = from; reg < to; reg++) {
         noop_func *clobber = get_clobber_r(reg);
         if (!clobber)
             break;
 
-        if (check_func(clobber, "clobber_r%d", reg)) {
-            call_new(0);
+        if (checkasm_check_func(clobber, "clobber_r%d", reg)) {
+            checkasm_call_new(0);
         }
     }
 
-    report("clobber_r");
+    checkasm_report("clobber_r");
 }
 
 static void check_clobber_d(int from, int to)
 {
-    declare_func(void, int);
+    checkasm_declare(void, int);
 
     for (int reg = from; reg < to; reg++) {
         noop_func *clobber = get_clobber_d(reg);
         if (!clobber)
             break;
 
-        if (check_func(clobber, "clobber_d%d", reg)) {
-            call_new(0);
+        if (checkasm_check_func(clobber, "clobber_d%d", reg)) {
+            checkasm_call_new(0);
         }
     }
 
-    report("clobber_d");
+    checkasm_report("clobber_d");
 }
 
 static void checkasm_test_many_args(many_args_func fun, const char *name)
 {
-    declare_func(void, int, int, int, int, int);
+    checkasm_declare(void, int, int, int, int, int);
 
-    if (check_func(fun, "%s", name)) {
+    if (checkasm_check_func(fun, "%s", name)) {
         /* don't call unchecked because that one is called without wrapping,
          * and we try to cloober the stack here. */
         (void) func_ref;
-        call_new(1, 2, 3, 4, 5);
+        checkasm_call_new(1, 2, 3, 4, 5);
     }
 
-    report("%s", name);
+    checkasm_report("%s", name);
 }
 
 void checkasm_check_arm(void)
