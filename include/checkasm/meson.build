@@ -23,12 +23,21 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-checkasm_api_headers = files(
+api_header_file_names = [
   'attributes.h',
   'checkasm.h',
   'test.h',
   'utils.h',
-)
+]
+
+checkasm_api_headers = files(api_header_file_names)
+
+# Export these for the Doxygen build process (see docs/meson.build)
+checkasm_include_dir = meson.current_source_dir()
+checkasm_api_header_paths = []
+foreach file_name : api_header_file_names
+  checkasm_api_header_paths += checkasm_include_dir / file_name
+endforeach
 
 # Platform-specific code and definitions (besides timing)
 if arch_x86_64
