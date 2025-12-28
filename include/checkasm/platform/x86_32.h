@@ -63,8 +63,8 @@ CHECKASM_API void checkasm_empty_mmx(void);
                   1));                                                                   \
     checkasm_set_signal_handler_state(0)
 
-#define declare_func_emms(cpu_flags, ret, ...)                                           \
-    declare_func(ret, __VA_ARGS__);                                                      \
+#define checkasm_declare_emms(cpu_flags, ret, ...)                                       \
+    checkasm_declare(ret, __VA_ARGS__);                                                  \
     if (checkasm_get_cpu_flags() & (cpu_flags)) {                                        \
         checked_call = (ret (*)(void *, __VA_ARGS__, int, int, int, int, int, int, int,  \
                                 int, int, int, int, int, int, int,                       \

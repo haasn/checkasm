@@ -48,22 +48,21 @@ CHECKASM_API CheckasmKey checkasm_check_key(CheckasmKey version, const char *nam
 
 /* Indicate that the current test has failed */
 CHECKASM_API int checkasm_fail_func(const char *msg, ...) CHECKASM_PRINTF(1, 2);
-#define fail() checkasm_fail_func("%s:%d", __FILE__, __LINE__)
+#define checkasm_fail() checkasm_fail_func("%s:%d", __FILE__, __LINE__)
 
 /* Print the test outcome */
 CHECKASM_API void checkasm_report(const char *name, ...) CHECKASM_PRINTF(1, 2);
-#define report checkasm_report
 
 /* Declare the function prototype (for checked calls). The first argument is
  * the return value, the remaining arguments are the function parameters.
  * Naming parameters is optional. */
-#define declare_func(ret, ...)                                                           \
+#define checkasm_declare(ret, ...)                                                       \
     declare_new(ret, __VA_ARGS__);                                                       \
     typedef ret func_type(__VA_ARGS__)
 
 /**
- * Variant of `declare_func` used for non-ABI compliant MMX functions which
- * omit calling `emms` before returning to the caller. (x86 only)
+ * Variant of `checkasm_declare` used for non-ABI compliant MMX functions
+ * which omit calling `emms` before returning to the caller. (x86 only)
  *
  * Note: MMX code normally needs to call emms before any floating-point code
  * can be executed. Since this instruction can be very slow, many MMX kernels
@@ -71,8 +70,8 @@ CHECKASM_API void checkasm_report(const char *name, ...) CHECKASM_PRINTF(1, 2);
  * to run emms manually after the loop. This function should be used to call
  * such kernels. It will omit the emms check and instead explicitly run emms.
  */
-#ifndef declare_func_emms
-  #define declare_func_emms(cpu_flags, ret, ...) declare_func(ret, __VA_ARGS__)
+#ifndef checkasm_declare_emms
+  #define checkasm_declare_emms(cpu_flags, ret, ...) checkasm_declare(ret, __VA_ARGS__)
 #endif
 
 /* Call an arbitrary function while handling signals. Use checkasm_call_checked()
@@ -81,8 +80,8 @@ CHECKASM_API void checkasm_report(const char *name, ...) CHECKASM_PRINTF(1, 2);
     (checkasm_set_signal_handler_state(1), (func) (__VA_ARGS__));                        \
     checkasm_set_signal_handler_state(0)
 
-/* Call an assembly function (matching the signature declared by declare_new()),
- * while handling signals and common assembly errors. */
+/* Call an assembly function (matching the signature declared by
+ * `checkasm_declare`), while handling signals and common assembly errors. */
 #ifndef checkasm_call_checked
   #define checkasm_call_checked(func, ...)                                               \
       (checkasm_set_signal_handler_state(1),                                             \
@@ -115,13 +114,7 @@ static void *checkasm_func_new;
 #define checkasm_call_new(...)                                                           \
     checkasm_call_checked((func_type *) checkasm_func_new, __VA_ARGS__)
 
-/* Short-hand aliases */
-#define check_key  checkasm_check_key
-#define check_func checkasm_check_func
-#define call_ref   checkasm_call_ref
-#define call_new   checkasm_call_new
-
-/* Benchmark the function */
+/* Benchmark a function */
 #define checkasm_bench(func, ...)                                                        \
     do {                                                                                 \
         if (checkasm_bench_func()) {                                                     \
@@ -143,12 +136,23 @@ static void *checkasm_func_new;
     } while (0)
 
 #define checkasm_bench_new(...) checkasm_bench(func_new, __VA_ARGS__)
-#define bench_new               checkasm_bench_new
 
 /* Alternates between two pointers. Intended to be used within bench_new()
  * calls for functions which modifies their input buffer(s) to ensure that
  * throughput, and not latency, is measured. */
-#define alternate(a, b) ((tidx & 1) ? (b) : (a))
+#define checkasm_alternate(a, b) ((tidx & 1) ? (b) : (a))
+
+/* Short-hand aliases. Defined for convenience and backwards-compatibility */
+#define fail              checkasm_fail
+#define report            checkasm_report
+#define check_key         checkasm_check_key
+#define check_func        checkasm_check_func
+#define call_ref          checkasm_call_ref
+#define call_new          checkasm_call_new
+#define bench_new         checkasm_bench_new
+#define alternate         checkasm_alternate
+#define declare_func      checkasm_declare
+#define declare_func_emms checkasm_declare_emms
 
 /* Private implementation details. Not part of the public API */
 
