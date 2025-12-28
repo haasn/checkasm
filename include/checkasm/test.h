@@ -101,18 +101,18 @@ CHECKASM_API void checkasm_report(const char *name, ...) CHECKASM_PRINTF(1, 2);
 CHECKASM_API int checkasm_should_fail(CheckasmCpu cpu_flags);
 
 /* Wrapper around `checkasm_check` for normal, callable function pointers */
-static void *checkasm_func_ref;
-static void *checkasm_func_new;
-#define func_ref (*(func_type **) &checkasm_func_ref)
-#define func_new (*(func_type **) &checkasm_func_new)
+static void *checkasm_ref_ptr;
+static void *checkasm_new_ptr;
+#define checkasm_func_ref (*(func_type **) &checkasm_ref_ptr)
+#define checkasm_func_new (*(func_type **) &checkasm_new_ptr)
 
 #define checkasm_check_func(func, ...)                                                   \
-    (checkasm_func_ref = (void *) checkasm_check_key(                                    \
-         (CheckasmKey) (checkasm_func_new = func), __VA_ARGS__))
+    (checkasm_ref_ptr = (void *) checkasm_check_key(                                     \
+         (CheckasmKey) (checkasm_new_ptr = func), __VA_ARGS__))
 
-#define checkasm_call_ref(...) checkasm_call((func_type *) checkasm_func_ref, __VA_ARGS__)
+#define checkasm_call_ref(...) checkasm_call((func_type *) checkasm_ref_ptr, __VA_ARGS__)
 #define checkasm_call_new(...)                                                           \
-    checkasm_call_checked((func_type *) checkasm_func_new, __VA_ARGS__)
+    checkasm_call_checked((func_type *) checkasm_new_ptr, __VA_ARGS__)
 
 /* Benchmark a function */
 #define checkasm_bench(func, ...)                                                        \
@@ -135,7 +135,7 @@ static void *checkasm_func_new;
         }                                                                                \
     } while (0)
 
-#define checkasm_bench_new(...) checkasm_bench(func_new, __VA_ARGS__)
+#define checkasm_bench_new(...) checkasm_bench(checkasm_func_new, __VA_ARGS__)
 
 /* Alternates between two pointers. Intended to be used within bench_new()
  * calls for functions which modifies their input buffer(s) to ensure that
@@ -147,6 +147,8 @@ static void *checkasm_func_new;
 #define report            checkasm_report
 #define check_key         checkasm_check_key
 #define check_func        checkasm_check_func
+#define func_ref          checkasm_func_ref
+#define func_new          checkasm_func_new
 #define call_ref          checkasm_call_ref
 #define call_new          checkasm_call_new
 #define bench_new         checkasm_bench_new
@@ -260,8 +262,8 @@ CHECKASM_API void checkasm_bench_finish(void);
 /* Suppress unused variable warnings */
 static inline void checkasm_unused(void)
 {
-    (void) checkasm_func_ref;
-    (void) checkasm_func_new;
+    (void) checkasm_ref_ptr;
+    (void) checkasm_new_ptr;
 }
 
 #endif /* CHECKASM_TEST_H */
