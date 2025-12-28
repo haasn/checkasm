@@ -46,12 +46,34 @@
 CHECKASM_API CheckasmKey checkasm_check_key(CheckasmKey version, const char *name, ...)
     CHECKASM_PRINTF(2, 3);
 
-CHECKASM_API int  checkasm_fail_func(const char *msg, ...) CHECKASM_PRINTF(1, 2);
-CHECKASM_API void checkasm_report(const char *name, ...) CHECKASM_PRINTF(1, 2);
-CHECKASM_API void checkasm_set_signal_handler_state(int enabled);
+/* Indicate that the current test has failed */
+CHECKASM_API int checkasm_fail_func(const char *msg, ...) CHECKASM_PRINTF(1, 2);
+#define fail() checkasm_fail_func("%s:%d", __FILE__, __LINE__)
 
-CHECKASM_API void checkasm_push_stack_guard(uintptr_t guard[2]);
-CHECKASM_API void checkasm_pop_stack_guard(void);
+/* Print the test outcome */
+CHECKASM_API void checkasm_report(const char *name, ...) CHECKASM_PRINTF(1, 2);
+#define report checkasm_report
+
+/* Declare the function prototype (for checked calls). The first argument is
+ * the return value, the remaining arguments are the function parameters.
+ * Naming parameters is optional. */
+#define declare_func(ret, ...)                                                           \
+    declare_new(ret, __VA_ARGS__);                                                       \
+    typedef ret func_type(__VA_ARGS__)
+
+/**
+ * Variant of `declare_func` used for non-ABI compliant MMX functions which
+ * omit calling `emms` before returning to the caller. (x86 only)
+ *
+ * Note: MMX code normally needs to call emms before any floating-point code
+ * can be executed. Since this instruction can be very slow, many MMX kernels
+ * (used inside loops) are designed to omit emms and instead expect the caller
+ * to run emms manually after the loop. This function should be used to call
+ * such kernels. It will omit the emms check and instead explicitly run emms.
+ */
+#ifndef declare_func_emms
+  #define declare_func_emms(cpu_flags, ret, ...) declare_func(ret, __VA_ARGS__)
+#endif
 
 /* Call an arbitrary function while handling signals. Use checkasm_call_checked()
  * instead when testing new/asm function versions. */
@@ -99,26 +121,41 @@ static void *checkasm_func_new;
 #define call_ref   checkasm_call_ref
 #define call_new   checkasm_call_new
 
-/* Declare the function prototype (for checked calls). The first argument is
- * the return value, the remaining arguments are the function parameters.
- * Naming parameters is optional. */
-#define declare_func(ret, ...)                                                           \
-    declare_new(ret, __VA_ARGS__);                                                       \
-    typedef ret func_type(__VA_ARGS__)
+/* Benchmark the function */
+#define checkasm_bench(func, ...)                                                        \
+    do {                                                                                 \
+        if (checkasm_bench_func()) {                                                     \
+            func_type *const bench_func = (func);                                        \
+            checkasm_set_signal_handler_state(1);                                        \
+            for (int truns; (truns = checkasm_bench_runs());) {                          \
+                uint64_t time;                                                           \
+                CHECKASM_PERF_BENCH(truns, time, __VA_ARGS__);                           \
+                checkasm_clear_cpu_state();                                              \
+                checkasm_bench_update(truns, time);                                      \
+            }                                                                            \
+            checkasm_set_signal_handler_state(0);                                        \
+            checkasm_bench_finish();                                                     \
+        } else {                                                                         \
+            const int tidx = 0;                                                          \
+            (void) tidx;                                                                 \
+            checkasm_call_checked(func, __VA_ARGS__);                                    \
+        }                                                                                \
+    } while (0)
 
-#ifndef declare_func_emms
-  #define declare_func_emms(cpu_flags, ret, ...) declare_func(ret, __VA_ARGS__)
-#endif
+#define checkasm_bench_new(...) checkasm_bench(func_new, __VA_ARGS__)
+#define bench_new               checkasm_bench_new
 
-/* Indicate that the current test has failed */
-#define fail() checkasm_fail_func("%s:%d", __FILE__, __LINE__)
+/* Alternates between two pointers. Intended to be used within bench_new()
+ * calls for functions which modifies their input buffer(s) to ensure that
+ * throughput, and not latency, is measured. */
+#define alternate(a, b) ((tidx & 1) ? (b) : (a))
 
-/* Print the test outcome */
-#define report checkasm_report
+/* Private implementation details. Not part of the public API */
 
-/* Verifies that clobbered callee-saved registers
- * are properly saved and restored */
 CHECKASM_API void checkasm_checked_call(void *func, ...);
+CHECKASM_API void checkasm_set_signal_handler_state(int enabled);
+CHECKASM_API void checkasm_push_stack_guard(uintptr_t guard[2]);
+CHECKASM_API void checkasm_pop_stack_guard(void);
 
 /* Clears any processor state possible left over after running a function */
 #ifndef checkasm_clear_cpu_state
@@ -212,39 +249,10 @@ CHECKASM_API const CheckasmPerf *checkasm_get_perf(void);
       } while (0)
 #endif
 
-/* Benchmark the function */
 CHECKASM_API int  checkasm_bench_func(void);
 CHECKASM_API int  checkasm_bench_runs(void);
 CHECKASM_API void checkasm_bench_update(int iterations, uint64_t cycles);
 CHECKASM_API void checkasm_bench_finish(void);
-
-#define checkasm_bench(func, ...)                                                        \
-    do {                                                                                 \
-        if (checkasm_bench_func()) {                                                     \
-            func_type *const bench_func = (func);                                        \
-            checkasm_set_signal_handler_state(1);                                        \
-            for (int truns; (truns = checkasm_bench_runs());) {                          \
-                uint64_t time;                                                           \
-                CHECKASM_PERF_BENCH(truns, time, __VA_ARGS__);                           \
-                checkasm_clear_cpu_state();                                              \
-                checkasm_bench_update(truns, time);                                      \
-            }                                                                            \
-            checkasm_set_signal_handler_state(0);                                        \
-            checkasm_bench_finish();                                                     \
-        } else {                                                                         \
-            const int tidx = 0;                                                          \
-            (void) tidx;                                                                 \
-            checkasm_call_checked(func, __VA_ARGS__);                                    \
-        }                                                                                \
-    } while (0)
-
-#define checkasm_bench_new(...) checkasm_bench(func_new, __VA_ARGS__)
-#define bench_new               checkasm_bench_new
-
-/* Alternates between two pointers. Intended to be used within bench_new()
- * calls for functions which modifies their input buffer(s) to ensure that
- * throughput, and not latency, is measured. */
-#define alternate(a, b) ((tidx & 1) ? (b) : (a))
 
 /* Suppress unused variable warnings */
 static inline void checkasm_unused(void)

@@ -42,11 +42,6 @@
  * those registers to keep them powered on. */
 CHECKASM_API void checkasm_simd_warmup(void);
 
-/* MMX code normally needs to call emms before any floating-point code can be
- * executed. Since this instruction can be very slow, many MMX kernels (used
- * inside loops) are designed to omit emms and instead expect the caller to run
- * emms manually after the loop. This function should be used to call such
- * kernels. It will omit the emms check and instead explicitly run emms. */
 CHECKASM_API void checkasm_checked_call_emms(void *func, ...);
 
 CHECKASM_API void checkasm_empty_mmx(void);
