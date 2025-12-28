@@ -26,6 +26,16 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/**
+ * @file checkasm.h
+ * @brief Main checkasm API for test suite configuration and execution
+ *
+ * This header provides the primary checkasm API for setting up and running
+ * assembly test suites, including configuration structures, test registration,
+ * and benchmark execution. It defines the main entry points and configuration
+ * options for checkasm-based test programs.
+ */
+
 #ifndef CHECKASM_CHECKASM_H
 #define CHECKASM_CHECKASM_H
 
@@ -33,97 +43,311 @@
 
 #include "checkasm/attributes.h"
 
-typedef uint64_t  CheckasmCpu;
+/**
+ * @brief Opaque type representing a set of CPU feature flags
+ *
+ * Bitfield type used to represent CPU capabilities and SIMD instruction set
+ * support. The specific bit values are defined by the implementation.
+ */
+typedef uint64_t CheckasmCpu;
+
+/**
+ * @brief Opaque type used to identify function implementations
+ *
+ * Used internally by checkasm to track and match different variants of
+ * functions being tested.
+ */
 typedef uintptr_t CheckasmKey;
 
+/**
+ * @brief Describes a CPU feature flag/capability
+ *
+ * Used to define the CPU features that the test suite should test against.
+ * Tests will be run incrementally for each CPU feature set, with each test
+ * inheriting flags from previously tested CPUs.
+ */
 typedef struct CheckasmCpuInfo {
-    const char *name;
-    const char *suffix;
-    CheckasmCpu flag;
+    const char *name;   /**< Human-readable name (e.g., "SSE2", "AVX2") */
+    const char *suffix; /**< Short suffix for function names (e.g., "sse2", "avx2") */
+    CheckasmCpu flag;   /**< Bitmask flag value for this CPU feature */
 } CheckasmCpuInfo;
 
+/**
+ * @brief Describes a single test function
+ *
+ * Represents one test function that will be invoked by the test suite.
+ * Each test function typically tests a specific component or subsystem.
+ */
 typedef struct CheckasmTest {
-    const char *name;
-    void (*func)(void);
+    const char *name;   /**< Name of the test (used for filtering and reporting) */
+    void (*func)(void); /**< Test function to invoke */
 } CheckasmTest;
 
+/**
+ * @brief Output format for benchmark results
+ *
+ * Specifies how benchmark results should be formatted.
+ *
+ * @note In all cases, output is written to `stdout` by default.
+ */
 typedef enum CheckasmFormat {
-    CHECKASM_FORMAT_PRETTY, // Pretty-printed (colored) text output
-    CHECKASM_FORMAT_CSV,    // Comma-separated values, with optional header
-    CHECKASM_FORMAT_TSV,    // Tab-separated values, with optional header
-    CHECKASM_FORMAT_JSON,   // JSON structured output, with all measurement data
-    CHECKASM_FORMAT_HTML,   // Interactive HTML report
+    CHECKASM_FORMAT_PRETTY, /**< Pretty-printed (colored) text output (default) */
+    CHECKASM_FORMAT_CSV,    /**< Comma-separated values with optional header */
+    CHECKASM_FORMAT_TSV,    /**< Tab-separated values with optional header */
+    CHECKASM_FORMAT_JSON,   /**< JSON structured output with all measurement data */
+    CHECKASM_FORMAT_HTML,   /**< Interactive HTML report for web viewing */
 } CheckasmFormat;
 
+/**
+ * @brief Configuration structure for the checkasm test suite
+ *
+ * This structure contains all configuration options for running checkasm tests,
+ * including test selection, CPU feature flags, benchmarking options, and output
+ * formatting. Initialize this structure with your project's tests and CPU flags
+ * before calling checkasm_main() or checkasm_run().
+ *
+ * @code
+ * CheckasmConfig config = {
+ *     .cpu_flags     = my_cpu_flags,
+ *     .nb_cpu_flags  = ARRAY_SIZE(my_cpu_flags),
+ *     .tests         = my_tests,
+ *     .nb_tests      = ARRAY_SIZE(my_tests),
+ *     .cpu           = my_get_cpu_flags(),
+ *     .set_cpu_flags = my_set_cpu_flags,
+ * };
+ *
+ * return checkasm_main(&config, argc, argv);
+ * @endcode
+ *
+ * @see checkasm_main(), checkasm_run()
+ */
 typedef struct CheckasmConfig {
-    /* List of CPU flags understood by the implementation. These will be tested
-     * in incremental order, each test run inheriting any active flags from
-     * previously tested CPUs. */
+    /**
+     * @brief List of CPU flags understood by the implementation
+     *
+     * Array of CPU features that will be tested in incremental order.
+     * Each test run inherits any active flags from previously tested CPUs.
+     * This allows testing progressively more advanced instruction sets.
+     */
     const CheckasmCpuInfo *cpu_flags;
-    int                    nb_cpu_flags;
 
-    /* List of tests */
+    /** @brief Number of CPU flags in the cpu_flags array */
+    int nb_cpu_flags;
+
+    /** @brief Array of test functions to execute */
     const CheckasmTest *tests;
-    int                 nb_tests;
 
-    /* Detected CPU flags. Note: Any extra flags not included in `cpu_flags`
-     * will also be transparently included in checkasm_get_cpu_flags(), and
-     * can thus be used to signal flags that should be assumed to always be
-     * enabled. (e.g. CPU_FLAG_FAST_* modifiers) */
+    /** @brief Number of tests in the tests array */
+    int nb_tests;
+
+    /**
+     * @brief Detected CPU flags for the current system
+     *
+     * Set this to the detected CPU capabilities of the system. Any extra flags
+     * not included in cpu_flags will also be transparently included in
+     * checkasm_get_cpu_flags(), and can be used to signal flags that should
+     * be assumed to always be enabled (e.g., CPU_FLAG_FAST_* modifiers).
+     */
     CheckasmCpu cpu;
 
-    /* If provided, this function will be called any time the active set of
-     * CPU flags changes, with the new set of flags as argument; including
-     * once at the start of the program with the baseline set of flags. */
+    /**
+     * @brief Callback invoked when active CPU flags change
+     *
+     * If provided, this function will be called whenever the active set of
+     * CPU flags changes, with the new set of flags as argument. This includes
+     * once at the start of the program with the baseline set of flags.
+     *
+     * Use this to update global function pointers, internal static variables,
+     * or dispatch tables.
+     */
     void (*set_cpu_flags)(CheckasmCpu new_flags);
 
-    /* Pattern of tests/functions to enable. NULL means all. */
+    /**
+     * @brief Pattern for filtering which tests to run
+     *
+     * Shell-style wildcard pattern (e.g., "video_*") to select tests.
+     * NULL means run all tests.
+     */
     const char *test_pattern;
+
+    /**
+     * @brief Pattern for filtering which functions within tests to run
+     *
+     * Shell-style wildcard pattern to select specific functions. Matched
+     * against the names passed to checkasm_check_func(). NULL means run all
+     * functions.
+     */
     const char *function_pattern;
 
-    /* If nonzero, enable benchmarking, with the specified target time (µs)
-     * per function tested, defaulting to 1000 µs if left unset. */
-    int      bench;
+    /**
+     * @brief Enable benchmarking
+     *
+     * When nonzero, enables performance benchmarking of tested functions.
+     * Set to 1 to enable with default settings.
+     */
+    int bench;
+
+    /**
+     * @brief Target benchmark duration in microseconds
+     *
+     * Target time (in µs) to spend benchmarking each function.
+     * Defaults to 1000 µs if left unset when bench is enabled.
+     *
+     * @note Very slow functions may execute for a longer duration to ensure
+     *       enough samples are collected for accurate measurement.
+     */
     unsigned bench_usec;
 
-    /* Output format options */
-    CheckasmFormat format;  /* how to report benchmark results */
-    int            verbose; /* print verbose timing and failure info */
+    /** @brief Output format for benchmark results */
+    CheckasmFormat format;
 
-    /* If nonzero, use the specified seed for random number generation. */
+    /**
+     * @brief Enable verbose output
+     *
+     * When nonzero, prints detailed timing information, failure diagnostics,
+     * and extra terminal output (including table headers and extra information
+     * about the active configuration).
+     */
+    int verbose;
+
+    /**
+     * @brief Random number generator seed
+     *
+     * If nonzero, use this seed for deterministic random number generation.
+     * If zero, a seed will be chosen based on the current time.
+     */
     unsigned seed;
 
-    /* Repeat the test (and benchmark, if enabled) this many times, on
-     * successive seeds. Setting -1 effectively tests every possible seed. */
+    /**
+     * @brief Number of times to repeat tests
+     *
+     * Repeat the test (and benchmark, if enabled) this many times using
+     * successive seeds. Setting to -1 effectively tests every possible seed
+     * (useful for exhaustive testing).
+     */
     unsigned repeat;
 
-    /* If nonzero, the process will be pinned to the specified CPU (id) */
-    int      cpu_affinity_set;
+    /** @brief Enable process pinning via cpu_affinity
+     *
+     * If nonzero, the test process will be pinned to the CPU core specified
+     * in cpu_affinity.
+     */
+    int cpu_affinity_set;
+
+    /**
+     * @brief CPU core ID for process pinning
+     *
+     * If cpu_affinity_set is nonzero, pin the test process to this CPU core.
+     */
     unsigned cpu_affinity;
 } CheckasmConfig;
 
-/* Returns the current (masked) set of CPU flags. */
+/**
+ * @brief Get the current active set of CPU flags
+ *
+ * Returns the currently active (masked) set of CPU flags. During test execution,
+ * this reflects which CPU features are currently being tested. May be called
+ * from within test functions to choose an implementation to test.
+ *
+ * @return Current CPU feature flags as a bitmask
+ *
+ * @note The returned value changes as checkasm iterates through different CPU
+ *       feature sets during testing.
+ */
 CHECKASM_API CheckasmCpu checkasm_get_cpu_flags(void);
 
 /**
- * Print a list of all cpuflags/tests/functions available for testing.
+ * @brief Print available CPU flags to stdout.
+ *
+ * Prints a list of all CPU flags/features that are available for testing
+ * based on the configuration, as well as CPU flags which are defined but
+ * unsupported on the system.
+ *
+ * @param[in] config Configuration containing CPU flag definitions
  */
 CHECKASM_API void checkasm_list_cpu_flags(const CheckasmConfig *config);
+
+/**
+ * @brief Print available tests
+ *
+ * Prints a list of all test functions registered in the configuration.
+ * Useful for discovering what tests are available and for use with
+ * test pattern filtering.
+ *
+ * @param[in] config Configuration containing test definitions
+ */
 CHECKASM_API void checkasm_list_tests(const CheckasmConfig *config);
+
+/**
+ * @brief Print available functions within tests
+ *
+ * Prints a detailed list of all functions being tested across all registered
+ * tests. Useful for discovering what can be filtered with function patterns.
+ *
+ * @param[in] config Configuration containing test definitions
+ *
+ * @note This requires executing all tests to gather information about the
+ *       available functions. During this process, checkasm_check_func() always
+ *       returns 0 to skip the actual testing. However, any side effects from
+ *       test functions will still occur, unless properly guarded.
+ */
 CHECKASM_API void checkasm_list_functions(const CheckasmConfig *config);
 
 /**
- * Run all tests (and benchmarks) matching the specified patterns.
+ * @brief Run all tests and benchmarks matching the specified patterns
  *
- * Returns 0 on success, or a negative AVERROR code on failure.
+ * Executes the checkasm test suite according to the configuration. Tests
+ * and functions are filtered according to test_pattern and function_pattern
+ * if specified. Benchmarks are run if bench is enabled.
+ *
+ * @param[in] config Configuration structure with all test parameters
+ * @return 0 on success (all tests passed), negative error code on failure
+ *
+ * @note This is the lower-level entry point. Most users should use
+ *       checkasm_main() instead, which handles argument parsing.
+ *
+ * @see checkasm_main()
  */
 CHECKASM_API int checkasm_run(const CheckasmConfig *config);
 
 /**
- * Entry-point for main() that parses common args (mutating `config`), and
- * prints usage on failure. The user should set project-specific fields in
- * `config` before calling this function; in particular `config.cpu_flags`,
- * `config.tests` and `config.{get,set}_cpu_flags`.
+ * @brief Main entry point for checkasm test programs
+ *
+ * Convenience wrapper around checkasm_run() that parses command-line arguments
+ * and updates the config accordingly. This is the recommended entry point for
+ * most checkasm test programs. Call this from your main() function.
+ *
+ * Before calling this function, initialize config with the minimum set of
+ * project-specific fields:
+ * - config.cpu_flags: Array of CPU features to test
+ * - config.nb_cpu_flags: Number of CPU flags
+ * - config.tests: Array of test functions
+ * - config.nb_tests: Number of tests
+ * - config.cpu: Detected CPU capabilities
+ *
+ * Command-line arguments like --bench, --test, --function, --seed, etc. are
+ * automatically parsed and applied to the config.
+ *
+ * @param[in,out] config Configuration structure (will be modified by argument parsing)
+ * @param[in] argc Argument count from main()
+ * @param[in] argv Argument vector from main()
+ * @return 0 on success, non-zero on failure (suitable for return from main())
+ *
+ * @code
+ * int main(int argc, const char *argv[]) {
+ *     CheckasmConfig config = {
+ *         .cpu_flags     = my_cpu_flags,
+ *         .nb_cpu_flags  = ARRAY_SIZE(my_cpu_flags),
+ *         .tests         = my_tests,
+ *         .nb_tests      = ARRAY_SIZE(my_tests),
+ *         .cpu           = my_get_cpu_flags(),
+ *         .set_cpu_flags = my_set_cpu_flags,
+ *     };
+ *     return checkasm_main(&config, argc, argv);
+ * }
+ * @endcode
+ *
+ * @see checkasm_run()
  */
 CHECKASM_API int checkasm_main(CheckasmConfig *config, int argc, const char *argv[]);
 

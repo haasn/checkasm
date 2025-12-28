@@ -26,11 +26,30 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/**
+ * @file attributes.h
+ * @brief Platform and compiler attribute macros
+ *
+ * This header defines platform-specific compiler attributes used throughout
+ * the checkasm API for features like printf format checking and symbol visibility.
+ */
+
 #ifndef CHECKASM_ATTRIBUTES_H
 #define CHECKASM_ATTRIBUTES_H
 
 #include <stddef.h>
 
+/**
+ * @def CHECKASM_PRINTF(fmt, attr)
+ * @brief Printf-style format string checking attribute
+ *
+ * Enables compile-time checking of printf-style format strings and arguments
+ * when supported by the compiler. This helps catch format string errors at
+ * compile time rather than runtime.
+ *
+ * @param fmt Position of the format string parameter (1-indexed)
+ * @param attr Position of the first variadic argument (1-indexed)
+ */
 #ifndef CHECKASM_PRINTF
   #ifdef __GNUC__
     #if defined(__MINGW32__) && !defined(__clang__)
@@ -45,6 +64,16 @@
   #endif
 #endif
 
+/**
+ * @def CHECKASM_API
+ * @brief Symbol visibility attribute for public API functions
+ *
+ * Marks functions and variables as part of the public checkasm API. This
+ * ensures proper symbol export/import behavior across different platforms
+ * and build configurations.
+ *
+ * @note All public checkasm API functions are marked with this attribute.
+ */
 #ifndef CHECKASM_API
   #ifdef _WIN32
     #ifdef CHECKASM_BUILDING_DLL
