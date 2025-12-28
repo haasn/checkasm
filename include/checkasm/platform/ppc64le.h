@@ -29,7 +29,7 @@
 #ifndef CHECKASM_PLATFORM_PPC64LE_H
 #define CHECKASM_PLATFORM_PPC64LE_H
 
-#define declare_new(ret, ...)
+#define checkasm_declare_impl(ret, ...)
 
 #define CHECKASM_ALIGNMENT 16
 

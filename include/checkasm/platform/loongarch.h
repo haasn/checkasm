@@ -33,7 +33,7 @@
 
 CHECKASM_API void checkasm_checked_call(void *func, ...);
 
-#define declare_new(ret, ...)                                                            \
+#define checkasm_declare_impl(ret, ...)                                                  \
     ret (*checked_call)(void *, int, int, int, int, int, int, int, __VA_ARGS__, int,     \
                         int, int, int, int, int, int, int, int, int, int, int, int, int, \
                         int, int)                                                        \

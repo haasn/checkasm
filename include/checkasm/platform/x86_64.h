@@ -96,7 +96,7 @@ CHECKASM_API void checkasm_simd_warmup(void);
   #define init_clobber_mask(...) unsigned clobber_mask = 0
 #endif
 
-#define declare_new(ret, ...)                                                            \
+#define checkasm_declare_impl(ret, ...)                                                  \
     ret (*checked_call)(__VA_ARGS__, int, int, int, int, int, int, int, int, int, int,   \
                         int, int, int, int, int, int, void *, unsigned)                  \
         = (ret (*)(__VA_ARGS__, int, int, int, int, int, int, int, int, int, int, int,   \

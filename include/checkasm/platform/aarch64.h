@@ -78,7 +78,7 @@ CHECKASM_API void checkasm_checked_call(void *func, ...);
   #define init_clobber_mask(...) unsigned clobber_mask = 0
 #endif
 
-#define declare_new(ret, ...)                                                            \
+#define checkasm_declare_impl(ret, ...)                                                  \
     ret (*checked_call)(__VA_ARGS__, int64_t, int64_t, int64_t, int64_t, int64_t,        \
                         int64_t, int64_t, int64_t, int64_t, int64_t, int64_t, int64_t,   \
                         int64_t, int64_t, int64_t, int64_t, void *, unsigned)            \

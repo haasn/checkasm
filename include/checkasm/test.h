@@ -57,7 +57,7 @@ CHECKASM_API void checkasm_report(const char *name, ...) CHECKASM_PRINTF(1, 2);
  * the return value, the remaining arguments are the function parameters.
  * Naming parameters is optional. */
 #define checkasm_declare(ret, ...)                                                       \
-    declare_new(ret, __VA_ARGS__);                                                       \
+    checkasm_declare_impl(ret, __VA_ARGS__);                                             \
     typedef ret func_type(__VA_ARGS__)
 
 /**

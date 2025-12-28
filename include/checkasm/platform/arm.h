@@ -37,7 +37,7 @@
 typedef void (*checkasm_checked_call_func)(void *func, int dummy, ...);
 CHECKASM_API checkasm_checked_call_func checkasm_get_checked_call_ptr(void);
 
-#define declare_new(ret, ...)                                                            \
+#define checkasm_declare_impl(ret, ...)                                                  \
     ret (*checked_call)(void *, int dummy, __VA_ARGS__, int, int, int, int, int, int,    \
                         int, int, int, int, int, int, int, int, int, int)                \
         = (ret (*)(void *, int, __VA_ARGS__, int, int, int, int, int, int, int, int,     \

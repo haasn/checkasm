@@ -29,7 +29,7 @@
 #ifndef CHECKASM_PLATFORM_GENERIC_H
 #define CHECKASM_PLATFORM_GENERIC_H
 
-#define declare_new(ret, ...)
+#define checkasm_declare_impl(ret, ...)
 
 #define CHECKASM_ALIGNMENT 8
 

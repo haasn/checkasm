@@ -49,7 +49,7 @@ CHECKASM_API void checkasm_empty_mmx(void);
   #define checked_call_fn(ret) checkasm_checked_call_float
 #endif
 
-#define declare_new(ret, ...)                                                            \
+#define checkasm_declare_impl(ret, ...)                                                  \
     ret (*checked_call)(void *, __VA_ARGS__, int, int, int, int, int, int, int, int,     \
                         int, int, int, int, int, int, int)                               \
         = (ret (*)(void *, __VA_ARGS__, int, int, int, int, int, int, int, int, int,     \
