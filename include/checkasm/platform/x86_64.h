@@ -34,6 +34,10 @@
 #include "checkasm/attributes.h"
 #include "checkasm/checkasm.h"
 
+CHECKASM_API void checkasm_checked_call(void *func, ...);
+CHECKASM_API void checkasm_checked_call_emms(void *func, ...);
+CHECKASM_API void checkasm_empty_mmx(void);
+
 /* YMM and ZMM registers on x86 are turned off to save power when they haven't
  * been used for some period of time. When they are used there will be a
  * "warmup" period during which performance will be reduced and inconsistent
@@ -41,10 +45,6 @@
  * work around this by periodically issuing "dummy" instructions that uses
  * those registers to keep them powered on. */
 CHECKASM_API void checkasm_simd_warmup(void);
-
-CHECKASM_API void checkasm_checked_call_emms(void *func, ...);
-
-CHECKASM_API void checkasm_empty_mmx(void);
 
 /* The upper 32 bits of 32-bit data types are undefined when passed as function
  * parameters. In practice those bits usually end up being zero which may hide

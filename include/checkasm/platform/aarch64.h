@@ -32,6 +32,8 @@
 #include "checkasm/attributes.h"
 #include <stdint.h>
 
+CHECKASM_API void checkasm_checked_call(void *func, ...);
+
 /* The upper 32 bits of 32-bit data types are undefined when passed as function
  * parameters. In practice those bits usually end up being zero which may hide
  * certain bugs, such as using a register containing undefined bits as a pointer

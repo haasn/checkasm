@@ -152,7 +152,6 @@ static void *checkasm_func_new;
 
 /* Private implementation details. Not part of the public API */
 
-CHECKASM_API void checkasm_checked_call(void *func, ...);
 CHECKASM_API void checkasm_set_signal_handler_state(int enabled);
 CHECKASM_API void checkasm_push_stack_guard(uintptr_t guard[2]);
 CHECKASM_API void checkasm_pop_stack_guard(void);

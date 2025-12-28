@@ -29,6 +29,10 @@
 #ifndef CHECKASM_PLATFORM_LOONGARCH_H
 #define CHECKASM_PLATFORM_LOONGARCH_H
 
+#include "checkasm/attributes.h"
+
+CHECKASM_API void checkasm_checked_call(void *func, ...);
+
 #define declare_new(ret, ...)                                                            \
     ret (*checked_call)(void *, int, int, int, int, int, int, int, __VA_ARGS__, int,     \
                         int, int, int, int, int, int, int, int, int, int, int, int, int, \
