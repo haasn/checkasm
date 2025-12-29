@@ -44,7 +44,7 @@ static inline uint64_t checkasm_counter(void)
 }
 
   #define CHECKASM_PERF_ASM()    checkasm_counter()
-  #define CHECKASM_PERF_ASM_NAME "arm (ccnt)"
+  #define CHECKASM_PERF_ASM_NAME "armv7 (ccnt)"
   #define CHECKASM_PERF_ASM_UNIT "cycle"
 
 #else
