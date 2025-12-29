@@ -10,13 +10,15 @@ Usage: checkasm [options...] <random seed>
 Options:
     --affinity=<cpu>           Run the process on CPU <cpu>
     --bench -b                 Benchmark the tested functions
-    --csv, --tsv               Output results in rows of comma or tab separated values.
+    --csv, --tsv, --json,      Choose output format for benchmarks
+    --html
     --function=<pattern> -f    Test only the functions matching <pattern>
     --help -h                  Print this usage info
     --list-cpu-flags           List available cpu flags
     --list-functions           List available functions
     --list-tests               List available tests
     --duration=<μs>            Benchmark duration (per function) in μs
+    --repeat[=<N>]             Repeat tests N times, on successive seeds
     --test=<pattern> -t        Test only <pattern>
     --verbose -v               Print verbose timing info and failure data
 ```
@@ -32,11 +34,6 @@ The following architectures are explicitly supported for asm verification, with 
 - **PowerPC (64le)**: *none*
 
 In addition, hardware timers are available for benchmarking purposes on all of the listed platforms (except RISCV-V), with fall-backs to generic OS-specific APIs.
-
-## Configuration options
-
-- `linux_perf`: If true, prefer the Linux perf API instead of platform-specific timers.
-- `macos_kperf`: If true, prefer the macOS kperf API instead of platform-specific timers.
 
 ## Integration into your project
 
