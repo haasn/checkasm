@@ -7,6 +7,7 @@ PROJECT_NUMBER         = @VERSION@
 INPUT                  = @INPUT@
 LAYOUT_FILE            = @LAYOUT_FILE@
 EXCLUDE_SYMBOLS        = internal
+MARKDOWN_SUPPORT       = YES
 
 OUTPUT_DIRECTORY       = @BUILDDIR@
 GENERATE_LATEX         = NO

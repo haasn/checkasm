@@ -27,7 +27,18 @@ if not doxygen.found()
   subdir_done()
 endif
 
+doxygen_file_names = [
+  'introduction.md',
+  'getting-started.md',
+  'integration.md',
+  'writing-tests.md',
+  'benchmarking.md',
+]
+
 doxygen_paths = checkasm_api_header_paths
+foreach file_name : doxygen_file_names
+  doxygen_paths += meson.current_source_dir() / file_name
+endforeach
 
 # Escape input files for "INPUT" option in Doxyfile
 doxygen_inputs = []
