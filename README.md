@@ -74,6 +74,20 @@ if checkasm_dependency.found()
 endif
 ```
 
+### Meson using wrap files (alternative)
+
+Create or edit `subprojects/checkasm.wrap`:
+
+```ini
+[wrap-git]
+url = https://code.videolan.org/videolan/checkasm.git
+revision = release
+directory = checkasm
+```
+
+Then declare the dependency in your `meson.build` as usual. (See the previous
+section)
+
 ## Integration example
 
 Writing a checkasm executable is as simple as this:
