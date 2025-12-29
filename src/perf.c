@@ -71,7 +71,8 @@ COLD int checkasm_perf_init(void)
         checkasm_perf.unit       = CHECKASM_PERF_ASM_UNIT;
         checkasm_perf.asm_usable = 1;
     } else {
-        fprintf(stderr, "checkasm: unable to access cycle counter\n");
+        fprintf(stderr,
+                "checkasm: unable to access " CHECKASM_PERF_ASM_NAME " cycle counter\n");
         checkasm_perf.asm_usable = 0;
     }
 
