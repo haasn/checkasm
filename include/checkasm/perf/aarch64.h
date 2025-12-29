@@ -44,7 +44,7 @@
 
   #define CHECKASM_PERF_ASM()                                                            \
       (_InstructionSynchronizationBarrier(), ReadTimeStampCounter())
-  #define CHECKASM_PERF_ASM_NAME   "windows (ReadTimeStampCounter)"
+  #define CHECKASM_PERF_ASM_NAME   "aarch64 (pmccntr)"
   #define CHECKASM_PERF_ASM_UNIT   "cycle"
   #define CHECKASM_PERF_ASM_USABLE 1
 
