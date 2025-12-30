@@ -191,19 +191,19 @@ function checked_call_i, export=1
         lx      t2, 1 * XSZ(t0) // SP
         lx      t3, 2 * XSZ(t0) // GP
         lx      t4, 3 * XSZ(t0) // TP
-        li      a1, 'S'
+        li      t1, 'S'
         bne     t2, sp, .Lfail_xp
-        li      a1, 'G'
+        li      t1, 'G'
         bne     t3, gp, .Lfail_xp
-        li      a1, 'T'
+        li      t1, 'T'
         # NOTE: If TP was corrupted, this will probably crash at `lx` above.
         bne     t4, tp, .Lfail_xp
 
         # Check saved register values
-        li      t1, REG_MAGIC
+        li      t0, REG_MAGIC
         .irp    n, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11
-        li      a1, \n
-        bne     t1, s\n, .Lfail_s
+        li      t1, \n
+        bne     t0, s\n, .Lfail_s
         .endr
 
 2:      # Restore RA and callee-saved registers
@@ -221,11 +221,13 @@ function checked_call_i, export=1
         lx      gp, 2 * XSZ(t0)
         lx      tp, 3 * XSZ(t0)
         lla     a0, .Lfail_rsvd_reg
+        mv      a1, t1
         call    checkasm_fail_func
         j       2b
 
 .Lfail_s:
         lla     a0, .Lfail_s_reg
+        mv      a1, t1
         call    checkasm_fail_func
         j       2b
 endfunc
@@ -253,15 +255,15 @@ function checked_call_if, export=1
         lla     t1, .Lbad_float
         flf     ft0, (t1)
         .irp    n, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11
-        li      a1, \n
+        li      t1, \n
 #if defined(__riscv_float_abi_single)
-        feq.s   t1, ft0, fs\n
+        feq.s   t0, ft0, fs\n
 #elif defined(__riscv_float_abi_double)
-        feq.d   t1, ft0, fs\n
+        feq.d   t0, ft0, fs\n
 #else
-        feq.q   t1, ft0, fs\n
+        feq.q   t0, ft0, fs\n
 #endif
-        beqz    t1, .Lfail_fs
+        beqz    t0, .Lfail_fs
         .endr
 
 1:      # Restore callee-saved floating point registers and RA
@@ -275,6 +277,7 @@ function checked_call_if, export=1
 
 .Lfail_fs:
         lla     a0, .Lfail_fs_reg
+        mv      a1, t1
         call    checkasm_fail_func
         j       1b
 endfunc
