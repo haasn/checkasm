@@ -8,8 +8,6 @@ var structCheckasmConfig =
     [ "cpu_flags", "structCheckasmConfig.html#acc59a5f0486f88ccae28cd2b8098c237", null ],
     [ "format", "structCheckasmConfig.html#aa33ea4b1acd6397c3e4b19fc5e324cc1", null ],
     [ "function_pattern", "structCheckasmConfig.html#adad1d088e9f8ef3011512d2a512393e6", null ],
-    [ "nb_cpu_flags", "structCheckasmConfig.html#a55cabb6250301503498c755f9008c3ce", null ],
-    [ "nb_tests", "structCheckasmConfig.html#a45d0f202d704361c5487d8bfdc5d013e", null ],
     [ "repeat", "structCheckasmConfig.html#a8a999efdd89fac0fa78a48c015363bba", null ],
     [ "seed", "structCheckasmConfig.html#add28b36b075352fd03568d5ea52d3184", null ],
     [ "set_cpu_flags", "structCheckasmConfig.html#aa6dd6196f17d1061e3a06d108dcfc0dc", null ],

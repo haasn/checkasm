@@ -338,9 +338,7 @@ Functions</h2></td></tr>
 <p>Convenience wrapper around <a class="el" href="#a6cd67131e2af520f52cad612d8663a1b" title="Run all tests and benchmarks matching the specified patterns.">checkasm_run()</a> that parses command-line arguments and updates the config accordingly. This is the recommended entry point for most checkasm test programs. Call this from your main() function.</p>
 <p>Before calling this function, initialize config with the minimum set of project-specific fields:</p><ul>
 <li>config.cpu_flags: Array of CPU features to test</li>
-<li>config.nb_cpu_flags: Number of CPU flags</li>
 <li>config.tests: Array of test functions</li>
-<li>config.nb_tests: Number of tests</li>
 <li>config.cpu: Detected CPU capabilities</li>
 </ul>
 <p>Command-line arguments like &ndash;bench, &ndash;test, &ndash;function, &ndash;seed, etc. are automatically parsed and applied to the config.</p>
@@ -356,16 +354,14 @@ Functions</h2></td></tr>
 <div class="fragment"><div class="line"><span class="keywordtype">int</span> main(<span class="keywordtype">int</span> argc, <span class="keyword">const</span> <span class="keywordtype">char</span> *argv[]) {</div>
 <div class="line">    <a class="code hl_struct" href="structCheckasmConfig.html">CheckasmConfig</a> config = {</div>
 <div class="line">        .cpu_flags     = my_cpu_flags,</div>
-<div class="line">        .nb_cpu_flags  = ARRAY_SIZE(my_cpu_flags),</div>
 <div class="line">        .tests         = my_tests,</div>
-<div class="line">        .nb_tests      = ARRAY_SIZE(my_tests),</div>
 <div class="line">        .cpu           = my_get_cpu_flags(),</div>
 <div class="line">        .set_cpu_flags = my_set_cpu_flags,</div>
 <div class="line">    };</div>
 <div class="line">    <span class="keywordflow">return</span> <a class="code hl_function" href="#ad5e8c582a37cc0aa34ade4ebe2ea1568">checkasm_main</a>(&amp;config, argc, argv);</div>
 <div class="line">}</div>
 <div class="ttc" id="acheckasm_8h_html_ad5e8c582a37cc0aa34ade4ebe2ea1568"><div class="ttname"><a href="#ad5e8c582a37cc0aa34ade4ebe2ea1568">checkasm_main</a></div><div class="ttdeci">CHECKASM_API int checkasm_main(CheckasmConfig *config, int argc, const char *argv[])</div><div class="ttdoc">Main entry point for checkasm test programs.</div></div>
-<div class="ttc" id="astructCheckasmConfig_html"><div class="ttname"><a href="structCheckasmConfig.html">CheckasmConfig</a></div><div class="ttdoc">Configuration structure for the checkasm test suite.</div><div class="ttdef"><b>Definition</b> checkasm.h:124</div></div>
+<div class="ttc" id="astructCheckasmConfig_html"><div class="ttname"><a href="structCheckasmConfig.html">CheckasmConfig</a></div><div class="ttdoc">Configuration structure for the checkasm test suite.</div><div class="ttdef"><b>Definition</b> checkasm.h:122</div></div>
 </div><!-- fragment --><dl class="section see"><dt>See also</dt><dd><a class="el" href="#a6cd67131e2af520f52cad612d8663a1b" title="Run all tests and benchmarks matching the specified patterns.">checkasm_run()</a> </dd></dl>
 
 </div>

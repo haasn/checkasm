@@ -251,20 +251,20 @@ Quick Start Example</h1>
 <div class="line"><span class="comment">// Test registry</span></div>
 <div class="line"><span class="keyword">static</span> <span class="keyword">const</span> <a class="code hl_struct" href="structCheckasmTest.html">CheckasmTest</a> tests[] = {</div>
 <div class="line">    { <span class="stringliteral">&quot;dsp&quot;</span>, check_dsp },</div>
+<div class="line">    {0} <span class="comment">// array terminator</span></div>
 <div class="line">};</div>
 <div class="line"> </div>
 <div class="line"><span class="comment">// CPU flag registry</span></div>
 <div class="line"><span class="keyword">static</span> <span class="keyword">const</span> <a class="code hl_struct" href="structCheckasmCpuInfo.html">CheckasmCpuInfo</a> cpu_flags[] = {</div>
 <div class="line">    { <span class="stringliteral">&quot;AVX&quot;</span>, <span class="stringliteral">&quot;avx&quot;</span>, CPU_FLAG_AVX },</div>
+<div class="line">    {0} <span class="comment">// array terminator</span></div>
 <div class="line">};</div>
 <div class="line"> </div>
 <div class="line"><span class="keywordtype">int</span> main(<span class="keywordtype">int</span> argc, <span class="keyword">const</span> <span class="keywordtype">char</span> *argv[]) {</div>
 <div class="line">    <a class="code hl_struct" href="structCheckasmConfig.html">CheckasmConfig</a> config = {</div>
-<div class="line">        .tests        = tests,</div>
-<div class="line">        .nb_tests     = 1,</div>
-<div class="line">        .cpu_flags    = cpu_flags,</div>
-<div class="line">        .nb_cpu_flags = 1,</div>
-<div class="line">        .cpu          = detect_cpu_flags(),</div>
+<div class="line">        .tests     = tests,</div>
+<div class="line">        .cpu_flags = cpu_flags,</div>
+<div class="line">        .cpu       = detect_cpu_flags(),</div>
 <div class="line">    };</div>
 <div class="line"> </div>
 <div class="line">    <span class="keywordflow">return</span> <a class="code hl_function" href="checkasm_8h.html#ad5e8c582a37cc0aa34ade4ebe2ea1568">checkasm_main</a>(&amp;config, argc, argv);</div>
@@ -277,7 +277,7 @@ Quick Start Example</h1>
 <div class="ttc" id="agroup__bufcmp_html_gaf24227824feb841da0ad5b245c89cbf3"><div class="ttname"><a href="group__bufcmp.html#gaf24227824feb841da0ad5b245c89cbf3">CHECKASM_ALIGN</a></div><div class="ttdeci">#define CHECKASM_ALIGN(x)</div><div class="ttdoc">Declare a variable with platform-specific alignment requirements.</div><div class="ttdef"><b>Definition</b> utils.h:408</div></div>
 <div class="ttc" id="agroup__memory_html_gaa4b0d989c5896b64c44a8df25ab4a573"><div class="ttname"><a href="group__memory.html#gaa4b0d989c5896b64c44a8df25ab4a573">CLEAR_BUF</a></div><div class="ttdeci">#define CLEAR_BUF(buf)</div><div class="ttdoc">Clear a fixed size buffer (convenience macro)</div><div class="ttdef"><b>Definition</b> utils.h:254</div></div>
 <div class="ttc" id="agroup__memory_html_gada713cfe880cb426001b9f92faf6f9f1"><div class="ttname"><a href="group__memory.html#gada713cfe880cb426001b9f92faf6f9f1">INITIALIZE_BUF</a></div><div class="ttdeci">#define INITIALIZE_BUF(buf)</div><div class="ttdoc">Fill a fixed size buffer with pathological test data (convenience macro)</div><div class="ttdef"><b>Definition</b> utils.h:269</div></div>
-<div class="ttc" id="astructCheckasmConfig_html"><div class="ttname"><a href="structCheckasmConfig.html">CheckasmConfig</a></div><div class="ttdoc">Configuration structure for the checkasm test suite.</div><div class="ttdef"><b>Definition</b> checkasm.h:124</div></div>
+<div class="ttc" id="astructCheckasmConfig_html"><div class="ttname"><a href="structCheckasmConfig.html">CheckasmConfig</a></div><div class="ttdoc">Configuration structure for the checkasm test suite.</div><div class="ttdef"><b>Definition</b> checkasm.h:122</div></div>
 <div class="ttc" id="astructCheckasmCpuInfo_html"><div class="ttname"><a href="structCheckasmCpuInfo.html">CheckasmCpuInfo</a></div><div class="ttdoc">Describes a CPU feature flag/capability.</div><div class="ttdef"><b>Definition</b> checkasm.h:69</div></div>
 <div class="ttc" id="astructCheckasmTest_html"><div class="ttname"><a href="structCheckasmTest.html">CheckasmTest</a></div><div class="ttdoc">Describes a single test function.</div><div class="ttdef"><b>Definition</b> checkasm.h:81</div></div>
 <div class="ttc" id="atest_8h_html"><div class="ttname"><a href="test_8h.html">test.h</a></div><div class="ttdoc">Test writing API for checkasm.</div></div>

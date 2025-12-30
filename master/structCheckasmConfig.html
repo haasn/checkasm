@@ -102,15 +102,8 @@ $(function(){initNavTree('structCheckasmConfig.html','',''); });
 Data Fields</h2></td></tr>
 <tr class="memitem:acc59a5f0486f88ccae28cd2b8098c237" id="r_acc59a5f0486f88ccae28cd2b8098c237"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="structCheckasmCpuInfo.html">CheckasmCpuInfo</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#acc59a5f0486f88ccae28cd2b8098c237">cpu_flags</a></td></tr>
 <tr class="memdesc:acc59a5f0486f88ccae28cd2b8098c237"><td class="mdescLeft">&#160;</td><td class="mdescRight">List of CPU flags understood by the implementation.  <br /></td></tr>
-<tr class="memitem:a55cabb6250301503498c755f9008c3ce" id="r_a55cabb6250301503498c755f9008c3ce"><td class="memItemLeft" align="right" valign="top"><a id="a55cabb6250301503498c755f9008c3ce" name="a55cabb6250301503498c755f9008c3ce"></a>
-int&#160;</td><td class="memItemRight" valign="bottom"><b>nb_cpu_flags</b></td></tr>
-<tr class="memdesc:a55cabb6250301503498c755f9008c3ce"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of CPU flags in the cpu_flags array. <br /></td></tr>
-<tr class="memitem:afb0baa2cb52ebd4bd596b5bd4f44065a" id="r_afb0baa2cb52ebd4bd596b5bd4f44065a"><td class="memItemLeft" align="right" valign="top"><a id="afb0baa2cb52ebd4bd596b5bd4f44065a" name="afb0baa2cb52ebd4bd596b5bd4f44065a"></a>
-const <a class="el" href="structCheckasmTest.html">CheckasmTest</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>tests</b></td></tr>
-<tr class="memdesc:afb0baa2cb52ebd4bd596b5bd4f44065a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Array of test functions to execute. <br /></td></tr>
-<tr class="memitem:a45d0f202d704361c5487d8bfdc5d013e" id="r_a45d0f202d704361c5487d8bfdc5d013e"><td class="memItemLeft" align="right" valign="top"><a id="a45d0f202d704361c5487d8bfdc5d013e" name="a45d0f202d704361c5487d8bfdc5d013e"></a>
-int&#160;</td><td class="memItemRight" valign="bottom"><b>nb_tests</b></td></tr>
-<tr class="memdesc:a45d0f202d704361c5487d8bfdc5d013e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of tests in the tests array. <br /></td></tr>
+<tr class="memitem:afb0baa2cb52ebd4bd596b5bd4f44065a" id="r_afb0baa2cb52ebd4bd596b5bd4f44065a"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="structCheckasmTest.html">CheckasmTest</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#afb0baa2cb52ebd4bd596b5bd4f44065a">tests</a></td></tr>
+<tr class="memdesc:afb0baa2cb52ebd4bd596b5bd4f44065a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Array of test functions to execute.  <br /></td></tr>
 <tr class="memitem:ae464cbc8dd31a7c7d6acc24c10f0601a" id="r_ae464cbc8dd31a7c7d6acc24c10f0601a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="checkasm_8h.html#a0a3a32a2daca43a3aa11a4d067eddb8a">CheckasmCpu</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae464cbc8dd31a7c7d6acc24c10f0601a">cpu</a></td></tr>
 <tr class="memdesc:ae464cbc8dd31a7c7d6acc24c10f0601a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Detected CPU flags for the current system.  <br /></td></tr>
 <tr class="memitem:aa6dd6196f17d1061e3a06d108dcfc0dc" id="r_aa6dd6196f17d1061e3a06d108dcfc0dc"><td class="memItemLeft" align="right" valign="top">void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa6dd6196f17d1061e3a06d108dcfc0dc">set_cpu_flags</a> )(<a class="el" href="checkasm_8h.html#a0a3a32a2daca43a3aa11a4d067eddb8a">CheckasmCpu</a> new_flags)</td></tr>
@@ -142,16 +135,14 @@ int&#160;</td><td class="memItemRight" valign="bottom"><b>nb_tests</b></td></tr>
 <p>This structure contains all configuration options for running checkasm tests, including test selection, CPU feature flags, benchmarking options, and output formatting. Initialize this structure with your project's tests and CPU flags before calling <a class="el" href="checkasm_8h.html#ad5e8c582a37cc0aa34ade4ebe2ea1568" title="Main entry point for checkasm test programs.">checkasm_main()</a> or <a class="el" href="checkasm_8h.html#a6cd67131e2af520f52cad612d8663a1b" title="Run all tests and benchmarks matching the specified patterns.">checkasm_run()</a>.</p>
 <div class="fragment"><div class="line"><a class="code hl_struct" href="structCheckasmConfig.html">CheckasmConfig</a> config = {</div>
 <div class="line">    .cpu_flags     = my_cpu_flags,</div>
-<div class="line">    .nb_cpu_flags  = ARRAY_SIZE(my_cpu_flags),</div>
 <div class="line">    .tests         = my_tests,</div>
-<div class="line">    .nb_tests      = ARRAY_SIZE(my_tests),</div>
 <div class="line">    .cpu           = my_get_cpu_flags(),</div>
 <div class="line">    .set_cpu_flags = my_set_cpu_flags,</div>
 <div class="line">};</div>
 <div class="line"> </div>
 <div class="line"><span class="keywordflow">return</span> <a class="code hl_function" href="checkasm_8h.html#ad5e8c582a37cc0aa34ade4ebe2ea1568">checkasm_main</a>(&amp;config, argc, argv);</div>
 <div class="ttc" id="acheckasm_8h_html_ad5e8c582a37cc0aa34ade4ebe2ea1568"><div class="ttname"><a href="checkasm_8h.html#ad5e8c582a37cc0aa34ade4ebe2ea1568">checkasm_main</a></div><div class="ttdeci">CHECKASM_API int checkasm_main(CheckasmConfig *config, int argc, const char *argv[])</div><div class="ttdoc">Main entry point for checkasm test programs.</div></div>
-<div class="ttc" id="astructCheckasmConfig_html"><div class="ttname"><a href="structCheckasmConfig.html">CheckasmConfig</a></div><div class="ttdoc">Configuration structure for the checkasm test suite.</div><div class="ttdef"><b>Definition</b> checkasm.h:124</div></div>
+<div class="ttc" id="astructCheckasmConfig_html"><div class="ttname"><a href="structCheckasmConfig.html">CheckasmConfig</a></div><div class="ttdoc">Configuration structure for the checkasm test suite.</div><div class="ttdef"><b>Definition</b> checkasm.h:122</div></div>
 </div><!-- fragment --><dl class="section see"><dt>See also</dt><dd><a class="el" href="checkasm_8h.html#ad5e8c582a37cc0aa34ade4ebe2ea1568" title="Main entry point for checkasm test programs.">checkasm_main()</a>, <a class="el" href="checkasm_8h.html#a6cd67131e2af520f52cad612d8663a1b" title="Run all tests and benchmarks matching the specified patterns.">checkasm_run()</a> </dd></dl>
 </div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Field Documentation</h2>
 <a id="aa444b18ff8d9cc4611aa55d43cd66712" name="aa444b18ff8d9cc4611aa55d43cd66712"></a>
@@ -253,7 +244,8 @@ int&#160;</td><td class="memItemRight" valign="bottom"><b>nb_tests</b></td></tr>
 </div><div class="memdoc">
 
 <p>List of CPU flags understood by the implementation. </p>
-<p>Array of CPU features that will be tested in incremental order. Each test run inherits any active flags from previously tested CPUs. This allows testing progressively more advanced instruction sets. </p>
+<p>Array of CPU features that will be tested in incremental order, terminated by an entry with <span class="tt"><a class="el" href="structCheckasmCpuInfo.html#a99fdb6de6c1a4b969a189cafed0a051c">CheckasmCpuInfo.flag</a> == 0</span> (i.e. <span class="tt">{0}</span>).</p>
+<p>Each test run inherits any active flags from previously tested CPUs. This allows testing progressively more advanced instruction sets. </p>
 
 </div>
 </div>
@@ -340,6 +332,23 @@ int&#160;</td><td class="memItemRight" valign="bottom"><b>nb_tests</b></td></tr>
 
 <p>Pattern for filtering which tests to run. </p>
 <p>Shell-style wildcard pattern (e.g., "video_*") to select tests. NULL means run all tests. </p>
+
+</div>
+</div>
+<a id="afb0baa2cb52ebd4bd596b5bd4f44065a" name="afb0baa2cb52ebd4bd596b5bd4f44065a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afb0baa2cb52ebd4bd596b5bd4f44065a">&#9670;&#160;</a></span>tests</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const <a class="el" href="structCheckasmTest.html">CheckasmTest</a>* CheckasmConfig::tests</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Array of test functions to execute. </p>
+<p>Array of test functions to execute, terminated by an entry with <span class="tt"><a class="el" href="structCheckasmTest.html#a1dcc3d7347421f6c193a75e004d5918b">CheckasmTest.func</a> == NULL</span> (i.e. <span class="tt">{0}</span>. </p>
 
 </div>
 </div>

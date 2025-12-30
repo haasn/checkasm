@@ -113,7 +113,7 @@ Defining CPU Flags</h2>
 <div class="line"> </div>
 <div class="line"><span class="keyword">typedef</span> uint64_t MyCpuFlags;</div>
 <div class="line">MyCpuFlags detect_cpu_flags(<span class="keywordtype">void</span>);</div>
-</div><!-- fragment --><p>Then create a <a class="el" href="structCheckasmCpuInfo.html" title="Describes a CPU feature flag/capability.">CheckasmCpuInfo</a> array describing each flag:</p>
+</div><!-- fragment --><p>Then create a <a class="el" href="structCheckasmCpuInfo.html" title="Describes a CPU feature flag/capability.">CheckasmCpuInfo</a> array describing each flag, terminated by <span class="tt">{0}</span>:</p>
 <div class="fragment"><div class="line"><span class="comment">// checkasm.c</span></div>
 <div class="line"> </div>
 <div class="line"><span class="keyword">static</span> <span class="keyword">const</span> <a class="code hl_struct" href="structCheckasmCpuInfo.html">CheckasmCpuInfo</a> cpu_flags[] = {</div>
@@ -122,6 +122,7 @@ Defining CPU Flags</h2>
 <div class="line">    { <span class="stringliteral">&quot;SSE4.1&quot;</span>, <span class="stringliteral">&quot;sse41&quot;</span>,  CPU_FLAG_SSE41  },</div>
 <div class="line">    { <span class="stringliteral">&quot;AVX2&quot;</span>,   <span class="stringliteral">&quot;avx2&quot;</span>,   CPU_FLAG_AVX2   },</div>
 <div class="line">    { <span class="stringliteral">&quot;AVX512&quot;</span>, <span class="stringliteral">&quot;avx512&quot;</span>, CPU_FLAG_AVX512 },</div>
+<div class="line">    {0} <span class="comment">// array terminator</span></div>
 <div class="line">};</div>
 <div class="line"> </div>
 <div class="line"><span class="comment">// This ordering means:</span></div>
@@ -140,16 +141,14 @@ Defining CPU Flags</h2>
 <div class="fragment"><div class="line"><span class="comment">// checkasm.c</span></div>
 <div class="line"> </div>
 <div class="line"><span class="keyword">static</span> <span class="keyword">const</span> <a class="code hl_struct" href="structCheckasmCpuInfo.html">CheckasmCpuInfo</a> cpu_flags[] = {</div>
-<div class="line">  <span class="comment">// ...</span></div>
+<div class="line">    <span class="comment">// ...</span></div>
+<div class="line">    {0}</div>
 <div class="line">};</div>
-<div class="line"> </div>
-<div class="line"><span class="preprocessor">#define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))</span></div>
 <div class="line"> </div>
 <div class="line"><span class="keywordtype">int</span> main(<span class="keywordtype">int</span> argc, <span class="keyword">const</span> <span class="keywordtype">char</span> *argv[])</div>
 <div class="line">{</div>
 <div class="line">    <a class="code hl_struct" href="structCheckasmConfig.html">CheckasmConfig</a> config = {</div>
-<div class="line">        .cpu_flags    = cpu_flags,</div>
-<div class="line">        .nb_cpu_flags = ARRAY_SIZE(cpu_flags),</div>
+<div class="line">        .cpu_flags = cpu_flags,</div>
 <div class="line">        <span class="comment">// ...</span></div>
 <div class="line">    };</div>
 <div class="line"> </div>
@@ -159,8 +158,8 @@ Defining CPU Flags</h2>
 <div class="line">    <span class="keywordflow">return</span> <a class="code hl_function" href="checkasm_8h.html#ad5e8c582a37cc0aa34ade4ebe2ea1568">checkasm_main</a>(&amp;config, argc, argv);</div>
 <div class="line">}</div>
 <div class="ttc" id="acheckasm_8h_html_ad5e8c582a37cc0aa34ade4ebe2ea1568"><div class="ttname"><a href="checkasm_8h.html#ad5e8c582a37cc0aa34ade4ebe2ea1568">checkasm_main</a></div><div class="ttdeci">CHECKASM_API int checkasm_main(CheckasmConfig *config, int argc, const char *argv[])</div><div class="ttdoc">Main entry point for checkasm test programs.</div></div>
-<div class="ttc" id="astructCheckasmConfig_html"><div class="ttname"><a href="structCheckasmConfig.html">CheckasmConfig</a></div><div class="ttdoc">Configuration structure for the checkasm test suite.</div><div class="ttdef"><b>Definition</b> checkasm.h:124</div></div>
-<div class="ttc" id="astructCheckasmConfig_html_ae464cbc8dd31a7c7d6acc24c10f0601a"><div class="ttname"><a href="structCheckasmConfig.html#ae464cbc8dd31a7c7d6acc24c10f0601a">CheckasmConfig::cpu</a></div><div class="ttdeci">CheckasmCpu cpu</div><div class="ttdoc">Detected CPU flags for the current system.</div><div class="ttdef"><b>Definition</b> checkasm.h:151</div></div>
+<div class="ttc" id="astructCheckasmConfig_html"><div class="ttname"><a href="structCheckasmConfig.html">CheckasmConfig</a></div><div class="ttdoc">Configuration structure for the checkasm test suite.</div><div class="ttdef"><b>Definition</b> checkasm.h:122</div></div>
+<div class="ttc" id="astructCheckasmConfig_html_ae464cbc8dd31a7c7d6acc24c10f0601a"><div class="ttname"><a href="structCheckasmConfig.html#ae464cbc8dd31a7c7d6acc24c10f0601a">CheckasmConfig::cpu</a></div><div class="ttdeci">CheckasmCpu cpu</div><div class="ttdoc">Detected CPU flags for the current system.</div><div class="ttdef"><b>Definition</b> checkasm.h:150</div></div>
 </div><!-- fragment --><h2 class="doxsection"><a class="anchor" id="extra_cpu_flags"></a>
 Extra CPU Flags</h2>
 <p>You can include additional flags in <a class="el" href="structCheckasmConfig.html#ae464cbc8dd31a7c7d6acc24c10f0601a" title="Detected CPU flags for the current system.">CheckasmConfig.cpu</a> that aren't in <a class="el" href="structCheckasmConfig.html#acc59a5f0486f88ccae28cd2b8098c237" title="List of CPU flags understood by the implementation.">CheckasmConfig.cpu_flags</a>. These are transparently passed through to <a class="el" href="checkasm_8h.html#ac576caad7a9c4333b1b3f34c345ca48b" title="Get the current active set of CPU flags.">checkasm_get_cpu_flags()</a> and can be used for modifier flags like <span class="tt">CPU_FLAG_FAST_*</span> that don't require separate testing, but should instead always be assumed to be available when matching function implementations.</p>
@@ -253,6 +252,7 @@ Organizing Multiple Tests</h1>
 <div class="line">    { <span class="stringliteral">&quot;pixel&quot;</span>,     checkasm_check_pixel },</div>
 <div class="line">    { <span class="stringliteral">&quot;filmgrain&quot;</span>, checkasm_check_filmgrain },</div>
 <div class="line">    <span class="comment">// ...</span></div>
+<div class="line">    {0}</div>
 <div class="line">};</div>
 <div class="ttc" id="astructCheckasmTest_html"><div class="ttname"><a href="structCheckasmTest.html">CheckasmTest</a></div><div class="ttdoc">Describes a single test function.</div><div class="ttdef"><b>Definition</b> checkasm.h:81</div></div>
 </div><!-- fragment --><p>Then implement each test in separate files:</p>
