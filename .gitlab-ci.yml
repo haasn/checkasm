@@ -84,6 +84,17 @@ x86inc-check:
         - git diff --exit-code x86inc/master:x86inc.asm src/x86/x86inc.asm
     allow_failure: true
 
+build-docs:
+    extends: .debian-amd64-common
+    stage: build
+    artifacts:
+        paths:
+            - build/docs/html
+        expire_in: 1 day
+    script:
+        - meson setup build -Ddocs=enabled
+        - cd build && meson compile docs
+
 .test-common:
     script:
         - meson setup build --buildtype release
