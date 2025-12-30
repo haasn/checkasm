@@ -282,7 +282,7 @@ static void print_bench_footer(struct IterState *const iter)
         if (cfg.verbose) {
             printf(" - average timing error: %.3f%% across %d benchmarks "
                    "(maximum %.3f%%)\n",
-                   100.0 * err_rel, current.num_benched, err_max);
+                   100.0 * err_rel, current.num_benched, 100.0 * err_max);
         }
         break;
     case CHECKASM_FORMAT_HTML:
