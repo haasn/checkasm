@@ -101,6 +101,7 @@ void checkasm_test_noop(noop_func *func, const char *name);
 
 /* Used for testing floating point operations */
 typedef float(float_func)(float input);
+typedef double(double_func)(double input);
 void checkasm_test_float(float_func *func, const char *name, float input);
 
 #define DEF_FLOAT_FUNC(NAME) float checkasm_##NAME(float input)

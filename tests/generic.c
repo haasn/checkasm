@@ -97,6 +97,24 @@ void checkasm_test_float(float_func fun, const char *name, const float input)
     checkasm_report("%s", name);
 }
 
+static void checkasm_test_double(double_func fun, const char *name,
+                                 const double input)
+{
+    checkasm_declare(double, double);
+
+    if (checkasm_check_func(fun, "%s", name)) {
+        double x = checkasm_call_ref(input);
+        double y = checkasm_call_new(input);
+
+        if (!checkasm_double_near_abs_eps(x, y, DBL_EPSILON)) {
+            if (checkasm_fail())
+                fprintf(stderr, "expected %f, got %f\n", x, y);
+        }
+    }
+
+    checkasm_report("%s", name);
+}
+
 static DEF_COPY_FUNC(overwrite_left)
 {
     memcpy(dst, src, size);
@@ -181,6 +199,25 @@ static void checkasm_test_float_arg(void)
     checkasm_report("truncate");
 }
 
+static void checkasm_test_double_arg(void)
+{
+    checkasm_declare(long, double);
+
+    if (checkasm_check_func(lrint, "lrint")) {
+        for (float f = 0.0f; f <= 10.0f; f += 0.5f) {
+            long x = checkasm_call_ref(f);
+            long y = checkasm_call_new(f);
+
+            if (x != y) {
+                if (checkasm_fail())
+                    fprintf(stderr, "expected %ld, got %ld\n", x, y);
+            }
+        }
+    }
+
+    checkasm_report("lrint");
+}
+
 DEF_COPY_GETTER(CHECKASM_CPU_FLAG_BAD_C, overwrite_left)
 DEF_COPY_GETTER(CHECKASM_CPU_FLAG_BAD_C, overwrite_right)
 DEF_COPY_GETTER(CHECKASM_CPU_FLAG_BAD_C, underwrite)
@@ -224,6 +261,8 @@ void checkasm_check_generic(void)
     checkasm_test_copy(checkasm_copy_c, "copy_generic", 1);
     checkasm_test_float(checkasm_sqrt, "sqrt_generic", 2.0f);
     checkasm_test_float_arg();
+    checkasm_test_double(sqrt, "sqrt", 2.);
+    checkasm_test_double_arg();
     checkasm_test_retval();
     checkasm_test_override_funcs();
 
