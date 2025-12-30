@@ -109,9 +109,7 @@ typedef enum CheckasmFormat {
  * @code
  * CheckasmConfig config = {
  *     .cpu_flags     = my_cpu_flags,
- *     .nb_cpu_flags  = ARRAY_SIZE(my_cpu_flags),
  *     .tests         = my_tests,
- *     .nb_tests      = ARRAY_SIZE(my_tests),
  *     .cpu           = my_get_cpu_flags(),
  *     .set_cpu_flags = my_set_cpu_flags,
  * };
@@ -125,20 +123,21 @@ typedef struct CheckasmConfig {
     /**
      * @brief List of CPU flags understood by the implementation
      *
-     * Array of CPU features that will be tested in incremental order.
+     * Array of CPU features that will be tested in incremental order,
+     * terminated by an entry with `CheckasmCpuInfo.flag == 0` (i.e. `{0}`).
+     *
      * Each test run inherits any active flags from previously tested CPUs.
      * This allows testing progressively more advanced instruction sets.
      */
     const CheckasmCpuInfo *cpu_flags;
 
-    /** @brief Number of CPU flags in the cpu_flags array */
-    int nb_cpu_flags;
-
-    /** @brief Array of test functions to execute */
+    /**
+     * @brief Array of test functions to execute
+     *
+     * Array of test functions to execute, terminated by an entry with
+     * `CheckasmTest.func == NULL` (i.e. `{0}`.
+     */
     const CheckasmTest *tests;
-
-    /** @brief Number of tests in the tests array */
-    int nb_tests;
 
     /**
      * @brief Detected CPU flags for the current system
@@ -320,9 +319,7 @@ CHECKASM_API int checkasm_run(const CheckasmConfig *config);
  * Before calling this function, initialize config with the minimum set of
  * project-specific fields:
  * - config.cpu_flags: Array of CPU features to test
- * - config.nb_cpu_flags: Number of CPU flags
  * - config.tests: Array of test functions
- * - config.nb_tests: Number of tests
  * - config.cpu: Detected CPU capabilities
  *
  * Command-line arguments like --bench, --test, --function, --seed, etc. are
@@ -337,9 +334,7 @@ CHECKASM_API int checkasm_run(const CheckasmConfig *config);
  * int main(int argc, const char *argv[]) {
  *     CheckasmConfig config = {
  *         .cpu_flags     = my_cpu_flags,
- *         .nb_cpu_flags  = ARRAY_SIZE(my_cpu_flags),
  *         .tests         = my_tests,
- *         .nb_tests      = ARRAY_SIZE(my_tests),
  *         .cpu           = my_get_cpu_flags(),
  *         .set_cpu_flags = my_set_cpu_flags,
  *     };

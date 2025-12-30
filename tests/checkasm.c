@@ -23,6 +23,7 @@ static const CheckasmCpuInfo cpus[] = {
     { "VFP",             "vfp",     CHECKASM_CPU_FLAG_VFP     },
     { "NEON",            "neon",    CHECKASM_CPU_FLAG_NEON    },
 #endif
+    {0}
 };
 
 static const CheckasmTest tests[] = {
@@ -36,17 +37,15 @@ static const CheckasmTest tests[] = {
 #elif ARCH_ARM
     { "arm", checkasm_check_arm },
 #endif
+    {0}
 };
 
 int main(int argc, const char *argv[])
 {
     CheckasmConfig cfg = {
-#define ARRAY_LEN(x) (sizeof(x) / sizeof((x)[0]))
-        .cpu_flags    = cpus,
-        .nb_cpu_flags = ARRAY_LEN(cpus),
-        .tests        = tests,
-        .nb_tests     = ARRAY_LEN(tests),
-        .cpu          = CHECKASM_CPU_FLAG_BAD_C,
+        .cpu_flags = cpus,
+        .tests     = tests,
+        .cpu       = CHECKASM_CPU_FLAG_BAD_C,
     };
 
 #if ARCH_X86

@@ -231,17 +231,17 @@ static void print_bench_header(struct IterState *const iter)
         checkasm_json(json, "targetCycles", "%" PRIu64, state.target_cycles);
         checkasm_json(json, "numBenchmarks", "%d", current.num_benched);
         checkasm_json_push(json, "cpuFlags", '{');
-        for (int i = 0; i < cfg.nb_cpu_flags; i++) {
-            const CheckasmCpu flag = cfg.cpu_flags[i].flag;
-            checkasm_json_push(json, cfg.cpu_flags[i].suffix, '{');
-            checkasm_json_str(json, "name", cfg.cpu_flags[i].name);
-            checkasm_json(json, "available", (cfg.cpu & flag) == flag ? "true" : "false");
+        for (const CheckasmCpuInfo *info = cfg.cpu_flags; info->flag; info++) {
+            const int available = (cfg.cpu & info->flag) == info->flag;
+            checkasm_json_push(json, info->suffix, '{');
+            checkasm_json_str(json, "name", info->name);
+            checkasm_json(json, "available", available ? "true" : "false");
             checkasm_json_pop(json, '}');
         }
         checkasm_json_pop(json, '}'); /* close cpuFlags */
         checkasm_json_push(json, "tests", '[');
-        for (int i = 0; i < cfg.nb_tests; i++)
-            checkasm_json_str(json, NULL, cfg.tests[i].name);
+        for (const CheckasmTest *test = cfg.tests; test->func; test++)
+            checkasm_json_str(json, NULL, test->name);
         checkasm_json_pop(json, ']'); /* close tests */
         char perf_scale_unit[32];
         snprintf(perf_scale_unit, sizeof(perf_scale_unit), "nsec/%s", checkasm_perf.unit);
@@ -485,8 +485,8 @@ static void check_cpu_flag(const CheckasmCpuInfo *cpu)
     } else {
         /* Also include any CPU flags not related to the CPU flags list */
         current.cpu_flags = cfg.cpu;
-        for (int i = 0; i < cfg.nb_cpu_flags; i++)
-            current.cpu_flags &= ~cfg.cpu_flags[i].flag;
+        for (const CheckasmCpuInfo *info = cfg.cpu_flags; info->flag; info++)
+            current.cpu_flags &= ~info->flag;
     }
 
     if (!cpu || current.cpu_flags != prev_cpu_flags) {
@@ -496,10 +496,10 @@ static void check_cpu_flag(const CheckasmCpuInfo *cpu)
         if (cfg.set_cpu_flags)
             cfg.set_cpu_flags(current.cpu_flags);
 
-        for (int i = 0; i < cfg.nb_tests; i++) {
-            if (cfg.test_pattern && wildstrcmp(cfg.tests[i].name, cfg.test_pattern))
+        for (const CheckasmTest *test = cfg.tests; test->func; test++) {
+            if (cfg.test_pattern && wildstrcmp(test->name, cfg.test_pattern))
                 continue;
-            current.test_name = cfg.tests[i].name;
+            current.test_name = test->name;
 
             if (checkasm_save_context(checkasm_context)) {
                 const char *signal = checkasm_get_last_signal_desc();
@@ -519,7 +519,7 @@ static void check_cpu_flag(const CheckasmCpuInfo *cpu)
 
             checkasm_srand(cfg.seed);
             current.should_fail = 0; // reset between tests
-            cfg.tests[i].func();
+            test->func();
 
             if (cfg.bench) {
                 /* Measure NOP and perf scale after each test+CPU flag configuration */
@@ -611,23 +611,21 @@ static int set_cpu_affinity(const unsigned affinity)
 
 void checkasm_list_cpu_flags(const CheckasmConfig *cfg)
 {
-    const int last_flag = cfg->nb_cpu_flags - 1;
     checkasm_setup_fprintf(stdout);
 
-    for (int i = 0; i < cfg->nb_cpu_flags; i++) {
-        const CheckasmCpu flag = cfg->cpu_flags[i].flag;
-        if ((cfg->cpu & flag) == flag)
-            checkasm_fprintf(stdout, COLOR_GREEN, "%s", cfg->cpu_flags[i].suffix);
+    for (const CheckasmCpuInfo *info = cfg->cpu_flags; info->flag; info++) {
+        if ((cfg->cpu & info->flag) == info->flag)
+            checkasm_fprintf(stdout, COLOR_GREEN, "%s", info->suffix);
         else
-            checkasm_fprintf(stdout, COLOR_RED, "~%s", cfg->cpu_flags[i].suffix);
-        printf(i == last_flag ? "\n" : ", ");
+            checkasm_fprintf(stdout, COLOR_RED, "~%s", info->suffix);
+        printf(info[1].flag ? ", " : "\n");
     }
 }
 
 void checkasm_list_tests(const CheckasmConfig *config)
 {
-    for (int i = 0; i < config->nb_tests; i++)
-        printf("%s\n", config->tests[i].name);
+    for (const CheckasmTest *test = config->tests; test->func; test++)
+        printf("%s\n", test->name);
 }
 
 static void print_functions(const CheckasmFunc *const f)
@@ -651,8 +649,8 @@ void checkasm_list_functions(const CheckasmConfig *config)
     cfg              = *config;
 
     check_cpu_flag(NULL);
-    for (int i = 0; i < cfg.nb_cpu_flags; i++)
-        check_cpu_flag(&cfg.cpu_flags[i]);
+    for (const CheckasmCpuInfo *info = cfg.cpu_flags; info->flag; info++)
+        check_cpu_flag(info);
 
     print_functions(current.tree.root);
     checkasm_func_tree_uninit(&current.tree);
@@ -808,8 +806,8 @@ int checkasm_run(const CheckasmConfig *config)
         }
 
         check_cpu_flag(NULL);
-        for (int i = 0; i < cfg.nb_cpu_flags; i++)
-            check_cpu_flag(&cfg.cpu_flags[i]);
+        for (const CheckasmCpuInfo *info = cfg.cpu_flags; info->flag; info++)
+            check_cpu_flag(info);
 
         int res = print_summary();
         checkasm_func_tree_uninit(&current.tree);

@@ -195,20 +195,20 @@ static void check_dsp(void)
 // Test registry
 static const CheckasmTest tests[] = {
     { "dsp", check_dsp },
+    {0} // array terminator
 };
 
 // CPU flag registry
 static const CheckasmCpuInfo cpu_flags[] = {
     { "AVX", "avx", CPU_FLAG_AVX },
+    {0} // array terminator
 };
 
 int main(int argc, const char *argv[]) {
     CheckasmConfig config = {
-        .tests        = tests,
-        .nb_tests     = 1,
-        .cpu_flags    = cpu_flags,
-        .nb_cpu_flags = 1,
-        .cpu          = detect_cpu_flags(),
+        .tests     = tests,
+        .cpu_flags = cpu_flags,
+        .cpu       = detect_cpu_flags(),
     };
 
     return checkasm_main(&config, argc, argv);

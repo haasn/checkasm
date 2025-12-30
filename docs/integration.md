@@ -35,7 +35,7 @@ typedef uint64_t MyCpuFlags;
 MyCpuFlags detect_cpu_flags(void);
 @endcode
 
-Then create a CheckasmCpuInfo array describing each flag:
+Then create a CheckasmCpuInfo array describing each flag, terminated by `{0}`:
 
 @code{.c}
 // checkasm.c
@@ -46,6 +46,7 @@ static const CheckasmCpuInfo cpu_flags[] = {
     { "SSE4.1", "sse41",  CPU_FLAG_SSE41  },
     { "AVX2",   "avx2",   CPU_FLAG_AVX2   },
     { "AVX512", "avx512", CPU_FLAG_AVX512 },
+    {0} // array terminator
 };
 
 // This ordering means:
@@ -70,16 +71,14 @@ Register the CPU flags with checkasm via the CheckasmConfig structure:
 // checkasm.c
 
 static const CheckasmCpuInfo cpu_flags[] = {
-  // ...
+    // ...
+    {0}
 };
-
-#define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 
 int main(int argc, const char *argv[])
 {
     CheckasmConfig config = {
-        .cpu_flags    = cpu_flags,
-        .nb_cpu_flags = ARRAY_SIZE(cpu_flags),
+        .cpu_flags = cpu_flags,
         // ...
     };
 
@@ -220,6 +219,7 @@ static const CheckasmTest tests[] = {
     { "pixel",     checkasm_check_pixel },
     { "filmgrain", checkasm_check_filmgrain },
     // ...
+    {0}
 };
 @endcode
 

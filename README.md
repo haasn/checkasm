@@ -99,22 +99,21 @@ static const CheckasmCpuInfo cpus[] = {
     { "CPU flag 1",     "flag1",  CPU_FLAG_1    },
     { "CPU flag 2",     "flag2",  CPU_FLAG_2    },
     // ...
+    {0}
 };
 
 static const CheckasmTest tests[] = {
     { "test1", checkasm_test_1 },
     { "test2", checkasm_test_2 },
     // ...
+    {0}
 };
 
 int main(int argc, const char *argv[])
 {
     CheckasmConfig cfg = {
-#define ARRAY_LEN(x) (sizeof(x) / sizeof((x)[0]))
-        .cpu_flags    = cpus,
-        .nb_cpu_flags = ARRAY_LEN(cpus),
-        .tests        = tests,
-        .nb_tests     = ARRAY_LEN(tests),
+        .cpu_flags = cpus,
+        .tests     = tests,
     };
 
     cfg.cpu = detect_cpu_flags();
