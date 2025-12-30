@@ -16,7 +16,7 @@ var searchData=
   ['modeling_13',['Log-Normal Distribution Modeling',['../benchmarking.html#bench_lognormal',1,'']]],
   ['modern_20api_20recommended_14',['Modern API (Recommended)',['../writing_tests.html#modern_api',1,'']]],
   ['multi_20bitdepth_20testing_15',['Multi-Bitdepth Testing',['../writing_tests.html#adv_bitdepth',1,'']]],
-  ['multiple_20configurations_16',['multiple configurations',['../writing_tests.html#bench_multiple',1,'Benchmarking Multiple Configurations'],['../writing_tests.html#bp_test_loops',1,'Testing Multiple Configurations']]],
+  ['multiple_20configurations_16',['Multiple Configurations',['../writing_tests.html#bench_multiple',1,'Benchmarking Multiple Configurations'],['../writing_tests.html#bp_test_loops',1,'Testing Multiple Configurations']]],
   ['multiple_20outputs_17',['Multiple Outputs',['../writing_tests.html#pattern_multi_output',1,'']]],
   ['multiple_20runs_18',['Geometric Mean for Multiple Runs',['../benchmarking.html#bench_geometric',1,'']]],
   ['multiple_20tests_19',['Organizing Multiple Tests',['../integration.html#organizing_tests',1,'']]]

@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['integration_20guide_0',['Integration Guide',['../integration.html',1,'']]],
-  ['introduction_1',['Introduction',['../index.html',1,'']]]
+  ['3_20build_20and_20run_0',['3. Build and Run',['../getting_started.html#quick_start3',1,'']]]
 ];

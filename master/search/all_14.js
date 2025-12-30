@@ -14,7 +14,7 @@ var searchData=
   ['state_20based_20functions_11',['State-Based Functions',['../writing_tests.html#pattern_state',1,'']]],
   ['statistical_20methodology_12',['Statistical Methodology',['../benchmarking.html#bench_methodology',1,'']]],
   ['stddev_13',['stddev',['../structCheckasmDist.html#a303432aa22ce65d477d8abe52562964f',1,'CheckasmDist']]],
-  ['steps_14',['steps',['../index.html#intro_next_steps',1,'Next Steps'],['../getting_started.html#getting_started_next_steps',1,'Next Steps'],['../writing_tests.html#tests_next_steps',1,'Next Steps'],['../integration.html#integration_next_steps',1,'Next Steps']]],
+  ['steps_14',['Steps',['../index.html#intro_next_steps',1,'Next Steps'],['../getting_started.html#getting_started_next_steps',1,'Next Steps'],['../integration.html#integration_next_steps',1,'Next Steps'],['../writing_tests.html#tests_next_steps',1,'Next Steps']]],
   ['stop_15',['stop',['../structCheckasmPerf.html#a7ea0894be7ec95cb9ffa04e74d717561',1,'CheckasmPerf']]],
   ['strategy_201_3a_20mask_20callback_16',['Strategy 1: Mask Callback',['../integration.html#mask_callback',1,'']]],
   ['strategy_202_3a_20direct_20getters_17',['Strategy 2: Direct Getters',['../integration.html#direct_getters',1,'']]],
