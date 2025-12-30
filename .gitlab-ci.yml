@@ -3,6 +3,7 @@ stages:
     - build
     - test
     - bench
+    - deploy
 
 .debian-amd64-common:
     image: registry.videolan.org/dav1d-debian-unstable:20250207200301
@@ -425,3 +426,14 @@ bench-debian-loongarch64:
     variables:
         QEMU_CPU: max-loongarch-cpu
         QEMU_LD_PREFIX: /opt/cross-tools/target/
+
+deploy-docs:
+    extends: .debian-amd64-common
+    stage: deploy
+    needs: ["build-docs"]
+    rules:
+        - if: '$CI_COMMIT_BRANCH == "master"'
+    script:
+        - mv build/docs/html public
+    pages:
+        publish: public
