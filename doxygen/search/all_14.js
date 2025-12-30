@@ -1,0 +1,26 @@
+var searchData=
+[
+  ['scaling_0',['Frequency Scaling',['../benchmarking.html#adv_freq_scaling',1,'']]],
+  ['seed_1',['seed',['../structCheckasmConfig.html#add28b36b075352fd03568d5ea52d3184',1,'CheckasmConfig']]],
+  ['selecting_20functions_2',['Selecting Functions',['../integration.html#selecting_functions',1,'']]],
+  ['selective_20testing_3',['Selective Testing',['../writing_tests.html#tips_selective',1,'']]],
+  ['set_5fcpu_5fflags_4',['set_cpu_flags',['../structCheckasmConfig.html#aa6dd6196f17d1061e3a06d108dcfc0dc',1,'CheckasmConfig']]],
+  ['short_20api_5',['Legacy/Short API',['../writing_tests.html#legacy_api',1,'']]],
+  ['short_20hand_20aliases_6',['Short-hand Aliases',['../group__aliases.html',1,'']]],
+  ['start_7',['start',['../structCheckasmPerf.html#a506ddd2fcd7e5cf63e80e51d00d19fa4',1,'CheckasmPerf']]],
+  ['start_20example_8',['Quick Start Example',['../getting_started.html#quick_start',1,'']]],
+  ['started_9',['Getting Started',['../getting_started.html',1,'']]],
+  ['state_10',['System State',['../benchmarking.html#bp_system_state',1,'']]],
+  ['state_20based_20functions_11',['State-Based Functions',['../writing_tests.html#pattern_state',1,'']]],
+  ['statistical_20methodology_12',['Statistical Methodology',['../benchmarking.html#bench_methodology',1,'']]],
+  ['stddev_13',['stddev',['../structCheckasmDist.html#a303432aa22ce65d477d8abe52562964f',1,'CheckasmDist']]],
+  ['steps_14',['Steps',['../index.html#intro_next_steps',1,'Next Steps'],['../getting_started.html#getting_started_next_steps',1,'Next Steps'],['../integration.html#integration_next_steps',1,'Next Steps'],['../writing_tests.html#tests_next_steps',1,'Next Steps']]],
+  ['stop_15',['stop',['../structCheckasmPerf.html#a7ea0894be7ec95cb9ffa04e74d717561',1,'CheckasmPerf']]],
+  ['strategy_201_3a_20mask_20callback_16',['Strategy 1: Mask Callback',['../integration.html#mask_callback',1,'']]],
+  ['strategy_202_3a_20direct_20getters_17',['Strategy 2: Direct Getters',['../integration.html#direct_getters',1,'']]],
+  ['structure_18',['Basic Test Structure',['../writing_tests.html#test_structure',1,'']]],
+  ['submodules_20recommended_19',['Meson using submodules (recommended)',['../getting_started.html#meson_submodules',1,'']]],
+  ['suffix_20',['suffix',['../structCheckasmCpuInfo.html#acda2b041598aa568e27d8136710d2b03',1,'CheckasmCpuInfo']]],
+  ['support_21',['Platform Support',['../index.html#features_platform',1,'']]],
+  ['system_20state_22',['System State',['../benchmarking.html#bp_system_state',1,'']]]
+];
