@@ -34,6 +34,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdnoreturn.h>
 
 #include "checkasm/attributes.h"
 #include "checkasm/test.h"
@@ -68,8 +69,9 @@
 
 void checkasm_srand(unsigned seed);
 
-/* Hidden alias without public visibility, for use in asm */
-int checkasm_fail_internal(const char *msg, ...) CHECKASM_PRINTF(1, 2);
+/* Internal variant of checkasm_fail_func() that also jumps back to the signal
+ * handler */
+noreturn void checkasm_fail_abort(const char *msg, ...) CHECKASM_PRINTF(1, 2);
 
 #define COLOR_DEFAULT -1
 #define COLOR_RED     31

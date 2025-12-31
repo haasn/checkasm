@@ -504,7 +504,7 @@ static void check_cpu_flag(const CheckasmCpuInfo *cpu)
             if (checkasm_save_context(checkasm_context)) {
                 const char *signal = checkasm_get_last_signal_desc();
                 handle_interrupt();
-                checkasm_fail_internal("%s", signal);
+                checkasm_fail_func("%s", signal);
 
                 /* We want to associate this (and any prior) failures with the
                  * correct report group, so remember the failure state until we
@@ -926,8 +926,6 @@ static int fail_internal(const char *const msg, va_list arg)
     return cfg.verbose && !current.should_fail;
 }
 
-/* We need to define two versions of this function, one to export and one for
- * asm routines to call internally (with local linking) */
 int checkasm_fail_func(const char *const msg, ...)
 {
     va_list arg;
@@ -937,13 +935,15 @@ int checkasm_fail_func(const char *const msg, ...)
     return ret;
 }
 
-int checkasm_fail_internal(const char *const msg, ...)
+void checkasm_fail_abort(const char *const msg, ...)
 {
     va_list arg;
     va_start(arg, msg);
-    const int ret = fail_internal(msg, arg);
+    fail_internal(msg, arg);
     va_end(arg);
-    return ret;
+
+    checkasm_load_context(checkasm_context);
+    while (1); // should be unreachable, but some longjmp impls aren't `noreturn`
 }
 
 int checkasm_should_fail(CheckasmCpu cpu_flags)

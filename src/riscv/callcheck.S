@@ -216,19 +216,19 @@ function checked_call_i, export=1
         ret
 
 .Lfail_xp:
-        # checkasm_fail_func() needs valid SP, GP and TP. Restore them.
+        # checkasm_fail_abort() needs valid SP, GP and TP. Restore them.
         lx      sp, 1 * XSZ(t0)
         lx      gp, 2 * XSZ(t0)
         lx      tp, 3 * XSZ(t0)
         lla     a0, .Lfail_rsvd_reg
         mv      a1, t1
-        call    checkasm_fail_func
+        call    checkasm_fail_abort
         j       2b
 
 .Lfail_s:
         lla     a0, .Lfail_s_reg
         mv      a1, t1
-        call    checkasm_fail_func
+        call    checkasm_fail_abort
         j       2b
 endfunc
 
@@ -278,7 +278,7 @@ function checked_call_if, export=1
 .Lfail_fs:
         lla     a0, .Lfail_fs_reg
         mv      a1, t1
-        call    checkasm_fail_func
+        call    checkasm_fail_abort
         j       1b
 endfunc
 #else

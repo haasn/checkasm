@@ -241,7 +241,7 @@ function checked_call, export=1, visible=1
 2:
         movrel          x0, error_message_stack
 1:
-        bl              X(fail_internal)
+        b               X(fail_abort)
 0:
         ldp             x0,  x1,  [sp], #16
         ldp             d14, d15, [sp], #16

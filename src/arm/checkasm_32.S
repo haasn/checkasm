@@ -245,7 +245,7 @@ function checked_call_\variant, export=1
 2:
         movrel          r0, error_message_gpr
 1:
-        bl              X(fail_internal)
+        b               X(fail_abort)
 0:
         pop             {r0, r1}
 .ifc \variant, vfp

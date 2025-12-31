@@ -72,5 +72,5 @@ void checkasm_pop_stack_guard(void)
     current = NULL;
     assert(guard != NULL);
     if (guard[0] != (cookie ^ selfref) || guard[1] != selfref)
-        checkasm_fail_internal("stack clobbered");
+        checkasm_fail_abort("stack clobbered");
 }

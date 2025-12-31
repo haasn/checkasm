@@ -66,7 +66,7 @@ check_vzeroupper: resd 1
 
 SECTION .text
 
-cextern fail_internal
+cextern fail_abort
 
 ; max number of args used by any asm function.
 ; (max_args % 4) must equal 3 for stack alignment
@@ -219,7 +219,7 @@ cvisible empty_mmx, 0, 0
     mov           r11, rdx
     lea            r0, [%1]
     xor           eax, eax
-    call fail_internal
+    call fail_abort
     mov           rax, r10
     mov           rdx, r11
 %endmacro
@@ -436,7 +436,7 @@ WARMUP
     mov            r6, edx
     LEA            r1, %1
     mov         [esp], r1
-    call fail_internal
+    call fail_abort
     mov           eax, r5
     mov           edx, r6
 %endmacro
