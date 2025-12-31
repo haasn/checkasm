@@ -25,8 +25,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *****************************************************************************/
 
-#define PRIVATE_PREFIX checkasm_
-
 #include "loongarch/loongson_asm.S"
 
 const register_init, align=4
