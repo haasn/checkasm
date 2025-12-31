@@ -215,13 +215,8 @@ cvisible empty_mmx, 0, 0
 %endmacro
 
 %macro REPORT_FAILURE 1 ; err_msg
-    mov           r10, rax
-    mov           r11, rdx
     lea            r0, [%1]
-    xor           eax, eax
-    call fail_abort
-    mov           rax, r10
-    mov           rdx, r11
+    jmp fail_abort
 %endmacro
 
 %macro checked_call_fn 0-1
@@ -432,13 +427,9 @@ WARMUP
 %assign n6 0x33627ba7
 
 %macro REPORT_FAILURE 1 ; err_msg
-    mov            r5, eax
-    mov            r6, edx
     LEA            r1, %1
     mov         [esp], r1
-    call fail_abort
-    mov           eax, r5
-    mov           edx, r6
+    jmp fail_abort
 %endmacro
 
 ;-----------------------------------------------------------------------------
