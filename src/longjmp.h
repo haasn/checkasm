@@ -70,14 +70,4 @@ typedef jmp_buf checkasm_jmp_buf;
 
 #endif /* !_WIN32 || ARCH_X86_32 */
 
-#ifdef checkasm_save_context
-  #define CHECKASM_HAVE_LONGJMP 1
-#else
-/* Dummy fallback if no other implementation was found */
-typedef int checkasm_jmp_buf;
-  #define checkasm_save_context(ctx) 0
-  #define checkasm_load_context(ctx)
-  #define CHECKASM_HAVE_LONGJMP 0
-#endif
-
 #endif /* CHECKASM_LONGJMP_H */

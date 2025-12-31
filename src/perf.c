@@ -58,7 +58,7 @@ const CheckasmPerf *checkasm_get_perf(void)
 
 COLD int checkasm_perf_init(void)
 {
-#if defined(CHECKASM_PERF_ASM) && CHECKASM_HAVE_LONGJMP
+#ifdef CHECKASM_PERF_ASM
     if (!checkasm_save_context(checkasm_context)) {
         /* Try calling the asm timer to see if it works */
         checkasm_set_signal_handler_state(1);
