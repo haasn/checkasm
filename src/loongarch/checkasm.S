@@ -186,11 +186,8 @@ function checked_call
 
     st.d        zero,   t2,     0x00 // Set OK to 0
     la.local    a0,     error_message
-    addi.d      sp,     sp,     -8
-    st.d        ra,     sp,     0
-    bl          puts
-    ld.d        ra,     sp,     0
-    addi.d      sp,     sp,     8
+    bl          checkasm_fail_abort
+
 0:
     ld.d    s0,     sp,     0
     ld.d    s1,     sp,     8
