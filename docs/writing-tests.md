@@ -554,6 +554,55 @@ static void check_complex(const DSPContext *dsp)
 }
 @endcode
 
+@subsection adv_indirect Calling Functions Through Wrappers
+
+When the function being tested must be called indirectly through a wrapper,
+you may use checkasm_call() and checkasm_call_checked() to invoke an arbitrary
+helper function.
+
+In this case, the declared function type must be the type of the wrapper, not
+the inner function passed to checkasm_check_func(). You may then access the
+untyped reference/tested function pointers via @ref checkasm_key_ref and
+@ref checkasm_key_new "":
+
+@code{.c}
+typedef int (my_func)(int);
+
+// Wrapper that invokes the actual function
+static int sum_upto_n(my_func *func, int count)
+{
+    int sum = 0;
+    for (int i = 0; i < arg; i++)
+      sum += func(i);
+    return sum;
+}
+
+static void check_wrapper(void)
+{
+    // Declare the signature of the wrapper, not the inner function
+    checkasm_declare(int, my_func *, int);
+
+    if (checkasm_check_func(get_my_func(), "my_wrapped_func")) {
+        const int count = checkasm_rand() % 100;
+
+        // Cast checkasm_key_new to the appropriate type and pass to wrapper
+        const my_func *my_ref = (my_func *) checkasm_key_ref;
+        const my_func *my_new = (my_func *) checkasm_key_new;
+        int sum_c = checkasm_call(sum_upto_n, my_ref, count);
+        int sum_a = checkasm_call_checked(sum_upto_n, my_new, count);
+
+        if (sum_c != sum_a)
+            checkasm_fail();
+    }
+}
+@endcode
+
+@note When using a pattern like this, the value passed to checkasm_check_func()
+may not even need to be a function pointer. It could be an arbitrary pointer
+or pointer-sized integer, such as a configuration struct or index into a dispatch
+table, so long as it uniquely identifies the underlying implementation being
+tested.
+
 @subsection adv_mmx MMX Functions (x86)
 
 MMX functions on x86 often omit the `emms` instruction before returning, expecting
