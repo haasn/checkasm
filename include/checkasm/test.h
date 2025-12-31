@@ -148,7 +148,8 @@ CHECKASM_API void checkasm_report(const char *name, ...) CHECKASM_PRINTF(1, 2);
  */
 #define checkasm_declare(ret, ...)                                                       \
     checkasm_declare_impl(ret, __VA_ARGS__);                                             \
-    typedef ret func_type(__VA_ARGS__)
+    typedef ret func_type(__VA_ARGS__);                                                  \
+    (void) ((func_type *) NULL)
 
 /**
  * @def checkasm_declare_emms(cpu_flags, ret, ...)
