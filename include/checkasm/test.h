@@ -320,7 +320,7 @@ static void *checkasm_new_ptr; /**< @private */
  *
  * @see checkasm_check_func(), checkasm_call_new()
  */
-#define checkasm_call_ref(...) checkasm_call((func_type *) checkasm_ref_ptr, __VA_ARGS__)
+#define checkasm_call_ref(...) checkasm_call(checkasm_func_ref, __VA_ARGS__)
 
 /**
  * @def checkasm_call_new(...)
@@ -335,8 +335,7 @@ static void *checkasm_new_ptr; /**< @private */
  *
  * @see checkasm_check_func(), checkasm_call_ref()
  */
-#define checkasm_call_new(...)                                                           \
-    checkasm_call_checked((func_type *) checkasm_new_ptr, __VA_ARGS__)
+#define checkasm_call_new(...) checkasm_call_checked(checkasm_func_new, __VA_ARGS__)
 
 /**
  * @def checkasm_bench(func, ...)
