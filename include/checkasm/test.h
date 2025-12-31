@@ -45,23 +45,37 @@
 #include "checkasm/platform.h"
 
 /**
- * @brief Check if a function version needs to be tested
+ * @def checkasm_check_func(func, name, ...)
+ * @brief Check if a function should be tested and set up function references
  *
- * Determines whether the specified function implementation should be tested
- * based on the current CPU flags and test patterns. If testing should proceed,
- * returns the key identifying the reference implementation to compare against.
+ * Determines if the given function implementation should be tested, and if so,
+ * sets up the function pointers for subsequent calls to checkasm_call_ref() and
+ * checkasm_call_new().
  *
- * @param[in] version Key identifying the function version to test (or 0 to skip)
+ * @param[in] func Function pointer (or arbitrary CheckasmKey) to test, or 0 to skip
  * @param[in] name Printf-style format string for the function name
  * @param[in] ... Format arguments for the function name
- * @return Key identifying the reference version if testing should proceed, or
- *         0 if testing should be skipped
+ * @return Non-zero if testing should proceed, 0 if this function should be skipped
  *
- * @note This is typically called via checkasm_check_func() rather than directly.
- * @see checkasm_check_func()
+ * @code
+ * if (checkasm_check_func(get_my_func(checkasm_get_cpu_flags()), "my_func")) {
+ *     // checkasm_call_ref() and checkasm_call_new() are now ready to use
+ *     int ref_result = checkasm_call_ref(args...);
+ *     int new_result = checkasm_call_new(args...);
+ *     if (ref_result != new_result) {
+ *         if (checkasm_fail())
+ *             fprintf(stderr, "expected %d, got %d\n", ref_result, new_result);
+ *     }
+ * }
+ * checkasm_report("my_func");
+ * @endcode
+ *
+ * @see checkasm_func_ref, checkasm_func_new
+ * @see checkasm_call_ref(), checkasm_call_new()
  */
-CHECKASM_API CheckasmKey checkasm_check_key(CheckasmKey version, const char *name, ...)
-    CHECKASM_PRINTF(2, 3);
+#define checkasm_check_func(func, ...)                                                   \
+    (checkasm_key_ref                                                                    \
+     = checkasm_check_key((checkasm_key_new = (CheckasmKey) (func)), __VA_ARGS__))
 
 /**
  * @brief Mark the current function as failed with a custom message
@@ -87,9 +101,8 @@ CHECKASM_API int checkasm_fail_func(const char *msg, ...) CHECKASM_PRINTF(1, 2);
  * @brief Mark the current test as failed
  *
  * Records a test failure with the current file and line number. This is the
- * most common way to indicate test failure. The test * will continue executing,
- * but any future calls to checkasm_check_key() (or checkasm_check_func()) for
- * this function will return 0.
+ * most common way to indicate test failure. The test will continue executing,
+ * but any future calls to checkasm_check_func() for this function will return 0.
  *
  * @return 1 if the failure details should be printed verbosely, 0 otherwise
  *
@@ -249,64 +262,49 @@ CHECKASM_API void checkasm_report(const char *name, ...) CHECKASM_PRINTF(1, 2);
  */
 CHECKASM_API int checkasm_should_fail(CheckasmCpu cpu_flags);
 
-static void *checkasm_ref_ptr; /**< @private */
-static void *checkasm_new_ptr; /**< @private */
+/**
+ * @brief Key identifying the reference implementation
+ *
+ * Set by checkasm_check_func() to point to the reference key for the function
+ * currently being tested.
+ *
+ * @see checkasm_check_func(), checkasm_func_ref, checkasm_key_new
+ */
+static CheckasmKey checkasm_key_ref;
+
+/**
+ * @brief Key identifying the implementation being tested
+ *
+ * Set by checkasm_check_func() to point to the key passed to it.
+ *
+ * @see checkasm_check_func(), checkasm_func_new, checkasm_key_ref
+ */
+static CheckasmKey checkasm_key_new;
 
 /**
  * @def checkasm_func_ref
  * @brief Function pointer to the reference implementation
  *
- * Provides access to the reference (C) implementation of the function being
- * tested, cast to the appropriate function type. Set by checkasm_check_func().
+ * This is just a typed version of checkasm_key_ref, cast to the type declared
+ * by checkasm_declare().
  *
  * @see checkasm_func_new(), checkasm_check_func()
  */
-#define checkasm_func_ref ((func_type *) checkasm_ref_ptr)
+#define checkasm_func_ref ((func_type *) checkasm_key_ref)
 
 /**
  * @def checkasm_func_new
  * @brief Function pointer to the implementation being tested
  *
- * Provides access to the optimized (assembly/SIMD) implementation being
- * tested, cast to the appropriate function type. Set by checkasm_check_func().
+ * This is just a typed version of checkasm_key_new, cast to the type declared
+ * by checkasm_declare().
  *
  * @note This is read-only. To test a different function, use
  *       checkasm_call_checked() instead of checkasm_call_new().
  *
  * @see checkasm_func_ref(), checkasm_check_func()
  */
-#define checkasm_func_new ((func_type *) checkasm_new_ptr)
-
-/**
- * @def checkasm_check_func(func, ...)
- * @brief Check if a function should be tested and set up function references
- *
- * Determines if the given function implementation should be tested, and if so,
- * sets up both the reference and optimized function pointers for subsequent
- * calls to checkasm_call_ref() and checkasm_call_new().
- *
- * @param func Function pointer to the implementation to test
- * @param ... Printf-style format string and arguments for the function name
- * @return Non-zero if testing should proceed, 0 if this function should be skipped
- *
- * @code
- * if (checkasm_check_func(get_my_func(checkasm_get_cpu_flags()), "my_func")) {
- *     // checkasm_call_ref() and checkasm_call_new() are now ready to use
- *     int ref_result = checkasm_call_ref(args...);
- *     int new_result = checkasm_call_new(args...);
- *     if (ref_result != new_result) {
- *         if (checkasm_fail())
- *             fprintf(stderr, "expected %d, got %d\n", ref_result, new_result);
- *     }
- * }
- * checkasm_report("my_func");
- * @endcode
- *
- * @see checkasm_call_ref(), checkasm_call_new()
- */
-#define checkasm_check_func(func, ...)                                                   \
-    (checkasm_ref_ptr = (void *) checkasm_check_key(                                     \
-         (CheckasmKey) (checkasm_new_ptr = func), __VA_ARGS__))
+#define checkasm_func_new ((func_type *) checkasm_key_new)
 
 /**
  * @def checkasm_call_ref(...)
@@ -434,7 +432,6 @@ static void *checkasm_new_ptr; /**< @private */
  */
 #define fail              checkasm_fail
 #define report            checkasm_report
-#define check_key         checkasm_check_key
 #define check_func        checkasm_check_func
 #define func_ref          checkasm_func_ref
 #define func_new          checkasm_func_new
@@ -454,6 +451,13 @@ static void *checkasm_new_ptr; /**< @private */
  * not be called or referenced directly by test code.
  * @{
  */
+
+/**
+ * @brief Internal implementation of checkasm_check_func()
+ * @return Reference key if testing should proceed, 0 to skip
+ */
+CHECKASM_API CheckasmKey checkasm_check_key(CheckasmKey version, const char *name, ...)
+    CHECKASM_PRINTF(2, 3);
 
 /**
  * @brief Enable or disable signal handling
@@ -611,8 +615,8 @@ CHECKASM_API void checkasm_bench_finish(void);
  */
 static inline void checkasm_unused(void)
 {
-    (void) checkasm_ref_ptr;
-    (void) checkasm_new_ptr;
+    (void) checkasm_key_ref;
+    (void) checkasm_key_new;
 }
 
 /** @} */ /* internal */
