@@ -240,16 +240,31 @@ static void checkasm_test_check_declare(void)
     checkasm_report("check_declare");
 }
 
+typedef int (int_func)(int);
+static int wrapper(int_func *func, int arg)
+{
+    return func(arg);
+}
+
 static void checkasm_test_wrappers(void)
 {
-    checkasm_declare(int, int);
-
     if (checkasm_check_func(identity_ref, "override_funcs")) {
-        checkasm_call(identity_ref, 0);
-        checkasm_call_checked(identity_new, 0);
+        checkasm_declare(int, int);
+        int x = checkasm_call(identity_ref, 12345);
+        int y = checkasm_call_checked(identity_new, 12345);
+        if (x != y)
+            checkasm_fail();
     }
 
-    checkasm_report("override_funcs");
+    if (checkasm_check_func(identity_ref, "wrapper_func")) {
+        checkasm_declare(int, int_func *, int); // type of wrapper
+        int x = checkasm_call(wrapper, (int_func *) checkasm_key_ref, 12345);
+        int y = checkasm_call_checked(wrapper, (int_func *) checkasm_key_new, 12345);
+        if (x != y)
+            checkasm_fail();
+    }
+
+    checkasm_report("wrappers");
 }
 
 void checkasm_check_generic(void)
