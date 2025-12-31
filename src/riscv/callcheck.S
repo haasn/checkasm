@@ -206,7 +206,7 @@ function checked_call_i, export=1
         bne     t0, s\n, .Lfail_s
         .endr
 
-2:      # Restore RA and callee-saved registers
+        # Restore RA and callee-saved registers
         la.tls.ie t0, .Lsaved_xregs
         add     t0, t0, tp
         lx      ra, (t0)
@@ -222,14 +222,12 @@ function checked_call_i, export=1
         lx      tp, 3 * XSZ(t0)
         lla     a0, .Lfail_rsvd_reg
         mv      a1, t1
-        call    checkasm_fail_abort
-        j       2b
+        tail    checkasm_fail_abort
 
 .Lfail_s:
         lla     a0, .Lfail_s_reg
         mv      a1, t1
-        call    checkasm_fail_abort
-        j       2b
+        tail    checkasm_fail_abort
 endfunc
 
 #ifndef __riscv_float_abi_soft
@@ -266,7 +264,7 @@ function checked_call_if, export=1
         beqz    t0, .Lfail_fs
         .endr
 
-1:      # Restore callee-saved floating point registers and RA
+        # Restore callee-saved floating point registers and RA
         la.tls.ie t0, .Lsaved_fregs
         add     t0, t0, tp
         .irp    n, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11
@@ -278,8 +276,7 @@ function checked_call_if, export=1
 .Lfail_fs:
         lla     a0, .Lfail_fs_reg
         mv      a1, t1
-        call    checkasm_fail_abort
-        j       1b
+        tail    checkasm_fail_abort
 endfunc
 #else
 function checked_call_if, export=1, ext=f
