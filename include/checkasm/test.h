@@ -259,12 +259,9 @@ static void *checkasm_new_ptr; /**< @private */
  * Provides access to the reference (C) implementation of the function being
  * tested, cast to the appropriate function type. Set by checkasm_check_func().
  *
- * @note This may be assigned to by the user in order to (temporarily) override
- *       the reference implementation used for testing.
- *
  * @see checkasm_func_new(), checkasm_check_func()
  */
-#define checkasm_func_ref (*(func_type **) &checkasm_ref_ptr)
+#define checkasm_func_ref ((func_type *) checkasm_ref_ptr)
 
 /**
  * @def checkasm_func_new
@@ -273,12 +270,12 @@ static void *checkasm_new_ptr; /**< @private */
  * Provides access to the optimized (assembly/SIMD) implementation being
  * tested, cast to the appropriate function type. Set by checkasm_check_func().
  *
- * @note This may be assigned to by the user in order to (temporarily) override
- *       the implementation being tested.
+ * @note This is read-only. To test a different function, use
+ *       checkasm_call_checked() instead of checkasm_call_new().
  *
  * @see checkasm_func_ref(), checkasm_check_func()
  */
-#define checkasm_func_new (*(func_type **) &checkasm_new_ptr)
+#define checkasm_func_new ((func_type *) checkasm_new_ptr)
 
 /**
  * @def checkasm_check_func(func, ...)

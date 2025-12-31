@@ -240,17 +240,13 @@ static void checkasm_test_check_declare(void)
     checkasm_report("check_declare");
 }
 
-/* Ensure we can override func_ref/func_new */
-static void checkasm_test_override_funcs(void)
+static void checkasm_test_wrappers(void)
 {
     checkasm_declare(int, int);
 
     if (checkasm_check_func(identity_ref, "override_funcs")) {
-        func_ref = identity_ref;
-        func_new = identity_new;
-
-        checkasm_call_ref(0);
-        checkasm_call_new(0);
+        checkasm_call(identity_ref, 0);
+        checkasm_call_checked(identity_new, 0);
     }
 
     checkasm_report("override_funcs");
@@ -264,7 +260,7 @@ void checkasm_check_generic(void)
     checkasm_test_double(sqrt, "sqrt", 2.);
     checkasm_test_double_arg();
     checkasm_test_retval();
-    checkasm_test_override_funcs();
+    checkasm_test_wrappers();
 
     if (!checkasm_should_fail(CHECKASM_CPU_FLAG_BAD_C))
         return;
