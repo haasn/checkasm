@@ -77,6 +77,7 @@ var NAVTREE =
         [ "Benchmarking Multiple Configurations", "writing_tests.html#bench_multiple", null ],
         [ "Multi-Bitdepth Testing", "writing_tests.html#adv_bitdepth", null ],
         [ "Custom Failure Reporting", "writing_tests.html#adv_failure", null ],
+        [ "Calling Functions Through Wrappers", "writing_tests.html#adv_indirect", null ],
         [ "MMX Functions (x86)", "writing_tests.html#adv_mmx", null ]
       ] ],
       [ "Tips and Tricks", "writing_tests.html#tips_tricks", [

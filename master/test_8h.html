@@ -104,6 +104,8 @@ Data Structures</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-define-members" class="groupheader"><a id="define-members" name="define-members"></a>
 Macros</h2></td></tr>
+<tr class="memitem:af89e132503dee480bf6d778f61046083" id="r_af89e132503dee480bf6d778f61046083"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af89e132503dee480bf6d778f61046083">checkasm_check_func</a>(func, ...)</td></tr>
+<tr class="memdesc:af89e132503dee480bf6d778f61046083"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check if a function should be tested and set up function references.  <br /></td></tr>
 <tr class="memitem:a771deac0c048cccc98cf872c7a8d36a3" id="r_a771deac0c048cccc98cf872c7a8d36a3"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a771deac0c048cccc98cf872c7a8d36a3">checkasm_fail</a>()</td></tr>
 <tr class="memdesc:a771deac0c048cccc98cf872c7a8d36a3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Mark the current test as failed.  <br /></td></tr>
 <tr class="memitem:ac14b1acf6ab5851e8fe157b833dbd0a9" id="r_ac14b1acf6ab5851e8fe157b833dbd0a9"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac14b1acf6ab5851e8fe157b833dbd0a9">checkasm_declare</a>(ret, ...)</td></tr>
@@ -114,12 +116,10 @@ Macros</h2></td></tr>
 <tr class="memdesc:a3e7ac86f780a40ccb5bea811092f2fba"><td class="mdescLeft">&#160;</td><td class="mdescRight">Call a function with signal handling.  <br /></td></tr>
 <tr class="memitem:aaa899f97e924bbe86341b2c2e4fd161d" id="r_aaa899f97e924bbe86341b2c2e4fd161d"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aaa899f97e924bbe86341b2c2e4fd161d">checkasm_call_checked</a>(func, ...)</td></tr>
 <tr class="memdesc:aaa899f97e924bbe86341b2c2e4fd161d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Call an assembly function with full validation.  <br /></td></tr>
-<tr class="memitem:a13b6395033f856b633f1d2e7a5f81951" id="r_a13b6395033f856b633f1d2e7a5f81951"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a13b6395033f856b633f1d2e7a5f81951">checkasm_func_ref</a>&#160;&#160;&#160;(*(func_type **) &amp;checkasm_ref_ptr)</td></tr>
+<tr class="memitem:a13b6395033f856b633f1d2e7a5f81951" id="r_a13b6395033f856b633f1d2e7a5f81951"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a13b6395033f856b633f1d2e7a5f81951">checkasm_func_ref</a>&#160;&#160;&#160;((func_type *) <a class="el" href="#a311c987a2fc5ea2ab260151ace94e88d">checkasm_key_ref</a>)</td></tr>
 <tr class="memdesc:a13b6395033f856b633f1d2e7a5f81951"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function pointer to the reference implementation.  <br /></td></tr>
-<tr class="memitem:ae901368af62c0c626ec36aa75bbf4de1" id="r_ae901368af62c0c626ec36aa75bbf4de1"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae901368af62c0c626ec36aa75bbf4de1">checkasm_func_new</a>&#160;&#160;&#160;(*(func_type **) &amp;checkasm_new_ptr)</td></tr>
+<tr class="memitem:ae901368af62c0c626ec36aa75bbf4de1" id="r_ae901368af62c0c626ec36aa75bbf4de1"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae901368af62c0c626ec36aa75bbf4de1">checkasm_func_new</a>&#160;&#160;&#160;((func_type *) <a class="el" href="#a5b65929b4b7cbb7f434111043f0717fc">checkasm_key_new</a>)</td></tr>
 <tr class="memdesc:ae901368af62c0c626ec36aa75bbf4de1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function pointer to the implementation being tested.  <br /></td></tr>
-<tr class="memitem:af89e132503dee480bf6d778f61046083" id="r_af89e132503dee480bf6d778f61046083"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af89e132503dee480bf6d778f61046083">checkasm_check_func</a>(func, ...)</td></tr>
-<tr class="memdesc:af89e132503dee480bf6d778f61046083"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check if a function should be tested and set up function references.  <br /></td></tr>
 <tr class="memitem:a22fdeb651a1cc4ecddaef384da98dada" id="r_a22fdeb651a1cc4ecddaef384da98dada"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a22fdeb651a1cc4ecddaef384da98dada">checkasm_call_ref</a>(...)</td></tr>
 <tr class="memdesc:a22fdeb651a1cc4ecddaef384da98dada"><td class="mdescLeft">&#160;</td><td class="mdescRight">Call the reference implementation.  <br /></td></tr>
 <tr class="memitem:abca61f0321c4258cdc5203c9396fd51a" id="r_abca61f0321c4258cdc5203c9396fd51a"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#abca61f0321c4258cdc5203c9396fd51a">checkasm_call_new</a>(...)</td></tr>
@@ -134,8 +134,6 @@ Macros</h2></td></tr>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>fail</b>&#160;&#160;&#160;<a class="el" href="#a771deac0c048cccc98cf872c7a8d36a3">checkasm_fail</a></td></tr>
 <tr class="memitem:gaaab1e1251312279029290f41c18342d2" id="r_gaaab1e1251312279029290f41c18342d2"><td class="memItemLeft" align="right" valign="top">
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>report</b>&#160;&#160;&#160;<a class="el" href="#a62b0579d89e3dff6c36448d06b393505">checkasm_report</a></td></tr>
-<tr class="memitem:ga66cf8452cb47ecbaae17e57eaef7f447" id="r_ga66cf8452cb47ecbaae17e57eaef7f447"><td class="memItemLeft" align="right" valign="top">
-#define&#160;</td><td class="memItemRight" valign="bottom"><b>check_key</b>&#160;&#160;&#160;<a class="el" href="#a94cee9b8904d7423f190c53e5f88a712">checkasm_check_key</a></td></tr>
 <tr class="memitem:ga67049762865e34f6f8e1aea7650771da" id="r_ga67049762865e34f6f8e1aea7650771da"><td class="memItemLeft" align="right" valign="top">
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>check_func</b>&#160;&#160;&#160;<a class="el" href="#af89e132503dee480bf6d778f61046083">checkasm_check_func</a></td></tr>
 <tr class="memitem:ga391557dbd72903577960ae5dd4868523" id="r_ga391557dbd72903577960ae5dd4868523"><td class="memItemLeft" align="right" valign="top">
@@ -164,16 +162,16 @@ Macros</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a94cee9b8904d7423f190c53e5f88a712" id="r_a94cee9b8904d7423f190c53e5f88a712"><td class="memItemLeft" align="right" valign="top"><a class="el" href="attributes_8h.html#a319a0b6ca88d678f88bc3bb5daa372d3">CHECKASM_API</a> <a class="el" href="checkasm_8h.html#a38851849348fabd0acd8d30b61feeb8c">CheckasmKey</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a94cee9b8904d7423f190c53e5f88a712">checkasm_check_key</a> (<a class="el" href="checkasm_8h.html#a38851849348fabd0acd8d30b61feeb8c">CheckasmKey</a> version, const char *name,...) <a class="el" href="attributes_8h.html#a0897f3510e02dd845bea9db09a466eba">CHECKASM_PRINTF</a>(2</td></tr>
-<tr class="memdesc:a94cee9b8904d7423f190c53e5f88a712"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check if a function version needs to be tested.  <br /></td></tr>
-<tr class="memitem:a42808a03356337f783160a8ff85e44ee" id="r_a42808a03356337f783160a8ff85e44ee"><td class="memItemLeft" align="right" valign="top"><a class="el" href="attributes_8h.html#a319a0b6ca88d678f88bc3bb5daa372d3">CHECKASM_API</a> <a class="el" href="checkasm_8h.html#a38851849348fabd0acd8d30b61feeb8c">CheckasmKey</a> <a class="el" href="attributes_8h.html#a319a0b6ca88d678f88bc3bb5daa372d3">CHECKASM_API</a> int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a42808a03356337f783160a8ff85e44ee">checkasm_fail_func</a> (const char *msg,...) <a class="el" href="attributes_8h.html#a0897f3510e02dd845bea9db09a466eba">CHECKASM_PRINTF</a>(1</td></tr>
-<tr class="memdesc:a42808a03356337f783160a8ff85e44ee"><td class="mdescLeft">&#160;</td><td class="mdescRight">Mark the current function as failed with a custom message.  <br /></td></tr>
+<tr class="memitem:a648d0f2de88d6aba7a1a99418b8f07ec" id="r_a648d0f2de88d6aba7a1a99418b8f07ec"><td class="memItemLeft" align="right" valign="top"><a class="el" href="attributes_8h.html#a319a0b6ca88d678f88bc3bb5daa372d3">CHECKASM_API</a> int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a648d0f2de88d6aba7a1a99418b8f07ec">checkasm_fail_func</a> (const char *msg,...) <a class="el" href="attributes_8h.html#a0897f3510e02dd845bea9db09a466eba">CHECKASM_PRINTF</a>(1</td></tr>
+<tr class="memdesc:a648d0f2de88d6aba7a1a99418b8f07ec"><td class="mdescLeft">&#160;</td><td class="mdescRight">Mark the current function as failed with a custom message.  <br /></td></tr>
 <tr class="memitem:a62b0579d89e3dff6c36448d06b393505" id="r_a62b0579d89e3dff6c36448d06b393505"><td class="memItemLeft" align="right" valign="top"><a class="el" href="attributes_8h.html#a319a0b6ca88d678f88bc3bb5daa372d3">CHECKASM_API</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a62b0579d89e3dff6c36448d06b393505">checkasm_report</a> (const char *name,...) <a class="el" href="attributes_8h.html#a0897f3510e02dd845bea9db09a466eba">CHECKASM_PRINTF</a>(1</td></tr>
 <tr class="memdesc:a62b0579d89e3dff6c36448d06b393505"><td class="mdescLeft">&#160;</td><td class="mdescRight">Report test outcome for a named group of functions.  <br /></td></tr>
 <tr class="memitem:a99afe9b6008a0ffba23777d119de0d6f" id="r_a99afe9b6008a0ffba23777d119de0d6f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="attributes_8h.html#a319a0b6ca88d678f88bc3bb5daa372d3">CHECKASM_API</a> int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a99afe9b6008a0ffba23777d119de0d6f">checkasm_should_fail</a> (<a class="el" href="checkasm_8h.html#a0a3a32a2daca43a3aa11a4d067eddb8a">CheckasmCpu</a> cpu_flags)</td></tr>
 <tr class="memdesc:a99afe9b6008a0ffba23777d119de0d6f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Mark a block of tests as expected to fail.  <br /></td></tr>
-<tr class="memitem:gafd1c64c84b63380cf2efcf76cb532943" id="r_gafd1c64c84b63380cf2efcf76cb532943"><td class="memItemLeft" align="right" valign="top"><a class="el" href="attributes_8h.html#a319a0b6ca88d678f88bc3bb5daa372d3">CHECKASM_API</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__internal.html#gafd1c64c84b63380cf2efcf76cb532943">checkasm_set_signal_handler_state</a> (int enabled)</td></tr>
-<tr class="memdesc:gafd1c64c84b63380cf2efcf76cb532943"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enable or disable signal handling.  <br /></td></tr>
+<tr class="memitem:ga94cee9b8904d7423f190c53e5f88a712" id="r_ga94cee9b8904d7423f190c53e5f88a712"><td class="memItemLeft" align="right" valign="top"><a class="el" href="attributes_8h.html#a319a0b6ca88d678f88bc3bb5daa372d3">CHECKASM_API</a> <a class="el" href="checkasm_8h.html#a38851849348fabd0acd8d30b61feeb8c">CheckasmKey</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__internal.html#ga94cee9b8904d7423f190c53e5f88a712">checkasm_check_key</a> (<a class="el" href="checkasm_8h.html#a38851849348fabd0acd8d30b61feeb8c">CheckasmKey</a> version, const char *name,...) <a class="el" href="attributes_8h.html#a0897f3510e02dd845bea9db09a466eba">CHECKASM_PRINTF</a>(2</td></tr>
+<tr class="memdesc:ga94cee9b8904d7423f190c53e5f88a712"><td class="mdescLeft">&#160;</td><td class="mdescRight">Internal implementation of <a class="el" href="#af89e132503dee480bf6d778f61046083" title="Check if a function should be tested and set up function references.">checkasm_check_func()</a>  <br /></td></tr>
+<tr class="memitem:ga9b2ca4b22ddfe774676d952e9ba435ed" id="r_ga9b2ca4b22ddfe774676d952e9ba435ed"><td class="memItemLeft" align="right" valign="top"><a class="el" href="attributes_8h.html#a319a0b6ca88d678f88bc3bb5daa372d3">CHECKASM_API</a> <a class="el" href="checkasm_8h.html#a38851849348fabd0acd8d30b61feeb8c">CheckasmKey</a> <a class="el" href="attributes_8h.html#a319a0b6ca88d678f88bc3bb5daa372d3">CHECKASM_API</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__internal.html#ga9b2ca4b22ddfe774676d952e9ba435ed">checkasm_set_signal_handler_state</a> (int enabled)</td></tr>
+<tr class="memdesc:ga9b2ca4b22ddfe774676d952e9ba435ed"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enable or disable signal handling.  <br /></td></tr>
 <tr class="memitem:gac7de651fa8a4c075643f4e77ecfef6bf" id="r_gac7de651fa8a4c075643f4e77ecfef6bf"><td class="memItemLeft" align="right" valign="top"><a class="el" href="attributes_8h.html#a319a0b6ca88d678f88bc3bb5daa372d3">CHECKASM_API</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__internal.html#gac7de651fa8a4c075643f4e77ecfef6bf">checkasm_push_stack_guard</a> (uintptr_t guard[2])</td></tr>
 <tr class="memdesc:gac7de651fa8a4c075643f4e77ecfef6bf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Push stack guard values for corruption detection.  <br /></td></tr>
 <tr class="memitem:gaa8844753dc1ae885e1b7f09ef932f141" id="r_gaa8844753dc1ae885e1b7f09ef932f141"><td class="memItemLeft" align="right" valign="top">
@@ -189,6 +187,16 @@ Functions</h2></td></tr>
 <tr class="memitem:ga66198a3187e7668b508f13afe744da95" id="r_ga66198a3187e7668b508f13afe744da95"><td class="memItemLeft" align="right" valign="top">
 <a class="el" href="attributes_8h.html#a319a0b6ca88d678f88bc3bb5daa372d3">CHECKASM_API</a> void&#160;</td><td class="memItemRight" valign="bottom"><b>checkasm_bench_finish</b> (void)</td></tr>
 <tr class="memdesc:ga66198a3187e7668b508f13afe744da95"><td class="mdescLeft">&#160;</td><td class="mdescRight">Finalize and store benchmark results. <br /></td></tr>
+<tr class="memitem:ga3f119cec011f017092cd03ebb08f64f8" id="r_ga3f119cec011f017092cd03ebb08f64f8"><td class="memItemLeft" align="right" valign="top">
+static void&#160;</td><td class="memItemRight" valign="bottom"><b>checkasm_unused</b> (void)</td></tr>
+<tr class="memdesc:ga3f119cec011f017092cd03ebb08f64f8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Suppress unused variable warnings. <br /></td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-var-members" class="groupheader"><a id="var-members" name="var-members"></a>
+Variables</h2></td></tr>
+<tr class="memitem:a311c987a2fc5ea2ab260151ace94e88d" id="r_a311c987a2fc5ea2ab260151ace94e88d"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="checkasm_8h.html#a38851849348fabd0acd8d30b61feeb8c">CheckasmKey</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a311c987a2fc5ea2ab260151ace94e88d">checkasm_key_ref</a></td></tr>
+<tr class="memdesc:a311c987a2fc5ea2ab260151ace94e88d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Key identifying the reference implementation.  <br /></td></tr>
+<tr class="memitem:a5b65929b4b7cbb7f434111043f0717fc" id="r_a5b65929b4b7cbb7f434111043f0717fc"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="checkasm_8h.html#a38851849348fabd0acd8d30b61feeb8c">CheckasmKey</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5b65929b4b7cbb7f434111043f0717fc">checkasm_key_new</a></td></tr>
+<tr class="memdesc:a5b65929b4b7cbb7f434111043f0717fc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Key identifying the implementation being tested.  <br /></td></tr>
 </table>
 <a name="doc-define-members" id="doc-define-members"></a><h2 id="header-doc-define-members" class="groupheader">Macro Definition Documentation</h2>
 <a id="a6f2afbd0d6c3ba180d49cc9396543463" name="a6f2afbd0d6c3ba180d49cc9396543463"></a>
@@ -297,8 +305,8 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <b>Value:</b><div class="fragment"><div class="line"><a class="code hl_define" href="#a69d95c550ee6a2e05b3b1ae88b2d0610">checkasm_bench</a>(<a class="code hl_define" href="#ae901368af62c0c626ec36aa75bbf4de1">checkasm_func_new</a>, __VA_ARGS__)</div>
-<div class="ttc" id="atest_8h_html_a69d95c550ee6a2e05b3b1ae88b2d0610"><div class="ttname"><a href="#a69d95c550ee6a2e05b3b1ae88b2d0610">checkasm_bench</a></div><div class="ttdeci">#define checkasm_bench(func,...)</div><div class="ttdoc">Benchmark a function.</div><div class="ttdef"><b>Definition</b> test.h:362</div></div>
-<div class="ttc" id="atest_8h_html_ae901368af62c0c626ec36aa75bbf4de1"><div class="ttname"><a href="#ae901368af62c0c626ec36aa75bbf4de1">checkasm_func_new</a></div><div class="ttdeci">#define checkasm_func_new</div><div class="ttdoc">Function pointer to the implementation being tested.</div><div class="ttdef"><b>Definition</b> test.h:280</div></div>
+<div class="ttc" id="atest_8h_html_a69d95c550ee6a2e05b3b1ae88b2d0610"><div class="ttname"><a href="#a69d95c550ee6a2e05b3b1ae88b2d0610">checkasm_bench</a></div><div class="ttdeci">#define checkasm_bench(func,...)</div><div class="ttdoc">Benchmark a function.</div><div class="ttdef"><b>Definition</b> test.h:357</div></div>
+<div class="ttc" id="atest_8h_html_ae901368af62c0c626ec36aa75bbf4de1"><div class="ttname"><a href="#ae901368af62c0c626ec36aa75bbf4de1">checkasm_func_new</a></div><div class="ttdeci">#define checkasm_func_new</div><div class="ttdoc">Function pointer to the implementation being tested.</div><div class="ttdef"><b>Definition</b> test.h:307</div></div>
 </div><!-- fragment -->
 <p>Benchmark the optimized implementation. </p>
 <p>Convenience macro that benchmarks the optimized implementation set up by <a class="el" href="#af89e132503dee480bf6d778f61046083" title="Check if a function should be tested and set up function references.">checkasm_check_func()</a>. Equivalent to <a class="el" href="#a69d95c550ee6a2e05b3b1ae88b2d0610" title="Benchmark a function.">checkasm_bench(checkasm_func_new, ...)</a>.</p>
@@ -320,11 +328,11 @@ Functions</h2></td></tr>
 <div class="line"><a class="code hl_function" href="#a62b0579d89e3dff6c36448d06b393505">checkasm_report</a>(<span class="stringliteral">&quot;my_func&quot;</span>);</div>
 <div class="ttc" id="acheckasm_8h_html_ac576caad7a9c4333b1b3f34c345ca48b"><div class="ttname"><a href="checkasm_8h.html#ac576caad7a9c4333b1b3f34c345ca48b">checkasm_get_cpu_flags</a></div><div class="ttdeci">CHECKASM_API CheckasmCpu checkasm_get_cpu_flags(void)</div><div class="ttdoc">Get the current active set of CPU flags.</div></div>
 <div class="ttc" id="agroup__bufcmp_html_gaa1b1c38ee8da84d7a12c2171868c8e1d"><div class="ttname"><a href="group__bufcmp.html#gaa1b1c38ee8da84d7a12c2171868c8e1d">checkasm_check</a></div><div class="ttdeci">#define checkasm_check(type,...)</div><div class="ttdoc">Compare two 2D buffers and fail test if different.</div><div class="ttdef"><b>Definition</b> utils.h:480</div></div>
-<div class="ttc" id="atest_8h_html_a012d866e2f2a5f5ede4b9c2765248e28"><div class="ttname"><a href="#a012d866e2f2a5f5ede4b9c2765248e28">checkasm_bench_new</a></div><div class="ttdeci">#define checkasm_bench_new(...)</div><div class="ttdoc">Benchmark the optimized implementation.</div><div class="ttdef"><b>Definition</b> test.h:406</div></div>
-<div class="ttc" id="atest_8h_html_a22fdeb651a1cc4ecddaef384da98dada"><div class="ttname"><a href="#a22fdeb651a1cc4ecddaef384da98dada">checkasm_call_ref</a></div><div class="ttdeci">#define checkasm_call_ref(...)</div><div class="ttdoc">Call the reference implementation.</div><div class="ttdef"><b>Definition</b> test.h:325</div></div>
+<div class="ttc" id="atest_8h_html_a012d866e2f2a5f5ede4b9c2765248e28"><div class="ttname"><a href="#a012d866e2f2a5f5ede4b9c2765248e28">checkasm_bench_new</a></div><div class="ttdeci">#define checkasm_bench_new(...)</div><div class="ttdoc">Benchmark the optimized implementation.</div><div class="ttdef"><b>Definition</b> test.h:401</div></div>
+<div class="ttc" id="atest_8h_html_a22fdeb651a1cc4ecddaef384da98dada"><div class="ttname"><a href="#a22fdeb651a1cc4ecddaef384da98dada">checkasm_call_ref</a></div><div class="ttdeci">#define checkasm_call_ref(...)</div><div class="ttdoc">Call the reference implementation.</div><div class="ttdef"><b>Definition</b> test.h:321</div></div>
 <div class="ttc" id="atest_8h_html_a62b0579d89e3dff6c36448d06b393505"><div class="ttname"><a href="#a62b0579d89e3dff6c36448d06b393505">checkasm_report</a></div><div class="ttdeci">CHECKASM_API void checkasm_report(const char *name,...) CHECKASM_PRINTF(1</div><div class="ttdoc">Report test outcome for a named group of functions.</div></div>
-<div class="ttc" id="atest_8h_html_abca61f0321c4258cdc5203c9396fd51a"><div class="ttname"><a href="#abca61f0321c4258cdc5203c9396fd51a">checkasm_call_new</a></div><div class="ttdeci">#define checkasm_call_new(...)</div><div class="ttdoc">Call the implementation being tested with validation.</div><div class="ttdef"><b>Definition</b> test.h:340</div></div>
-<div class="ttc" id="atest_8h_html_af89e132503dee480bf6d778f61046083"><div class="ttname"><a href="#af89e132503dee480bf6d778f61046083">checkasm_check_func</a></div><div class="ttdeci">#define checkasm_check_func(func,...)</div><div class="ttdoc">Check if a function should be tested and set up function references.</div><div class="ttdef"><b>Definition</b> test.h:309</div></div>
+<div class="ttc" id="atest_8h_html_abca61f0321c4258cdc5203c9396fd51a"><div class="ttname"><a href="#abca61f0321c4258cdc5203c9396fd51a">checkasm_call_new</a></div><div class="ttdeci">#define checkasm_call_new(...)</div><div class="ttdoc">Call the implementation being tested with validation.</div><div class="ttdef"><b>Definition</b> test.h:336</div></div>
+<div class="ttc" id="atest_8h_html_af89e132503dee480bf6d778f61046083"><div class="ttname"><a href="#af89e132503dee480bf6d778f61046083">checkasm_check_func</a></div><div class="ttdeci">#define checkasm_check_func(func,...)</div><div class="ttdoc">Check if a function should be tested and set up function references.</div><div class="ttdef"><b>Definition</b> test.h:76</div></div>
 </div><!-- fragment --><dl class="section see"><dt>See also</dt><dd><a class="el" href="#a69d95c550ee6a2e05b3b1ae88b2d0610" title="Benchmark a function.">checkasm_bench()</a>, <a class="el" href="#af89e132503dee480bf6d778f61046083" title="Check if a function should be tested and set up function references.">checkasm_check_func()</a> </dd></dl>
 
 </div>
@@ -347,9 +355,9 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<b>Value:</b><div class="fragment"><div class="line">    (<a class="code hl_function" href="group__internal.html#gafd1c64c84b63380cf2efcf76cb532943">checkasm_set_signal_handler_state</a>(1), (func) (__VA_ARGS__));                        \</div>
+<b>Value:</b><div class="fragment"><div class="line">    (<a class="code hl_function" href="group__internal.html#ga9b2ca4b22ddfe774676d952e9ba435ed">checkasm_set_signal_handler_state</a>(1), (func) (__VA_ARGS__));                        \</div>
 <div class="line">    checkasm_set_signal_handler_state(0)</div>
-<div class="ttc" id="agroup__internal_html_gafd1c64c84b63380cf2efcf76cb532943"><div class="ttname"><a href="group__internal.html#gafd1c64c84b63380cf2efcf76cb532943">checkasm_set_signal_handler_state</a></div><div class="ttdeci">CHECKASM_API void checkasm_set_signal_handler_state(int enabled)</div><div class="ttdoc">Enable or disable signal handling.</div></div>
+<div class="ttc" id="agroup__internal_html_ga9b2ca4b22ddfe774676d952e9ba435ed"><div class="ttname"><a href="group__internal.html#ga9b2ca4b22ddfe774676d952e9ba435ed">checkasm_set_signal_handler_state</a></div><div class="ttdeci">CHECKASM_API CheckasmKey CHECKASM_API void checkasm_set_signal_handler_state(int enabled)</div><div class="ttdoc">Enable or disable signal handling.</div></div>
 </div><!-- fragment -->
 <p>Call a function with signal handling. </p>
 <p>Calls an arbitrary function while handling signals (crashes, segfaults, etc.). Use this for calling the reference implementation or other nominally-safe code. For testing assembly/optimized implementations, use <a class="el" href="#aaa899f97e924bbe86341b2c2e4fd161d" title="Call an assembly function with full validation.">checkasm_call_checked()</a> instead, which provides additional validation for common assembly mistakes.</p>
@@ -383,7 +391,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<b>Value:</b><div class="fragment"><div class="line">      (<a class="code hl_function" href="group__internal.html#gafd1c64c84b63380cf2efcf76cb532943">checkasm_set_signal_handler_state</a>(1),                                             \</div>
+<b>Value:</b><div class="fragment"><div class="line">      (<a class="code hl_function" href="group__internal.html#ga9b2ca4b22ddfe774676d952e9ba435ed">checkasm_set_signal_handler_state</a>(1),                                             \</div>
 <div class="line">       checkasm_push_stack_guard((uintptr_t[16]) { 0, 0 }),                              \</div>
 <div class="line">       ((func_type *) (func))(__VA_ARGS__));                                             \</div>
 <div class="line">      checkasm_pop_stack_guard();                                                        \</div>
@@ -417,8 +425,8 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<b>Value:</b><div class="fragment"><div class="line">    <a class="code hl_define" href="#aaa899f97e924bbe86341b2c2e4fd161d">checkasm_call_checked</a>((func_type *) checkasm_new_ptr, __VA_ARGS__)</div>
-<div class="ttc" id="atest_8h_html_aaa899f97e924bbe86341b2c2e4fd161d"><div class="ttname"><a href="#aaa899f97e924bbe86341b2c2e4fd161d">checkasm_call_checked</a></div><div class="ttdeci">#define checkasm_call_checked(func,...)</div><div class="ttdoc">Call an assembly function with full validation.</div><div class="ttdef"><b>Definition</b> test.h:215</div></div>
+<b>Value:</b><div class="fragment"><div class="line"><a class="code hl_define" href="#aaa899f97e924bbe86341b2c2e4fd161d">checkasm_call_checked</a>(<a class="code hl_define" href="#ae901368af62c0c626ec36aa75bbf4de1">checkasm_func_new</a>, __VA_ARGS__)</div>
+<div class="ttc" id="atest_8h_html_aaa899f97e924bbe86341b2c2e4fd161d"><div class="ttname"><a href="#aaa899f97e924bbe86341b2c2e4fd161d">checkasm_call_checked</a></div><div class="ttdeci">#define checkasm_call_checked(func,...)</div><div class="ttdoc">Call an assembly function with full validation.</div><div class="ttdef"><b>Definition</b> test.h:229</div></div>
 </div><!-- fragment -->
 <p>Call the implementation being tested with validation. </p>
 <p>Calls the optimized implementation being tested with the specified arguments, including full validation for register clobbering, stack corruption, etc. Must be preceded by a successful <a class="el" href="#af89e132503dee480bf6d778f61046083" title="Check if a function should be tested and set up function references.">checkasm_check_func()</a> call.</p>
@@ -447,8 +455,9 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<b>Value:</b><div class="fragment"><div class="line"><a class="code hl_define" href="#a3e7ac86f780a40ccb5bea811092f2fba">checkasm_call</a>((func_type *) checkasm_ref_ptr, __VA_ARGS__)</div>
-<div class="ttc" id="atest_8h_html_a3e7ac86f780a40ccb5bea811092f2fba"><div class="ttname"><a href="#a3e7ac86f780a40ccb5bea811092f2fba">checkasm_call</a></div><div class="ttdeci">#define checkasm_call(func,...)</div><div class="ttdoc">Call a function with signal handling.</div><div class="ttdef"><b>Definition</b> test.h:195</div></div>
+<b>Value:</b><div class="fragment"><div class="line"><a class="code hl_define" href="#a3e7ac86f780a40ccb5bea811092f2fba">checkasm_call</a>(<a class="code hl_define" href="#a13b6395033f856b633f1d2e7a5f81951">checkasm_func_ref</a>, __VA_ARGS__)</div>
+<div class="ttc" id="atest_8h_html_a13b6395033f856b633f1d2e7a5f81951"><div class="ttname"><a href="#a13b6395033f856b633f1d2e7a5f81951">checkasm_func_ref</a></div><div class="ttdeci">#define checkasm_func_ref</div><div class="ttdoc">Function pointer to the reference implementation.</div><div class="ttdef"><b>Definition</b> test.h:293</div></div>
+<div class="ttc" id="atest_8h_html_a3e7ac86f780a40ccb5bea811092f2fba"><div class="ttname"><a href="#a3e7ac86f780a40ccb5bea811092f2fba">checkasm_call</a></div><div class="ttdeci">#define checkasm_call(func,...)</div><div class="ttdoc">Call a function with signal handling.</div><div class="ttdef"><b>Definition</b> test.h:209</div></div>
 </div><!-- fragment -->
 <p>Call the reference implementation. </p>
 <p>Calls the reference (C) implementation with the specified arguments. Must be preceded by a successful <a class="el" href="#af89e132503dee480bf6d778f61046083" title="Check if a function should be tested and set up function references.">checkasm_check_func()</a> call.</p>
@@ -481,17 +490,20 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<b>Value:</b><div class="fragment"><div class="line">    (checkasm_ref_ptr = (<span class="keywordtype">void</span> *) <a class="code hl_function" href="#a94cee9b8904d7423f190c53e5f88a712">checkasm_check_key</a>(                                     \</div>
-<div class="line">         (<a class="code hl_typedef" href="checkasm_8h.html#a38851849348fabd0acd8d30b61feeb8c">CheckasmKey</a>) (checkasm_new_ptr = func), __VA_ARGS__))</div>
+<b>Value:</b><div class="fragment"><div class="line">    (<a class="code hl_variable" href="#a311c987a2fc5ea2ab260151ace94e88d">checkasm_key_ref</a>                                                                    \</div>
+<div class="line">     = <a class="code hl_function" href="group__internal.html#ga94cee9b8904d7423f190c53e5f88a712">checkasm_check_key</a>((<a class="code hl_variable" href="#a5b65929b4b7cbb7f434111043f0717fc">checkasm_key_new</a> = (<a class="code hl_typedef" href="checkasm_8h.html#a38851849348fabd0acd8d30b61feeb8c">CheckasmKey</a>) (func)), __VA_ARGS__))</div>
 <div class="ttc" id="acheckasm_8h_html_a38851849348fabd0acd8d30b61feeb8c"><div class="ttname"><a href="checkasm_8h.html#a38851849348fabd0acd8d30b61feeb8c">CheckasmKey</a></div><div class="ttdeci">uintptr_t CheckasmKey</div><div class="ttdoc">Opaque type used to identify function implementations.</div><div class="ttdef"><b>Definition</b> checkasm.h:60</div></div>
-<div class="ttc" id="atest_8h_html_a94cee9b8904d7423f190c53e5f88a712"><div class="ttname"><a href="#a94cee9b8904d7423f190c53e5f88a712">checkasm_check_key</a></div><div class="ttdeci">CHECKASM_API CheckasmKey checkasm_check_key(CheckasmKey version, const char *name,...) CHECKASM_PRINTF(2</div><div class="ttdoc">Check if a function version needs to be tested.</div></div>
+<div class="ttc" id="agroup__internal_html_ga94cee9b8904d7423f190c53e5f88a712"><div class="ttname"><a href="group__internal.html#ga94cee9b8904d7423f190c53e5f88a712">checkasm_check_key</a></div><div class="ttdeci">CHECKASM_API CheckasmKey checkasm_check_key(CheckasmKey version, const char *name,...) CHECKASM_PRINTF(2</div><div class="ttdoc">Internal implementation of checkasm_check_func()</div></div>
+<div class="ttc" id="atest_8h_html_a311c987a2fc5ea2ab260151ace94e88d"><div class="ttname"><a href="#a311c987a2fc5ea2ab260151ace94e88d">checkasm_key_ref</a></div><div class="ttdeci">static CheckasmKey checkasm_key_ref</div><div class="ttdoc">Key identifying the reference implementation.</div><div class="ttdef"><b>Definition</b> test.h:273</div></div>
+<div class="ttc" id="atest_8h_html_a5b65929b4b7cbb7f434111043f0717fc"><div class="ttname"><a href="#a5b65929b4b7cbb7f434111043f0717fc">checkasm_key_new</a></div><div class="ttdeci">static CheckasmKey checkasm_key_new</div><div class="ttdoc">Key identifying the implementation being tested.</div><div class="ttdef"><b>Definition</b> test.h:282</div></div>
 </div><!-- fragment -->
 <p>Check if a function should be tested and set up function references. </p>
-<p>Determines if the given function implementation should be tested, and if so, sets up both the reference and optimized function pointers for subsequent calls to <a class="el" href="#a22fdeb651a1cc4ecddaef384da98dada" title="Call the reference implementation.">checkasm_call_ref()</a> and <a class="el" href="#abca61f0321c4258cdc5203c9396fd51a" title="Call the implementation being tested with validation.">checkasm_call_new()</a>.</p>
+<p>Determines if the given function implementation should be tested, and if so, sets up the function pointers for subsequent calls to <a class="el" href="#a22fdeb651a1cc4ecddaef384da98dada" title="Call the reference implementation.">checkasm_call_ref()</a> and <a class="el" href="#abca61f0321c4258cdc5203c9396fd51a" title="Call the implementation being tested with validation.">checkasm_call_new()</a>.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">func</td><td>Function pointer to the implementation to test </td></tr>
-    <tr><td class="paramname">...</td><td>Printf-style format string and arguments for the function name </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">func</td><td>Function pointer (or arbitrary <a class="el" href="checkasm_8h.html#a38851849348fabd0acd8d30b61feeb8c" title="Opaque type used to identify function implementations.">CheckasmKey</a>) to test, or 0 to skip </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">name</td><td>Printf-style format string for the function name </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">...</td><td>Format arguments for the function name </td></tr>
   </table>
   </dd>
 </dl>
@@ -506,8 +518,10 @@ Functions</h2></td></tr>
 <div class="line">    }</div>
 <div class="line">}</div>
 <div class="line"><a class="code hl_function" href="#a62b0579d89e3dff6c36448d06b393505">checkasm_report</a>(<span class="stringliteral">&quot;my_func&quot;</span>);</div>
-<div class="ttc" id="atest_8h_html_a771deac0c048cccc98cf872c7a8d36a3"><div class="ttname"><a href="#a771deac0c048cccc98cf872c7a8d36a3">checkasm_fail</a></div><div class="ttdeci">#define checkasm_fail()</div><div class="ttdoc">Mark the current test as failed.</div><div class="ttdef"><b>Definition</b> test.h:103</div></div>
-</div><!-- fragment --><dl class="section see"><dt>See also</dt><dd><a class="el" href="#a22fdeb651a1cc4ecddaef384da98dada" title="Call the reference implementation.">checkasm_call_ref()</a>, <a class="el" href="#abca61f0321c4258cdc5203c9396fd51a" title="Call the implementation being tested with validation.">checkasm_call_new()</a> </dd></dl>
+<div class="ttc" id="atest_8h_html_a771deac0c048cccc98cf872c7a8d36a3"><div class="ttname"><a href="#a771deac0c048cccc98cf872c7a8d36a3">checkasm_fail</a></div><div class="ttdeci">#define checkasm_fail()</div><div class="ttdoc">Mark the current test as failed.</div><div class="ttdef"><b>Definition</b> test.h:116</div></div>
+</div><!-- fragment --><dl class="section see"><dt>See also</dt><dd><a class="el" href="#a13b6395033f856b633f1d2e7a5f81951" title="Function pointer to the reference implementation.">checkasm_func_ref</a>, <a class="el" href="#ae901368af62c0c626ec36aa75bbf4de1" title="Function pointer to the implementation being tested.">checkasm_func_new</a> </dd>
+<dd>
+<a class="el" href="#a22fdeb651a1cc4ecddaef384da98dada" title="Call the reference implementation.">checkasm_call_ref()</a>, <a class="el" href="#abca61f0321c4258cdc5203c9396fd51a" title="Call the implementation being tested with validation.">checkasm_call_new()</a> </dd></dl>
 
 </div>
 </div>
@@ -530,7 +544,8 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <b>Value:</b><div class="fragment"><div class="line">    checkasm_declare_impl(ret, __VA_ARGS__);                                             \</div>
-<div class="line">    <span class="keyword">typedef</span> ret func_type(__VA_ARGS__)</div>
+<div class="line">    <span class="keyword">typedef</span> ret func_type(__VA_ARGS__);                                                  \</div>
+<div class="line">    (void) ((func_type *) NULL)</div>
 </div><!-- fragment -->
 <p>Declare a function signature for testing. </p>
 <p>Declares the function prototype that will be tested. This must be called before using <a class="el" href="#aaa899f97e924bbe86341b2c2e4fd161d" title="Call an assembly function with full validation.">checkasm_call_checked()</a>, <a class="el" href="#a22fdeb651a1cc4ecddaef384da98dada" title="Call the reference implementation.">checkasm_call_ref()</a>, or <a class="el" href="#abca61f0321c4258cdc5203c9396fd51a" title="Call the implementation being tested with validation.">checkasm_call_new()</a>. The first argument is the return type, and remaining arguments are the function parameters (naming parameters is optional).</p>
@@ -574,7 +589,7 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <b>Value:</b><div class="fragment"><div class="line"><a class="code hl_define" href="#ac14b1acf6ab5851e8fe157b833dbd0a9">checkasm_declare</a>(ret, __VA_ARGS__)</div>
-<div class="ttc" id="atest_8h_html_ac14b1acf6ab5851e8fe157b833dbd0a9"><div class="ttname"><a href="#ac14b1acf6ab5851e8fe157b833dbd0a9">checkasm_declare</a></div><div class="ttdeci">#define checkasm_declare(ret,...)</div><div class="ttdoc">Declare a function signature for testing.</div><div class="ttdef"><b>Definition</b> test.h:149</div></div>
+<div class="ttc" id="atest_8h_html_ac14b1acf6ab5851e8fe157b833dbd0a9"><div class="ttname"><a href="#ac14b1acf6ab5851e8fe157b833dbd0a9">checkasm_declare</a></div><div class="ttdeci">#define checkasm_declare(ret,...)</div><div class="ttdoc">Declare a function signature for testing.</div><div class="ttdef"><b>Definition</b> test.h:162</div></div>
 </div><!-- fragment -->
 <p>Declare signature for non-ABI compliant MMX functions (x86 only) </p>
 <p>Variant of <a class="el" href="#ac14b1acf6ab5851e8fe157b833dbd0a9" title="Declare a function signature for testing.">checkasm_declare()</a> for MMX functions that omit calling emms before returning to the caller. This is used for optimized MMX kernels that expect the caller to run emms manually.</p>
@@ -607,11 +622,11 @@ On non-x86 platforms, this is equivalent to <a class="el" href="#ac14b1acf6ab585
         </tr>
       </table>
 </div><div class="memdoc">
-<b>Value:</b><div class="fragment"><div class="line"><a class="code hl_function" href="#a42808a03356337f783160a8ff85e44ee">checkasm_fail_func</a>(<span class="stringliteral">&quot;%s:%d&quot;</span>, __FILE__, __LINE__)</div>
-<div class="ttc" id="atest_8h_html_a42808a03356337f783160a8ff85e44ee"><div class="ttname"><a href="#a42808a03356337f783160a8ff85e44ee">checkasm_fail_func</a></div><div class="ttdeci">CHECKASM_API CheckasmKey CHECKASM_API int checkasm_fail_func(const char *msg,...) CHECKASM_PRINTF(1</div><div class="ttdoc">Mark the current function as failed with a custom message.</div></div>
+<b>Value:</b><div class="fragment"><div class="line"><a class="code hl_function" href="#a648d0f2de88d6aba7a1a99418b8f07ec">checkasm_fail_func</a>(<span class="stringliteral">&quot;%s:%d&quot;</span>, __FILE__, __LINE__)</div>
+<div class="ttc" id="atest_8h_html_a648d0f2de88d6aba7a1a99418b8f07ec"><div class="ttname"><a href="#a648d0f2de88d6aba7a1a99418b8f07ec">checkasm_fail_func</a></div><div class="ttdeci">CHECKASM_API int checkasm_fail_func(const char *msg,...) CHECKASM_PRINTF(1</div><div class="ttdoc">Mark the current function as failed with a custom message.</div></div>
 </div><!-- fragment -->
 <p>Mark the current test as failed. </p>
-<p>Records a test failure with the current file and line number. This is the most common way to indicate test failure. The test * will continue executing, but any future calls to <a class="el" href="#a94cee9b8904d7423f190c53e5f88a712" title="Check if a function version needs to be tested.">checkasm_check_key()</a> (or <a class="el" href="#af89e132503dee480bf6d778f61046083" title="Check if a function should be tested and set up function references.">checkasm_check_func()</a>) for this function will return 0.</p>
+<p>Records a test failure with the current file and line number. This is the most common way to indicate test failure. The test will continue executing, but any future calls to <a class="el" href="#af89e132503dee480bf6d778f61046083" title="Check if a function should be tested and set up function references.">checkasm_check_func()</a> for this function will return 0.</p>
 <dl class="section return"><dt>Returns</dt><dd>1 if the failure details should be printed verbosely, 0 otherwise</dd></dl>
 <div class="fragment"><div class="line"><span class="keywordflow">if</span> (output != expected) {</div>
 <div class="line">    <span class="keywordflow">if</span> (<a class="code hl_define" href="#a771deac0c048cccc98cf872c7a8d36a3">checkasm_fail</a>())</div>
@@ -627,14 +642,14 @@ On non-x86 platforms, this is equivalent to <a class="el" href="#ac14b1acf6ab585
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">#define checkasm_func_new&#160;&#160;&#160;(*(func_type **) &amp;checkasm_new_ptr)</td>
+          <td class="memname">#define checkasm_func_new&#160;&#160;&#160;((func_type *) <a class="el" href="#a5b65929b4b7cbb7f434111043f0717fc">checkasm_key_new</a>)</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 <p>Function pointer to the implementation being tested. </p>
-<p>Provides access to the optimized (assembly/SIMD) implementation being tested, cast to the appropriate function type. Set by <a class="el" href="#af89e132503dee480bf6d778f61046083" title="Check if a function should be tested and set up function references.">checkasm_check_func()</a>.</p>
-<dl class="section note"><dt>Note</dt><dd>This may be assigned to by the user in order to (temporarily) override the implementation being tested.</dd></dl>
+<p>This is just a typed version of checkasm_key_new, cast to the type declared by <a class="el" href="#ac14b1acf6ab5851e8fe157b833dbd0a9" title="Declare a function signature for testing.">checkasm_declare()</a>.</p>
+<dl class="section note"><dt>Note</dt><dd>This is read-only. To test a different function, use <a class="el" href="#aaa899f97e924bbe86341b2c2e4fd161d" title="Call an assembly function with full validation.">checkasm_call_checked()</a> instead of <a class="el" href="#abca61f0321c4258cdc5203c9396fd51a" title="Call the implementation being tested with validation.">checkasm_call_new()</a>.</dd></dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="#a13b6395033f856b633f1d2e7a5f81951" title="Function pointer to the reference implementation.">checkasm_func_ref()</a>, <a class="el" href="#af89e132503dee480bf6d778f61046083" title="Check if a function should be tested and set up function references.">checkasm_check_func()</a> </dd></dl>
 
 </div>
@@ -646,67 +661,26 @@ On non-x86 platforms, this is equivalent to <a class="el" href="#ac14b1acf6ab585
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">#define checkasm_func_ref&#160;&#160;&#160;(*(func_type **) &amp;checkasm_ref_ptr)</td>
+          <td class="memname">#define checkasm_func_ref&#160;&#160;&#160;((func_type *) <a class="el" href="#a311c987a2fc5ea2ab260151ace94e88d">checkasm_key_ref</a>)</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 <p>Function pointer to the reference implementation. </p>
-<p>Provides access to the reference (C) implementation of the function being tested, cast to the appropriate function type. Set by <a class="el" href="#af89e132503dee480bf6d778f61046083" title="Check if a function should be tested and set up function references.">checkasm_check_func()</a>.</p>
-<dl class="section note"><dt>Note</dt><dd>This may be assigned to by the user in order to (temporarily) override the reference implementation used for testing.</dd></dl>
+<p>This is just a typed version of checkasm_key_ref, cast to the type declared by <a class="el" href="#ac14b1acf6ab5851e8fe157b833dbd0a9" title="Declare a function signature for testing.">checkasm_declare()</a>.</p>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="#ae901368af62c0c626ec36aa75bbf4de1" title="Function pointer to the implementation being tested.">checkasm_func_new()</a>, <a class="el" href="#af89e132503dee480bf6d778f61046083" title="Check if a function should be tested and set up function references.">checkasm_check_func()</a> </dd></dl>
 
 </div>
 </div>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
-<a id="a94cee9b8904d7423f190c53e5f88a712" name="a94cee9b8904d7423f190c53e5f88a712"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a94cee9b8904d7423f190c53e5f88a712">&#9670;&#160;</a></span>checkasm_check_key()</h2>
+<a id="a648d0f2de88d6aba7a1a99418b8f07ec" name="a648d0f2de88d6aba7a1a99418b8f07ec"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a648d0f2de88d6aba7a1a99418b8f07ec">&#9670;&#160;</a></span>checkasm_fail_func()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="attributes_8h.html#a319a0b6ca88d678f88bc3bb5daa372d3">CHECKASM_API</a> <a class="el" href="checkasm_8h.html#a38851849348fabd0acd8d30b61feeb8c">CheckasmKey</a> checkasm_check_key </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="checkasm_8h.html#a38851849348fabd0acd8d30b61feeb8c">CheckasmKey</a></td>          <td class="paramname"><span class="paramname"><em>version</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const char *</td>          <td class="paramname"><span class="paramname"><em>name</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"></td>          <td class="paramname"><span class="paramname"><em>...</em></span>&#160;)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Check if a function version needs to be tested. </p>
-<p>Determines whether the specified function implementation should be tested based on the current CPU flags and test patterns. If testing should proceed, returns the key identifying the reference implementation to compare against.</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">version</td><td>Key identifying the function version to test (or 0 to skip) </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">name</td><td>Printf-style format string for the function name </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">...</td><td>Format arguments for the function name </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>Key identifying the reference version if testing should proceed, or 0 if testing should be skipped</dd></dl>
-<dl class="section note"><dt>Note</dt><dd>This is typically called via <a class="el" href="#af89e132503dee480bf6d778f61046083" title="Check if a function should be tested and set up function references.">checkasm_check_func()</a> rather than directly. </dd></dl>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="#af89e132503dee480bf6d778f61046083" title="Check if a function should be tested and set up function references.">checkasm_check_func()</a> </dd></dl>
-
-</div>
-</div>
-<a id="a42808a03356337f783160a8ff85e44ee" name="a42808a03356337f783160a8ff85e44ee"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a42808a03356337f783160a8ff85e44ee">&#9670;&#160;</a></span>checkasm_fail_func()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="attributes_8h.html#a319a0b6ca88d678f88bc3bb5daa372d3">CHECKASM_API</a> <a class="el" href="checkasm_8h.html#a38851849348fabd0acd8d30b61feeb8c">CheckasmKey</a> <a class="el" href="attributes_8h.html#a319a0b6ca88d678f88bc3bb5daa372d3">CHECKASM_API</a> int checkasm_fail_func </td>
+          <td class="memname"><a class="el" href="attributes_8h.html#a319a0b6ca88d678f88bc3bb5daa372d3">CHECKASM_API</a> int checkasm_fail_func </td>
           <td>(</td>
           <td class="paramtype">const char *</td>          <td class="paramname"><span class="paramname"><em>msg</em></span>, </td>
         </tr>
@@ -729,7 +703,7 @@ On non-x86 platforms, this is equivalent to <a class="el" href="#ac14b1acf6ab585
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>1 if the failure details should be printed verbosely, 0 otherwise</dd></dl>
 <div class="fragment"><div class="line"><span class="keywordflow">if</span> (output != expected)</div>
-<div class="line">   <a class="code hl_function" href="#a42808a03356337f783160a8ff85e44ee">checkasm_fail_func</a>(<span class="stringliteral">&quot;%s:%d&quot;</span>, filename, line);</div>
+<div class="line">   <a class="code hl_function" href="#a648d0f2de88d6aba7a1a99418b8f07ec">checkasm_fail_func</a>(<span class="stringliteral">&quot;%s:%d&quot;</span>, filename, line);</div>
 </div><!-- fragment --><dl class="section note"><dt>Note</dt><dd>This is typically called via <a class="el" href="#a771deac0c048cccc98cf872c7a8d36a3" title="Mark the current test as failed.">checkasm_fail()</a> rather than directly. </dd></dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="#a771deac0c048cccc98cf872c7a8d36a3" title="Mark the current test as failed.">checkasm_fail()</a> </dd></dl>
 
@@ -808,6 +782,59 @@ This is not normally useful for end users; it is mainly defined for use inside c
 <div class="line">}</div>
 <div class="ttc" id="atest_8h_html_a99afe9b6008a0ffba23777d119de0d6f"><div class="ttname"><a href="#a99afe9b6008a0ffba23777d119de0d6f">checkasm_should_fail</a></div><div class="ttdeci">CHECKASM_API int checkasm_should_fail(CheckasmCpu cpu_flags)</div><div class="ttdoc">Mark a block of tests as expected to fail.</div></div>
 </div><!-- fragment --> 
+</div>
+</div>
+<a name="doc-var-members" id="doc-var-members"></a><h2 id="header-doc-var-members" class="groupheader">Variable Documentation</h2>
+<a id="a5b65929b4b7cbb7f434111043f0717fc" name="a5b65929b4b7cbb7f434111043f0717fc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5b65929b4b7cbb7f434111043f0717fc">&#9670;&#160;</a></span>checkasm_key_new</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="checkasm_8h.html#a38851849348fabd0acd8d30b61feeb8c">CheckasmKey</a> checkasm_key_new</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Key identifying the implementation being tested. </p>
+<p>Set by <a class="el" href="#af89e132503dee480bf6d778f61046083" title="Check if a function should be tested and set up function references.">checkasm_check_func()</a> to point to the key passed to it.</p>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="#af89e132503dee480bf6d778f61046083" title="Check if a function should be tested and set up function references.">checkasm_check_func()</a>, <a class="el" href="#ae901368af62c0c626ec36aa75bbf4de1" title="Function pointer to the implementation being tested.">checkasm_func_new</a>, <a class="el" href="#a311c987a2fc5ea2ab260151ace94e88d" title="Key identifying the reference implementation.">checkasm_key_ref</a> </dd></dl>
+
+</div>
+</div>
+<a id="a311c987a2fc5ea2ab260151ace94e88d" name="a311c987a2fc5ea2ab260151ace94e88d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a311c987a2fc5ea2ab260151ace94e88d">&#9670;&#160;</a></span>checkasm_key_ref</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="checkasm_8h.html#a38851849348fabd0acd8d30b61feeb8c">CheckasmKey</a> checkasm_key_ref</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Key identifying the reference implementation. </p>
+<p>Set by <a class="el" href="#af89e132503dee480bf6d778f61046083" title="Check if a function should be tested and set up function references.">checkasm_check_func()</a> to point to the reference key for the function currently being tested.</p>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="#af89e132503dee480bf6d778f61046083" title="Check if a function should be tested and set up function references.">checkasm_check_func()</a>, <a class="el" href="#a13b6395033f856b633f1d2e7a5f81951" title="Function pointer to the reference implementation.">checkasm_func_ref</a>, <a class="el" href="#a5b65929b4b7cbb7f434111043f0717fc" title="Key identifying the implementation being tested.">checkasm_key_new</a> </dd></dl>
+
 </div>
 </div>
 </div><!-- contents -->

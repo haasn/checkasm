@@ -12,5 +12,6 @@ var searchData=
   ['func_9',['func',['../structCheckasmTest.html#a1dcc3d7347421f6c193a75e004d5918b',1,'CheckasmTest']]],
   ['function_5fpattern_10',['function_pattern',['../structCheckasmConfig.html#adad1d088e9f8ef3011512d2a512393e6',1,'CheckasmConfig']]],
   ['functions_11',['Functions',['../integration.html#selecting_functions',1,'Selecting Functions'],['../writing_tests.html#pattern_state',1,'State-Based Functions']]],
-  ['functions_20x86_12',['MMX Functions (x86)',['../writing_tests.html#adv_mmx',1,'']]]
+  ['functions_20through_20wrappers_12',['Calling Functions Through Wrappers',['../writing_tests.html#adv_indirect',1,'']]],
+  ['functions_20x86_13',['MMX Functions (x86)',['../writing_tests.html#adv_mmx',1,'']]]
 ];

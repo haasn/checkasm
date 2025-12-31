@@ -9,9 +9,10 @@ var searchData=
   ['testing_20multiple_20configurations_6',['Testing Multiple Configurations',['../writing_tests.html#bp_test_loops',1,'']]],
   ['tests_7',['Tests',['../integration.html#organizing_tests',1,'Organizing Multiple Tests'],['../writing_tests.html',1,'Writing Tests']]],
   ['the_20test_8',['2. Write the Test',['../getting_started.html#quick_start2',1,'']]],
-  ['timer_20resolution_9',['Timer Resolution',['../benchmarking.html#adv_timer',1,'']]],
-  ['tips_10',['Benchmarking Tips',['../writing_tests.html#tips_bench',1,'']]],
-  ['tips_20and_20tricks_11',['Tips and Tricks',['../writing_tests.html#tips_tricks',1,'Tips and Tricks'],['../benchmarking.html#bench_tips',1,'Tips and Tricks']]],
-  ['topics_12',['Topics',['../writing_tests.html#advanced_topics',1,'Advanced Topics'],['../benchmarking.html#bench_advanced',1,'Advanced Topics']]],
-  ['tricks_13',['Tricks',['../writing_tests.html#tips_tricks',1,'Tips and Tricks'],['../benchmarking.html#bench_tips',1,'Tips and Tricks']]]
+  ['through_20wrappers_9',['Calling Functions Through Wrappers',['../writing_tests.html#adv_indirect',1,'']]],
+  ['timer_20resolution_10',['Timer Resolution',['../benchmarking.html#adv_timer',1,'']]],
+  ['tips_11',['Benchmarking Tips',['../writing_tests.html#tips_bench',1,'']]],
+  ['tips_20and_20tricks_12',['Tips and Tricks',['../writing_tests.html#tips_tricks',1,'Tips and Tricks'],['../benchmarking.html#bench_tips',1,'Tips and Tricks']]],
+  ['topics_13',['Topics',['../writing_tests.html#advanced_topics',1,'Advanced Topics'],['../benchmarking.html#bench_advanced',1,'Advanced Topics']]],
+  ['tricks_14',['Tricks',['../writing_tests.html#tips_tricks',1,'Tips and Tricks'],['../benchmarking.html#bench_tips',1,'Tips and Tricks']]]
 ];

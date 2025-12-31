@@ -18,10 +18,13 @@ var test_8h =
     [ "checkasm_bench_func", "group__internal.html#ga36759be219847b69c2a2e661cd2d262c", null ],
     [ "checkasm_bench_runs", "group__internal.html#gab897e3201799c0bc3a5c7ff1cf379425", null ],
     [ "checkasm_bench_update", "group__internal.html#ga6ebc6985dce9c0789e9b4707d6a05ed9", null ],
-    [ "checkasm_check_key", "test_8h.html#a94cee9b8904d7423f190c53e5f88a712", null ],
-    [ "checkasm_fail_func", "test_8h.html#a42808a03356337f783160a8ff85e44ee", null ],
+    [ "checkasm_check_key", "group__internal.html#ga94cee9b8904d7423f190c53e5f88a712", null ],
+    [ "checkasm_fail_func", "test_8h.html#a648d0f2de88d6aba7a1a99418b8f07ec", null ],
     [ "checkasm_push_stack_guard", "group__internal.html#gac7de651fa8a4c075643f4e77ecfef6bf", null ],
     [ "checkasm_report", "test_8h.html#a62b0579d89e3dff6c36448d06b393505", null ],
-    [ "checkasm_set_signal_handler_state", "group__internal.html#gafd1c64c84b63380cf2efcf76cb532943", null ],
-    [ "checkasm_should_fail", "test_8h.html#a99afe9b6008a0ffba23777d119de0d6f", null ]
+    [ "checkasm_set_signal_handler_state", "group__internal.html#ga9b2ca4b22ddfe774676d952e9ba435ed", null ],
+    [ "checkasm_should_fail", "test_8h.html#a99afe9b6008a0ffba23777d119de0d6f", null ],
+    [ "checkasm_unused", "group__internal.html#ga3f119cec011f017092cd03ebb08f64f8", null ],
+    [ "checkasm_key_new", "test_8h.html#a5b65929b4b7cbb7f434111043f0717fc", null ],
+    [ "checkasm_key_ref", "test_8h.html#a311c987a2fc5ea2ab260151ace94e88d", null ]
 ];

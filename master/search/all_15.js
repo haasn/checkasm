@@ -12,9 +12,10 @@ var searchData=
   ['tests_9',['Tests',['../integration.html#organizing_tests',1,'Organizing Multiple Tests'],['../writing_tests.html',1,'Writing Tests']]],
   ['tests_10',['tests',['../structCheckasmConfig.html#afb0baa2cb52ebd4bd596b5bd4f44065a',1,'CheckasmConfig']]],
   ['the_20test_11',['2. Write the Test',['../getting_started.html#quick_start2',1,'']]],
-  ['timer_20resolution_12',['Timer Resolution',['../benchmarking.html#adv_timer',1,'']]],
-  ['tips_13',['Benchmarking Tips',['../writing_tests.html#tips_bench',1,'']]],
-  ['tips_20and_20tricks_14',['Tips and Tricks',['../writing_tests.html#tips_tricks',1,'Tips and Tricks'],['../benchmarking.html#bench_tips',1,'Tips and Tricks']]],
-  ['topics_15',['Topics',['../writing_tests.html#advanced_topics',1,'Advanced Topics'],['../benchmarking.html#bench_advanced',1,'Advanced Topics']]],
-  ['tricks_16',['Tricks',['../writing_tests.html#tips_tricks',1,'Tips and Tricks'],['../benchmarking.html#bench_tips',1,'Tips and Tricks']]]
+  ['through_20wrappers_12',['Calling Functions Through Wrappers',['../writing_tests.html#adv_indirect',1,'']]],
+  ['timer_20resolution_13',['Timer Resolution',['../benchmarking.html#adv_timer',1,'']]],
+  ['tips_14',['Benchmarking Tips',['../writing_tests.html#tips_bench',1,'']]],
+  ['tips_20and_20tricks_15',['Tips and Tricks',['../writing_tests.html#tips_tricks',1,'Tips and Tricks'],['../benchmarking.html#bench_tips',1,'Tips and Tricks']]],
+  ['topics_16',['Topics',['../writing_tests.html#advanced_topics',1,'Advanced Topics'],['../benchmarking.html#bench_advanced',1,'Advanced Topics']]],
+  ['tricks_17',['Tricks',['../writing_tests.html#tips_tricks',1,'Tips and Tricks'],['../benchmarking.html#bench_tips',1,'Tips and Tricks']]]
 ];
