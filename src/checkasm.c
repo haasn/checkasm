@@ -908,33 +908,43 @@ CheckasmKey checkasm_check_key(const CheckasmKey version, const char *const name
 
 /* Indicate that the current test has failed, return whether verbose printing
  * is requested. */
-#define DEF_FAIL_FUNC(funcname)                                                          \
-    int funcname(const char *const msg, ...)                                             \
-    {                                                                                    \
-        CheckasmFuncVersion *const v = current.func_ver;                                 \
-        if (v && v->state == CHECKASM_FUNC_OK) {                                         \
-            va_list arg;                                                                 \
-                                                                                         \
-            if (!current.should_fail) {                                                  \
-                print_cpu_name();                                                        \
-                checkasm_fprintf(stderr, COLOR_RED, "FAILURE:");                         \
-                fprintf(stderr, " %s_%s (", current.func->name, cpu_suffix(v->cpu));     \
-                va_start(arg, msg);                                                      \
-                vfprintf(stderr, msg, arg);                                              \
-                va_end(arg);                                                             \
-                fprintf(stderr, ")\n");                                                  \
-            }                                                                            \
-                                                                                         \
-            v->state = CHECKASM_FUNC_FAILED;                                             \
-            current.num_failed++;                                                        \
-        }                                                                                \
-        return cfg.verbose && !current.should_fail;                                      \
+static int fail_internal(const char *const msg, va_list arg)
+{
+    CheckasmFuncVersion *const v = current.func_ver;
+    if (v && v->state == CHECKASM_FUNC_OK) {
+        if (!current.should_fail) {
+            print_cpu_name();
+            checkasm_fprintf(stderr, COLOR_RED, "FAILURE:");
+            fprintf(stderr, " %s_%s (", current.func->name, cpu_suffix(v->cpu));
+            vfprintf(stderr, msg, arg);
+            fputs(")\n", stderr);
+        }
+
+        v->state = CHECKASM_FUNC_FAILED;
+        current.num_failed++;
     }
+    return cfg.verbose && !current.should_fail;
+}
 
 /* We need to define two versions of this function, one to export and one for
  * asm routines to call internally (with local linking) */
-DEF_FAIL_FUNC(checkasm_fail_func);
-DEF_FAIL_FUNC(checkasm_fail_internal);
+int checkasm_fail_func(const char *const msg, ...)
+{
+    va_list arg;
+    va_start(arg, msg);
+    const int ret = fail_internal(msg, arg);
+    va_end(arg);
+    return ret;
+}
+
+int checkasm_fail_internal(const char *const msg, ...)
+{
+    va_list arg;
+    va_start(arg, msg);
+    const int ret = fail_internal(msg, arg);
+    va_end(arg);
+    return ret;
+}
 
 int checkasm_should_fail(CheckasmCpu cpu_flags)
 {
