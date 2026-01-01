@@ -71,6 +71,12 @@
   #define ALWAYS_INLINE inline __attribute__((always_inline))
 #endif
 
+#ifdef __GNUC__
+  #define THREAD_LOCAL __thread
+#else
+  #define THREAD_LOCAL _Thread_local
+#endif
+
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
 
 void checkasm_srand(unsigned seed);

@@ -30,7 +30,7 @@
 #include "checkasm/test.h"
 #include "internal.h"
 
-static _Thread_local uintptr_t *current = NULL;
+static THREAD_LOCAL uintptr_t *current = NULL;
 
 /* Sets the stack guard up.
  *
