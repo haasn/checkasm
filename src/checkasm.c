@@ -949,7 +949,14 @@ void checkasm_fail_abort(const char *const msg, ...)
 int checkasm_should_fail(CheckasmCpu cpu_flags)
 {
     current.should_fail = !!(current.cpu_flags & cpu_flags);
+
+#if CHECKASM_HAVE_LONGJMP
     return 1; /* we can catch any crashes */
+#else
+    /* If our signal handler isn't working, we shouldn't run tests that
+     * are expected to fail, as they may rely on the signal handler. */
+    return !current.should_fail;
+#endif
 }
 
 /* Print the outcome of all tests performed since
