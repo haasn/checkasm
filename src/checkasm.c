@@ -520,6 +520,7 @@ static void check_cpu_flag(const CheckasmCpuInfo *cpu)
             checkasm_srand(cfg.seed);
             current.should_fail = 0; // reset between tests
             test->func();
+            checkasm_report(NULL); // catch any un-reported functions
 
             if (cfg.bench) {
                 /* Measure NOP and perf scale after each test+CPU flag configuration */
