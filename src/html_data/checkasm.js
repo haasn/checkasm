@@ -118,9 +118,12 @@
         tests[func.testName] = {};
       const reports = tests[func.testName];
       /* Group by report name */
-      if (!reports[func.reportName])
-        reports[func.reportName] = { numVersions: 0, functions: {} };
-      const report = reports[func.reportName];
+      var reportGroup = func.testName
+      if (func.reportName)
+        reportGroup += "." + func.reportName;
+      if (!reports[reportGroup])
+        reports[reportGroup] = { numVersions: 0, functions: {} };
+      const report = reports[reportGroup];
       const funcNumber = Object.keys(report.functions).length;
       report.functions[funcName] = func;
       Object.entries(func.versions).forEach(([suffix, version]) => {
