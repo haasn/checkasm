@@ -8,13 +8,15 @@ This guide will walk you through installing checkasm and writing your first test
 
 You can either load checkasm as a library (e.g. via `pkg-config`), or include it directly in your project's build system.
 
-@subsection meson_submodules Meson using submodules (recommended)
+@subsection meson_submodules Meson using wrap files (recommended)
 
-First, pull in this project as a git submodule:
+First, create `subprojects/checkasm.wrap`:
 
-@code{.bash}
-git submodule init
-git submodule add -b release https://code.videolan.org/videolan/checkasm subprojects/checkasm
+@code{.ini}
+[wrap-git]
+url = https://code.videolan.org/videolan/checkasm.git
+revision = release # or a specific tag/release
+directory = checkasm
 @endcode
 
 Then integrate it into your build system:
@@ -44,15 +46,17 @@ if checkasm_dependency.found()
 endif
 @endcode
 
-@subsection meson_wrap Meson using wrap files (alternative)
+@subsection meson_wrap Meson using submodules (alternative)
 
-Create `subprojects/checkasm.wrap`:
+As an alternative, you may use git submodules to include checkasm as a subproject.
+This may be preferred in some environments where the build system cannot access
+the internet during configuration time, or if you're already using submodules
+in your project.
 
-@code{.ini}
-[wrap-git]
-url = https://code.videolan.org/videolan/checkasm.git
-revision = release
-directory = checkasm
+@code{.bash}
+git submodule init
+git submodule add -b release https://code.videolan.org/videolan/checkasm subprojects/checkasm
+# or checkout a specific tag/release
 @endcode
 
 Then declare the dependency in your `meson.build` as usual. (See the previous section)
