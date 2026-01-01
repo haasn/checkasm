@@ -34,7 +34,6 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdnoreturn.h>
 
 #include "checkasm/attributes.h"
 #include "checkasm/test.h"
@@ -60,6 +59,13 @@
 #endif
 
 #ifdef _MSC_VER
+    #define NORETURN __declspec(noreturn)
+#else
+    #include <stdnoreturn.h>
+    #define NORETURN noreturn
+#endif
+
+#ifdef _MSC_VER
   #define ALWAYS_INLINE __forceinline
 #else
   #define ALWAYS_INLINE inline __attribute__((always_inline))
@@ -71,7 +77,7 @@ void checkasm_srand(unsigned seed);
 
 /* Internal variant of checkasm_fail_func() that also jumps back to the signal
  * handler */
-noreturn void checkasm_fail_abort(const char *msg, ...) CHECKASM_PRINTF(1, 2);
+NORETURN void checkasm_fail_abort(const char *msg, ...) CHECKASM_PRINTF(1, 2);
 
 #define COLOR_DEFAULT -1
 #define COLOR_RED     31
