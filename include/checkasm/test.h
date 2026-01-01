@@ -269,6 +269,7 @@ CHECKASM_API int checkasm_should_fail(CheckasmCpu cpu_flags);
  * currently being tested.
  *
  * @see checkasm_check_func(), checkasm_func_ref, checkasm_key_new
+ * @since v1.0.1
  */
 static CheckasmKey checkasm_key_ref;
 
@@ -278,6 +279,7 @@ static CheckasmKey checkasm_key_ref;
  * Set by checkasm_check_func() to point to the key passed to it.
  *
  * @see checkasm_check_func(), checkasm_func_new, checkasm_key_ref
+ * @since v1.0.1
  */
 static CheckasmKey checkasm_key_new;
 
