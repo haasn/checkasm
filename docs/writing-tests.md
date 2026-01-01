@@ -579,7 +579,7 @@ typedef int (my_func)(int);
 static int sum_upto_n(my_func *func, int count)
 {
     int sum = 0;
-    for (int i = 0; i < arg; i++)
+    for (int i = 0; i < count; i++)
       sum += func(i);
     return sum;
 }
