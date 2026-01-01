@@ -6,7 +6,7 @@ stages:
     - deploy
 
 .debian-amd64-common:
-    image: registry.videolan.org/dav1d-debian-unstable:20250207200301
+    image: registry.videolan.org/dav1d-debian-unstable:20251231153127
     stage: test
     tags:
         - docker
