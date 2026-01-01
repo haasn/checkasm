@@ -965,19 +965,21 @@ void checkasm_report(const char *const name, ...)
 {
     char report_name[256];
 
-    va_list arg;
-    va_start(arg, name);
-    vsnprintf(report_name, sizeof(report_name), name, arg);
-    va_end(arg);
-
     /* Calculate the amount of padding required to make the output vertically aligned */
-    int length = (int) (strlen(current.test_name) + strlen(report_name));
+    int length = (int) strlen(current.test_name);
+    if (name) {
+        va_list arg;
+        va_start(arg, name);
+        length += 1 + vsnprintf(report_name, sizeof(report_name), name, arg);
+        va_end(arg);
+    }
+
     if (length > state.max_report_name_length)
         state.max_report_name_length = length;
 
     const int new_checked = current.num_checked - current.prev_checked;
     if (new_checked) {
-        int pad_length = (int) state.max_report_name_length + 4;
+        int pad_length = (int) state.max_report_name_length + 3; // strlen(" - ")
         assert(!state.skip_tests);
 
         int fails = current.num_failed - current.prev_failed;
@@ -991,7 +993,11 @@ void checkasm_report(const char *const name, ...)
 
         if (want_print) {
             print_cpu_name();
-            pad_length -= fprintf(stderr, " - %s.%s", current.test_name, report_name);
+            if (name) {
+                pad_length -= fprintf(stderr, " - %s.%s", current.test_name, report_name);
+            } else {
+                pad_length -= fprintf(stderr, " - %s", current.test_name);
+            }
             fprintf(stderr, "%*c", imax(pad_length, 0) + 2, '[');
 
             if (current.num_failed == current.prev_failed) {
@@ -1011,7 +1017,7 @@ void checkasm_report(const char *const name, ...)
     /* Store the report name with each function in this report group */
     CheckasmFunc *func = current.func;
     while (func) {
-        if (!func->report_name)
+        if (name && !func->report_name)
             func->report_name = checkasm_strdup(report_name);
         func = func->prev;
     }
