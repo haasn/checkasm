@@ -340,8 +340,8 @@ static void print_bench_iter(const CheckasmFunc *const f, struct IterState *cons
                 if (!json_func_pushed) {
                     checkasm_json_push(json, f->name, '{');
                     checkasm_json_str(json, "testName", f->test_name);
-                    checkasm_json_str(json, "reportName",
-                                      f->report_name ? f->report_name : "unknown");
+                    if (f->report_name)
+                        checkasm_json_str(json, "reportName", f->report_name);
                     checkasm_json_push(json, "versions", '{');
                     json_func_pushed = 1;
                 }
