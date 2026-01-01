@@ -11,13 +11,13 @@ with the basic test structure by reading the @ref quick_start.
 
 The typical test workflow is:
 1. Allocate (aligned) buffers for test data
-2. Declare the function signature with checkasm_declare
-3. Check if the function should be tested with checkasm_check_func
+2. Declare the function signature with checkasm_declare()
+3. Check if the function should be tested with checkasm_check_func()
 4. Initialize test inputs and clear output buffers
-5. Call both reference (checkasm_call_ref) and optimized (checkasm_call_new) implementations
-6. Compare results with checkasm_check
-7. Benchmark the optimized implementation with checkasm_bench_new()
-8. Report results with checkasm_report
+5. Call both reference (checkasm_call_ref()) and new (checkasm_call_new()) implementations
+6. Compare results with checkasm_check()
+7. Benchmark the new implementation with checkasm_bench_new()
+8. Report results with checkasm_report()
 
 @section naming_conventions API Naming Conventions
 

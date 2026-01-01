@@ -444,7 +444,7 @@ Comparing cycle counts across different CPUs is meaningful when:
 For cross-platform comparison, use relative speedup (optimized vs C) rather
 than absolute cycle counts.
 
-@subsection adv_html HTML Report Deep Dive
+@subsection adv_html HTML Report Overview
 
 The HTML report provides detailed statistical visualizations:
 
