@@ -943,7 +943,7 @@ void checkasm_fail_abort(const char *const msg, ...)
     va_end(arg);
 
     checkasm_load_context(checkasm_context);
-    while (1); // should be unreachable, but some longjmp impls aren't `noreturn`
+    abort(); // in case we don't have a longjmp implementation
 }
 
 int checkasm_should_fail(CheckasmCpu cpu_flags)
