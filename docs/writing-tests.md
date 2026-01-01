@@ -17,7 +17,7 @@ The typical test workflow is:
 5. Call both reference (checkasm_call_ref()) and new (checkasm_call_new()) implementations
 6. Compare results with checkasm_check()
 7. Benchmark the new implementation with checkasm_bench_new()
-8. Report results with checkasm_report()
+8. Report results with checkasm_report() (optional)
 
 @section naming_conventions API Naming Conventions
 
@@ -204,6 +204,13 @@ static void check_add_functions(const DSPContext *dsp)
     checkasm_report("add");
 }
 @endcode
+
+For very simple tests with only a few functions, for which there is no
+logical grouping, or for miscellaneous functions, this can be left out.
+Any functions without a checkasm_report() call after them will be implicitly
+reported under the name of the test itself. Note that this only makes sense
+if such functions are the last functions being tested in a given test, since
+any later checkasm_report() call would otherwise include all prior functions.
 
 @section common_patterns Common Test Patterns
 

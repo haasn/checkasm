@@ -122,6 +122,10 @@ CHECKASM_API int checkasm_fail_func(const char *msg, ...) CHECKASM_PRINTF(1, 2);
  * called at the end of a test, as well as after any larger block of similar
  * functions.
  *
+ * @note Since v1.0.1, this is optional. If not called before the end of a
+ * test, any remaining results will be reported directly under the name of the
+ * associated test itself.
+ *
  * @param[in] name Printf-style format string for the test case name
  * @param[in] ... Format arguments
  *
