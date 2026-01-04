@@ -77,14 +77,13 @@ COLD int checkasm_perf_init(void)
     }
 
   #ifdef CHECKASM_PERF_ASM_INIT
-    /* Try enabling the timers, if possible */
+    /* Try starting the timers, if possible */
     if (checkasm_perf.asm_usable && !checkasm_save_context(checkasm_context)) {
-        /* Try calling the asm timer to see if it works */
         checkasm_set_signal_handler_state(1);
         CHECKASM_PERF_ASM_INIT();
         checkasm_set_signal_handler_state(0);
 
-        /* If enabling the timers seem to work, run that on all cores. */
+        /* If starting the timers seems to work, run that on all cores. */
         checkasm_run_on_all_cores(CHECKASM_PERF_ASM_INIT);
     }
   #endif
