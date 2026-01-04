@@ -179,10 +179,10 @@ endif
 checkasm_asm_sources = []
 if arch_aarch64
   checkasm_asm_sources = files('arm/checkasm_64.S')
-  checkasm_sources += files('perf/arm.c')
+  checkasm_sources += files('arm/cpu.c', 'perf/arm.c')
 elif arch_arm
   checkasm_asm_sources = files('arm/checkasm_32.S')
-  checkasm_sources += files('perf/arm.c')
+  checkasm_sources += files('arm/cpu.c', 'perf/arm.c')
 elif arch_loongarch
   checkasm_sources += files('loongarch/checkasm.S')
 elif arch_riscv
