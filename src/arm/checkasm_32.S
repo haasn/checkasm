@@ -259,35 +259,3 @@ endfunc
 
 clobbercheck novfp
 clobbercheck vfp
-
-/**
- * int checkasm_has_neon(void);
- */
-function has_neon, export=1, visible=1
-#if (defined(__APPLE__) && __ARM_ARCH >= 7) || defined(_WIN32)
-        mov             r0, #1
-        v4bx            lr
-#else
-        push            {lr}
-        mov             r0, #16 /* AT_HWCAP */
-        bl              X(getauxval)
-        and             r0, #(1 << 12) /* HWCAP_NEON */
-        pop             {pc}
-#endif
-endfunc
-
-/**
- * int checkasm_has_vfp(void);
- */
-function has_vfp, export=1, visible=1
-#if defined(__APPLE__) || defined(_WIN32)
-        mov             r0, #1
-        v4bx            lr
-#else
-        push            {lr}
-        mov             r0, #16 /* AT_HWCAP */
-        bl              X(getauxval)
-        and             r0, #(1 << 6) /* HWCAP_VFP */
-        pop             {pc}
-#endif
-endfunc

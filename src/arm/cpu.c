@@ -61,4 +61,36 @@ int checkasm_has_sve(void)
   #endif
 }
 
-#endif // ARCH_AARCH64
+#elif ARCH_ARM
+
+  #if !defined(_WIN32) && !defined(__APPLE__)
+    #include <sys/auxv.h>
+
+    #ifndef HWCAP_ARM_VFP
+      #define HWCAP_ARM_VFP (1 << 6)
+    #endif
+    #ifndef HWCAP_ARM_NEON
+      #define HWCAP_ARM_NEON (1 << 12)
+    #endif
+
+  #endif
+
+int checkasm_has_neon(void)
+{
+  #if (defined(__APPLE__) && __ARM_ARCH >= 7) || defined(_WIN32)
+    return 1;
+  #else
+    return checkasm_getauxval(AT_HWCAP) & HWCAP_ARM_NEON;
+  #endif
+}
+
+int checkasm_has_vfp(void)
+{
+  #if defined(__APPLE__) || defined(_WIN32)
+    return 1;
+  #else
+    return checkasm_getauxval(AT_HWCAP) & HWCAP_ARM_VFP;
+  #endif
+}
+
+#endif // ARCH_ARM

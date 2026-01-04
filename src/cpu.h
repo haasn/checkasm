@@ -32,6 +32,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "checkasm/attributes.h"
+
 #if ARCH_X86
 
 /* Initializes internal state for checkasm_checked_call().
@@ -78,9 +80,9 @@ void checkasm_checked_call_vfp(void *func, int dummy, ...);
 void checkasm_checked_call_novfp(void *func, int dummy, ...);
 
 /* Returns a nonzero value if NEON is available, 0 otherwise */
-int checkasm_has_neon(void);
+CHECKASM_API int checkasm_has_neon(void);
 /* Returns a nonzero value if VFP is available, 0 otherwise */
-int checkasm_has_vfp(void);
+CHECKASM_API int checkasm_has_vfp(void);
 
 #endif
 
