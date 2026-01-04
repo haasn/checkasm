@@ -123,8 +123,13 @@ if arch_aarch64
   if use_gaspp
     python3 = import('python').find_installation()
   endif
-  foreach name, instr : {'sve': 'whilelt p0.s, x0, x1'}
+  aarch64_extensions = {
+      'sve': ['whilelt p0.s, x0, x1'],
+      'sme': ['smstart', 'cntb x0'],
+  }
+  foreach name, instrs : aarch64_extensions
     if use_gaspp
+      instr = '\n'.join(instrs)
       f = configure_file(
         command: [python3, '-c', 'import sys; print(sys.argv[1])', '@0@'.format(instr)],
         output: 'test-@0@.S'.format(name),
@@ -134,6 +139,7 @@ if arch_aarch64
       archext_supported = false
       supported = r.returncode() == 0
     else
+      instr = '\\n'.join(instrs)
       code = f'__asm__ (".arch_extension @name@\\n@instr@\\n");'
       supported = cc.compiles(code, name: name.to_upper())
       archext_supported = supported

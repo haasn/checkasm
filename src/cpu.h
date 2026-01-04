@@ -66,11 +66,20 @@ void checkasm_checked_call_ifv(void);
 
 /* Returns a nonzero value if SVE is available, 0 otherwise */
 int checkasm_has_sve(void);
+/* Returns a nonzero value if SME is available, 0 otherwise */
+int checkasm_has_sme(void);
 
   #if HAVE_SVE
 
 /* Returns the SVE vector length in bits */
 int checkasm_sve_length(void);
+
+  #endif
+
+  #if HAVE_SME
+
+/* Returns the SME vector length in bits */
+int checkasm_sme_length(void);
 
   #endif
 

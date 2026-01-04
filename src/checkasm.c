@@ -690,11 +690,19 @@ static void print_info(void)
     if (vlen > 0)
         fprintf(stderr, " - CPU: VLEN = %d bits\n", vlen);
 #endif
-#if ARCH_AARCH64 && HAVE_SVE
+#if ARCH_AARCH64
+  #if HAVE_SVE
     if (checkasm_has_sve()) {
         const unsigned sve_len = checkasm_sve_length();
         fprintf(stderr, " - CPU: SVE = %d bits\n", sve_len);
     }
+  #endif
+  #if HAVE_SME
+    if (checkasm_has_sme()) {
+        const unsigned sme_len = checkasm_sme_length();
+        fprintf(stderr, " - CPU: SME = %d bits\n", sme_len);
+    }
+  #endif
 #endif
     if (cfg.bench) {
         fprintf(stderr, " - Timing source: %s\n", checkasm_perf.name);

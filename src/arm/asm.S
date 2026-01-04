@@ -43,6 +43,13 @@
 #define ENABLE_SVE
 #define DISABLE_SVE
 #endif
+#if HAVE_AS_ARCHEXT_SME_DIRECTIVE
+#define ENABLE_SME  .arch_extension sme
+#define DISABLE_SME .arch_extension nosme
+#else
+#define ENABLE_SME
+#define DISABLE_SME
+#endif
 
 /* If we do support the .arch_extension directives, disable support for all
  * the extensions that we may use, in case they were implicitly enabled by
@@ -50,6 +57,7 @@
  * from an unintended extension set; we only allow assmbling such instructions
  * within regions where we explicitly enable those extensions. */
 DISABLE_SVE
+DISABLE_SME
 
 
 /* Support macros for

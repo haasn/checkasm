@@ -37,11 +37,23 @@
   #ifdef _WIN32
     #include <windows.h>
   #elif defined(__APPLE__)
+    #include <sys/sysctl.h>
+
+static int have_feature(const char *feature)
+{
+    int    supported = 0;
+    size_t size      = sizeof(supported);
+    if (sysctlbyname(feature, &supported, &size, NULL, 0) != 0) {
+        return 0;
+    }
+    return supported;
+}
   #else
 
     #include <sys/auxv.h>
 
-    #define HWCAP_AARCH64_SVE (1 << 22)
+    #define HWCAP_AARCH64_SVE  (1 << 22)
+    #define HWCAP2_AARCH64_SME (1 << 23)
 
   #endif
 
@@ -58,6 +70,21 @@ int checkasm_has_sve(void)
     return 0;
   #else
     return checkasm_getauxval(AT_HWCAP) & HWCAP_AARCH64_SVE;
+  #endif
+}
+
+int checkasm_has_sme(void)
+{
+  #ifdef _WIN32
+    #ifdef PF_ARM_SME_INSTRUCTIONS_AVAILABLE
+    return IsProcessorFeaturePresent(PF_ARM_SME_INSTRUCTIONS_AVAILABLE);
+    #else
+    return 0;
+    #endif
+  #elif defined(__APPLE__)
+    return have_feature("hw.optional.arm.FEAT_SME");
+  #else
+    return checkasm_getauxval(AT_HWCAP2) & HWCAP2_AARCH64_SME;
   #endif
 }
 

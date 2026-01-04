@@ -266,3 +266,15 @@ function sve_length, export=1
 endfunc
 DISABLE_SVE
 #endif
+
+#if HAVE_SME
+ENABLE_SME
+function sme_length, export=1
+        smstart
+        cntb            x0
+        lsl             x0,  x0,  #3
+        smstop
+        ret
+endfunc
+DISABLE_SME
+#endif
