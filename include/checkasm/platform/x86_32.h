@@ -38,7 +38,7 @@ CHECKASM_API void checkasm_checked_call_emms(void *func, ...);
 
 CHECKASM_API void checkasm_empty_mmx(void);
 
-#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
+#if CHECKASM_HAVE_GENERIC
   #define checked_call_fn(ret)                                                           \
       _Generic((ret (*)(void)) NULL,                                                     \
           float (*)(void): checkasm_checked_call_float,                                  \

@@ -61,7 +61,7 @@ CHECKASM_API void checkasm_simd_warmup(void);
   #define IGNORED_FP_ARGS 8
 #endif
 
-#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
+#if CHECKASM_HAVE_GENERIC
   #define clobber_type(arg)                                                              \
       _Generic((void (*)(void *, arg)) NULL,                                             \
           void (*)(void *, int32_t): clobber_mask |= 1 << mpos++,                        \

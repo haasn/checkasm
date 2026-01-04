@@ -346,4 +346,12 @@ CHECKASM_API int checkasm_run(const CheckasmConfig *config);
  */
 CHECKASM_API int checkasm_main(CheckasmConfig *config, int argc, const char *argv[]);
 
+#ifndef CHECKASM_HAVE_GENERIC
+  #if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
+    #define CHECKASM_HAVE_GENERIC 1
+  #else
+    #define CHECKASM_HAVE_GENERIC 0
+  #endif
+#endif
+
 #endif /* CHECKASM_CHECKASM_H */

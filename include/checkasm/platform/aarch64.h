@@ -44,7 +44,7 @@ CHECKASM_API void checkasm_checked_call(void *func, ...);
  * handled orthogonally from integer parameters passed in GPR registers. */
 #define IGNORED_FP_ARGS 8
 
-#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
+#if CHECKASM_HAVE_GENERIC
   #define clobber_type(arg)                                                              \
       _Generic((void (*)(void *, arg)) NULL,                                             \
           void (*)(void *, int32_t): clobber_mask |= 1 << mpos++,                        \
