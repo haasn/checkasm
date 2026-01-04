@@ -67,7 +67,7 @@ int checkasm_has_sve(void);
 
   #if HAVE_SVE
 
-/* Returns the SVE vector length in bytes, or 0 if no SVE */
+/* Returns the SVE vector length in bits */
 int checkasm_sve_length(void);
 
   #endif
