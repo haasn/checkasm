@@ -80,10 +80,8 @@ static void test_add8(const CheckasmCpu cpu)
             checkasm_call_ref(dst_c, src1, src2, w);
             checkasm_call_new(dst_a, src1, src2, w);
 
-            // Compare results - checkasm_check will report any mismatches
-            checkasm_check(uint16_t, dst_c, /*dst_c_stride=*/sizeof(dst_c),
-                                     dst_a, /*dst_a_stride=*/sizeof(dst_a),
-                                     /*width=*/w, /*height=*/1, "sum");
+            // Compare results - checkasm_check1d will report any mismatches
+            checkasm_check1d(uint16_t, dst_c, dst_a, w, "sum");
         }
 
         // Benchmark the optimized version on the largest buffer size

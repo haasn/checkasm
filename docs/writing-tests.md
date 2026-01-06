@@ -15,7 +15,7 @@ The typical test workflow is:
 3. Check if the function should be tested with checkasm_check_func()
 4. Initialize test inputs and clear output buffers
 5. Call both reference (checkasm_call_ref()) and new (checkasm_call_new()) implementations
-6. Compare results with checkasm_check()
+6. Compare results with checkasm_check2d() or similar
 7. Benchmark the new implementation with checkasm_bench_new()
 8. Report results with checkasm_report() (optional)
 
@@ -32,7 +32,7 @@ checkasm_declare(void, uint8_t *dst, const uint8_t *src, int len);
 checkasm_check_func(dsp->func, "func_name")
 checkasm_call_ref(dst_c, src, len);
 checkasm_call_new(dst_a, src, len);
-checkasm_check(uint8_t, dst_c, 0, dst_a, 0, len, 1, "dst");
+checkasm_check1d(uint8_t, dst_c, dst_a, len, "dst");
 checkasm_bench_new(dst_a, src, len);
 checkasm_report("func_name");
 checkasm_fail()
@@ -49,7 +49,7 @@ declare_func(void, uint8_t *dst, const uint8_t *src, int len);
 check_func(dsp->func, "func_name")
 call_ref(dst_c, src, len);
 call_new(dst_a, src, len);
-// checkasm_check() has no short alias
+// checkasm_check1d() has no short alias
 bench_new(dst_a, src, len);
 report("func_name");
 fail()
@@ -293,8 +293,8 @@ static void check_decoder(const DecoderContext *dec)
         //
         // The validity of this check depends on whether or not `DecoderState`
         // has padding bytes or non-deterministic internal state.
-        checkasm_check(uint8_t, &state_c, 0, &state_a, 0,
-                       sizeof(DecoderState), 1, "decoder state");
+        checkasm_check1d(uint8_t, &state_c, &state_a, sizeof(DecoderState),
+                         "decoder state");
 
         checkasm_bench_new(&state_a, bitstream, 128);
     }
@@ -375,7 +375,7 @@ static void check_transform(const DSPContext *dsp)
             checkasm_call_ref(dst_c, src, WIDTH);
             checkasm_call_new(dst_a, src, WIDTH);
 
-            checkasm_check(int16_t, dst_c, 0, dst_a, 0, WIDTH, 1, "dst");
+            checkasm_check1d(int16_t, dst_c, dst_a, WIDTH, "dst");
         }
 
         checkasm_bench_new(checkasm_alternate(dst_a, dst_c), src, WIDTH);
@@ -408,8 +408,9 @@ static void check_float_func(const DSPContext *dsp)
         checkasm_call_new(dst_a, src, WIDTH);
 
         // Compare with ULP (Units in Last Place) tolerance
+        //   Note: cannot use checkasm_check1d() here
         const int max_ulp = 1;
-        checkasm_check(float_ulp, dst_c, 0, dst_a, 0, WIDTH, 1, "dst", max_ulp);
+        checkasm_check2d(float_ulp, dst_c, 0, dst_a, 0, WIDTH, 1, "dst", max_ulp);
 
         // Or use absolute epsilon tolerance
         // if (!checkasm_float_near_abs_eps_array(dst_c, dst_a, 1e-6f, WIDTH)) {
@@ -445,8 +446,8 @@ static void check_bounds(const DSPContext *dsp)
         checkasm_call_new(dst_a, dst_a_stride, w, h);
 
         // Standard check (no padding)
-        checkasm_check(uint8_t, dst_c, dst_c_stride,
-                                dst_a, dst_a_stride, w, h, "dst");
+        checkasm_check2d(uint8_t, dst_c, dst_c_stride,
+                                  dst_a, dst_a_stride, w, h, "dst");
 
         // Check with padding detection (detects writes outside w×h)
         checkasm_check_rect_padded(dst_c, dst_c_stride,
@@ -474,8 +475,8 @@ if (checkasm_check_func(dsp->filter, "filter_w%d", w)) {
         // Test all heights for correctness
         checkasm_call_ref(dst_c, dst_c_stride, src, src_stride, w, h);
         checkasm_call_new(dst_a, dst_a_stride, src, src_stride, w, h);
-        checkasm_check(uint8_t, dst_c, dst_c_stride,
-                                dst_a, dst_a_stride, w, h, "dst");
+        checkasm_check2d(uint8_t, dst_c, dst_c_stride,
+                                  dst_a, dst_a_stride, w, h, "dst");
 
         // Benchmark each configuration
         checkasm_bench_new(checkasm_alternate(dst_a, dst_c), dst_a_stride,
@@ -519,7 +520,7 @@ static void check_pixfunc(void)
 
             checkasm_call_ref(dst_c, src, WIDTH);
             checkasm_call_new(dst_a, src, WIDTH);
-            checkasm_check(uint16_t, dst_c, 0, dst_a, 0, WIDTH, 1, "dst");
+            checkasm_check1d(uint16_t, dst_c, dst_a, WIDTH, "dst");
             checkasm_bench_new(checkasm_alternate(dst_a, dst_c), src, WIDTH);
         }
     }
@@ -705,7 +706,7 @@ Enable verbose mode for detailed failure information:
 @endcode
 
 This shows hexdumps of differing buffer regions automatically, when using
-the built-in checkasm_check() series of buffer comparison helpers.
+the built-in checkasm_check*() series of buffer comparison helpers.
 
 @subsection tips_bench Benchmarking Tips
 
