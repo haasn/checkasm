@@ -607,7 +607,7 @@ CHECKASM_API int checkasm_check_impl_float_ulp(const char *file, int line,
         = checkasm_check_impl_##type;                                                    \
     CHECKASM_ALIGN(type name##_buf[((h) + 32) * (CHECKASM_ROUND(w, 64) + 64) + 64]);     \
     ptrdiff_t name##_stride = sizeof(type) * (CHECKASM_ROUND(w, 64) + 64);               \
-    int       name##_buf_h  = (h) + 32;                                                  \
+    const int name##_buf_h  = (h) + 32;                                                  \
     (void) checkasm_check_impl(name##_type);                                             \
     (void) name##_stride;                                                                \
     (void) name##_buf_h;                                                                 \
