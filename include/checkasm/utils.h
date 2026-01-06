@@ -606,12 +606,13 @@ CHECKASM_API int checkasm_check_impl_float_ulp(const char *file, int line,
     DECL_CHECK_FUNC(*checkasm_check_impl_##name##_type, type)                            \
         = checkasm_check_impl_##type;                                                    \
     CHECKASM_ALIGN(type name##_buf[((h) + 32) * (CHECKASM_ROUND(w, 64) + 64) + 64]);     \
-    ptrdiff_t name##_stride = sizeof(type) * (CHECKASM_ROUND(w, 64) + 64);               \
-    const int name##_buf_h  = (h) + 32;                                                  \
+    const int name##_buf_w = CHECKASM_ROUND(w, 64) + 64;                                 \
+    const int name##_buf_h = (h) + 32;                                                   \
+    ptrdiff_t name##_stride = sizeof(type) * name##_buf_w;                               \
     (void) checkasm_check_impl(name##_type);                                             \
     (void) name##_stride;                                                                \
     (void) name##_buf_h;                                                                 \
-    type *name = name##_buf + (CHECKASM_ROUND(w, 64) + 64) * 16 + 64
+    type *name = name##_buf + name##_buf_w * 16 + 64
 
 /**
  * @def CLEAR_BUF_RECT(name)
