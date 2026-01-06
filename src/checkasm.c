@@ -432,6 +432,13 @@ void checkasm_bench_update(const int iterations, const uint64_t cycles)
     checkasm_stats_add(&stats, (CheckasmSample) { cycles, iterations });
     checkasm_stats_count_grow(&stats, cycles, state.target_cycles);
     current.cycles += cycles;
+
+    /* Emit this periodically while benchmarking, to avoid the SIMD
+     * units turning on and off during long bench runs of non-SIMD
+     * functions */
+#if ARCH_X86
+    checkasm_simd_warmup();
+#endif
 }
 
 void checkasm_bench_finish(void)
