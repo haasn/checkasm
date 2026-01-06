@@ -450,7 +450,7 @@ CHECKASM_API int checkasm_check_impl_float_ulp(const char *file, int line,
 /** @} */ /* internal */
 
 /**
- * @def checkasm_check(type, buf1, stride1, buf2, stride2, w, h, name, ...)
+ * @def checkasm_check2d(type, buf1, stride1, buf2, stride2, w, h, name, ...)
  * @brief Compare two 2D buffers and fail test if different
  * @param type Element type (e.g., uint8_t, int, float)
  * @param buf1 First buffer pointer to compare
@@ -460,28 +460,30 @@ CHECKASM_API int checkasm_check_impl_float_ulp(const char *file, int line,
  * @param w Width of the buffers in elements
  * @param h Height of the buffers in lines
  * @param name Name of the buffer (for error reporting)
- * @param ... Extra parameters (e.g. max_ulp for checkasm_check(float_ulp, ...))
+ * @param ... Extra parameters (e.g. max_ulp for checkasm_check2d(float_ulp, ...))
  * @note This will automatically print a hexdump of the differing regions on
  *       failure, if verbose mode is enabled.
  *
  * @code
- * CHECKASM_ALIGN(uint8_t buf1[128]);
- * CHECKASM_ALIGN(uint8_t buf2[128]);
+ * CHECKASM_ALIGN(uint8_t buf1[64][64]);
+ * CHECKASM_ALIGN(uint8_t buf2[64][64]);
+ * const ptrdiff_t stride = sizeof(buf1[0]);
  *
- * for (int w = 8; w <= 128; w <<= 1) {
- *     if (checkasm_check_func(..., "myfunc_w%d", w)) {
- *         checkasm_call_ref(buf1, w);
- *         checkasm_call_new(buf2, w);
- *         checkasm_check(uint8_t, buf1, 0, buf2, 0, w, 1, "buffer");
- *     }
+ * for (int h = 8; h <= 64; h <<= 1) {
+ *     for (int w = 8; w <= 64; w <<= 1) {
+ *         if (checkasm_check_func(..., "myfunc_%dx%d", w, h)) {
+ *             checkasm_call_ref(buf1, strude, w, h);
+ *             checkasm_call_new(buf2, strude, w, h);
+ *             checkasm_check2d(uint8_t, buf1, stride, buf2, stride, w, h, "buffer");
+ *         }
  * }
  * @endcode
  */
-#define checkasm_check(type, ...) checkasm_check2(type, __VA_ARGS__, 0, 0, 0)
+#define checkasm_check2d(type, ...) checkasm_check2(type, __VA_ARGS__, 0, 0, 0)
 
 /**
- * @def checkasm_check_padded(type, buf1, stride1, buf2, stride2, w, h, name,
- *                            ..., align_w, align_h, padding)
+ * @def checkasm_check2d_padded(type, buf1, stride1, buf2, stride2, w, h, name,
+ *                              ..., align_w, align_h, padding)
  * @brief Compare two 2D buffers, including padding regions (detect over-write)
  * @param type Element type (e.g., uint8_t, int, float)
  * @param buf1 First buffer pointer to compare
@@ -491,16 +493,22 @@ CHECKASM_API int checkasm_check_impl_float_ulp(const char *file, int line,
  * @param w Width of the buffers in elements
  * @param h Height of the buffers in lines
  * @param name Name of the buffer (for error reporting)
- * @param ... Extra parameters (e.g. max_ulp for checkasm_check(float_ulp, ...))
+ * @param ... Extra parameters (e.g. max_ulp for checkasm_check2d_padded(float_ulp, ...))
  * @param align_w Horizontal alignment of the allowed over-write (elements)
  * @param align_h Vertical alignment of the allowed over-write (lines)
  * @param padding Number of extra elements/lines of padding to check (past the
  *        alignment boundaries)
- * @see checkasm_check(), checkasm_check_rect_padded()
+ * @see checkasm_check2d(), checkasm_check_rect_padded()
  */
-#define checkasm_check_padded(type, ...) checkasm_check2(type, __VA_ARGS__)
+#define checkasm_check2d_padded(type, ...) checkasm_check2(type, __VA_ARGS__)
 
 /** @} */ /* bufcmp */
+
+/** @addtogroup aliases
+ *  @{ */
+#define checkasm_check        checkasm_check2d
+#define checkasm_check_padded checkasm_check2d_padded
+/* @} */
 
 /**
  * @defgroup bufrect Rectangular Buffer Helpers
@@ -590,26 +598,26 @@ CHECKASM_API int checkasm_check_impl_float_ulp(const char *file, int line,
  * @brief Compare two rectangular buffers
  * @param rect1 First buffer (from BUF_RECT)
  * @param ... rect2, stride2, w, h, name
- * @see checkasm_check()
+ * @see checkasm_check2d()
  */
-#define checkasm_check_rect(rect1, ...) checkasm_check(rect1##_type, rect1, __VA_ARGS__)
+#define checkasm_check_rect(rect1, ...) checkasm_check2d(rect1##_type, rect1, __VA_ARGS__)
 
 /**
  * @def checkasm_check_rect_padded(rect1, ...)
  * @brief Compare two rectangular buffers including padding
  * @param rect1 First buffer (from BUF_RECT)
  * @param ... rect2, stride2, w, h, name
- * @see checkasm_check()
+ * @see checkasm_check2d()
  */
 #define checkasm_check_rect_padded(rect1, ...)                                           \
-    checkasm_check_padded(rect1##_type, rect1, __VA_ARGS__, 1, 1, 8)
+    checkasm_check2d_padded(rect1##_type, rect1, __VA_ARGS__, 1, 1, 8)
 
 /**
  * @def checkasm_check_rect_padded_align(rect1, ...)
  * @brief Compare two rectangular buffers, with custom alignment (over-write)
  * @param rect1 First buffer (from BUF_RECT)
  * @param ... rect2, stride2, w, h, name, align
- * @see checkasm_check_padded()
+ * @see checkasm_check2d_padded()
  *
  * @code
  * // Code is allowed to over-write up to 16 elements on the right edge only
@@ -618,7 +626,7 @@ CHECKASM_API int checkasm_check_impl_float_ulp(const char *file, int line,
  * @endcode
  */
 #define checkasm_check_rect_padded_align(rect1, ...)                                     \
-    checkasm_check_padded(rect1##_type, rect1, __VA_ARGS__, 8)
+    checkasm_check2d_padded(rect1##_type, rect1, __VA_ARGS__, 8)
 
 /** @} */ /* bufrect */
 
