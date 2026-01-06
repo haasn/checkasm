@@ -40,6 +40,14 @@
  * Returns cpuid and model name. */
 unsigned checkasm_init_x86(char *name);
 
+/* YMM and ZMM registers on x86 are turned off to save power when they haven't
+ * been used for some period of time. When they are used there will be a
+ * "warmup" period during which performance will be reduced and inconsistent
+ * which is problematic when trying to benchmark individual functions. We can
+ * work around this by periodically issuing "dummy" instructions that uses
+ * those registers to keep them powered on. */
+void checkasm_simd_warmup(void);
+
 #elif ARCH_RISCV
 
 /* Gets the CPU identification registers. */

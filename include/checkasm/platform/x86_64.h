@@ -38,14 +38,6 @@ CHECKASM_API void checkasm_checked_call(void *func, ...);
 CHECKASM_API void checkasm_checked_call_emms(void *func, ...);
 CHECKASM_API void checkasm_empty_mmx(void);
 
-/* YMM and ZMM registers on x86 are turned off to save power when they haven't
- * been used for some period of time. When they are used there will be a
- * "warmup" period during which performance will be reduced and inconsistent
- * which is problematic when trying to benchmark individual functions. We can
- * work around this by periodically issuing "dummy" instructions that uses
- * those registers to keep them powered on. */
-CHECKASM_API void checkasm_simd_warmup(void);
-
 /* The upper 32 bits of 32-bit data types are undefined when passed as function
  * parameters. In practice those bits usually end up being zero which may hide
  * certain bugs, such as using a register containing undefined bits as a pointer
@@ -109,7 +101,7 @@ CHECKASM_API void checkasm_simd_warmup(void);
                       void *)
 
 #define checkasm_call_checked(func, ...)                                                 \
-    (checkasm_set_signal_handler_state(1), checkasm_simd_warmup(),                       \
+    (checkasm_set_signal_handler_state(1),                                               \
      checked_call(__VA_ARGS__, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0,     \
                   func, clobber_mask));                                                  \
     checkasm_set_signal_handler_state(0)

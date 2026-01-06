@@ -910,8 +910,12 @@ CheckasmKey checkasm_check_key(const CheckasmKey version, const char *const name
     current.num_checked++;
     checkasm_srand(cfg.seed);
 
-    if (cfg.bench)
+    if (cfg.bench) {
+#if ARCH_X86_64
+        checkasm_simd_warmup();
+#endif
         checkasm_measurement_init(&v->cycles);
+    }
     return ref;
 }
 
