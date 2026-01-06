@@ -673,6 +673,19 @@ CHECKASM_API int checkasm_check_impl_float_ulp(const char *file, int line,
 #define checkasm_check_rect_padded_align(rect1, ...)                                     \
     checkasm_check2d_padded(rect1##_type, rect1, __VA_ARGS__, 8)
 
+/**
+ * @def CHECK_BUF_RECT(buf1, buf2, w, h)
+ * @brief Compare two rectangular buffers (convenience macro)
+ * @param buf1 First buffer (from BUF_RECT)
+ * @param buf2 Second buffer (from BUF_RECT)
+ * @param w Width of the usable buffer region
+ * @param h Height of the usable buffer region
+ * @see checkasm_check_rect_padded()
+ */
+#define CHECK_BUF_RECT(buf1, buf2, w, h)                                                 \
+    checkasm_check_rect_padded(buf1, buf1##_stride, buf2, buf2##_stride, w, h,           \
+                               #buf1 " vs " #buf2)
+
 /** @} */ /* bufrect */
 
 #endif /* CHECKASM_UTILS_H */
