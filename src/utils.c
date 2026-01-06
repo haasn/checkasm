@@ -628,16 +628,18 @@ static int check_err(const char *const file, const int line, const char *const n
         const int overhead   = 5 + 3 + 3;                                                \
         const int term_width = get_terminal_width() - overhead;                          \
         const int aligned_w  = (w + align_w - 1) & ~(align_w - 1);                       \
-        const int aligned_h  = (h + align_h - 1) & ~(align_h - 1);                       \
         stride1 /= sizeof(type);                                                         \
         stride2 /= sizeof(type);                                                         \
                                                                                          \
         int err = 0;                                                                     \
         CHECK_RECT(buf1, buf2, 0, h, 0, w, "", compare, type, fmt, fmtw);                \
-        CHECK_RECT(buf1, buf2, -padding, 0, -padding, w + padding, "overwrite top",      \
-                   compare, type, fmt, fmtw);                                            \
-        CHECK_RECT(buf1, buf2, aligned_h, aligned_h + padding, -padding, w + padding,    \
-                   "overwrite bottom", compare, type, fmt, fmtw);                        \
+        if (align_h >= 1) {                                                              \
+            const int aligned_h = (h + align_h - 1) & ~(align_h - 1);                    \
+            CHECK_RECT(buf1, buf2, -padding, 0, -padding, w + padding, "overwrite top",  \
+                       compare, type, fmt, fmtw);                                        \
+            CHECK_RECT(buf1, buf2, aligned_h, aligned_h + padding, -padding,             \
+                       w + padding, "overwrite bottom", compare, type, fmt, fmtw);       \
+        }                                                                                \
         CHECK_RECT(buf1, buf2, 0, h, -padding, 0, "overwrite left", compare, type, fmt,  \
                    fmtw);                                                                \
         CHECK_RECT(buf1, buf2, 0, h, aligned_w, aligned_w + padding, "overwrite right",  \

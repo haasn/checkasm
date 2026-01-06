@@ -495,7 +495,8 @@ CHECKASM_API int checkasm_check_impl_float_ulp(const char *file, int line,
  * @param name Name of the buffer (for error reporting)
  * @param ... Extra parameters (e.g. max_ulp for checkasm_check2d_padded(float_ulp, ...))
  * @param align_w Horizontal alignment of the allowed over-write (elements)
- * @param align_h Vertical alignment of the allowed over-write (lines)
+ * @param align_h Vertical alignment of the allowed over-write (lines), or
+ *                0 to disable top/bottom overwrite checks.
  * @param padding Number of extra elements/lines of padding to check (past the
  *        alignment boundaries)
  * @see checkasm_check2d(), checkasm_check_rect_padded()
