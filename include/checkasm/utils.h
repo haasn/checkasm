@@ -503,6 +503,49 @@ CHECKASM_API int checkasm_check_impl_float_ulp(const char *file, int line,
  */
 #define checkasm_check2d_padded(type, ...) checkasm_check2(type, __VA_ARGS__)
 
+/**
+ * @def checkasm_check1d(type, buf1, buf2, len, name, ...)
+ * @brief Compare two 1D buffers and fail test if different
+ * @param type Element type (e.g., uint8_t, int, float)
+ * @param buf1 First buffer pointer to compare
+ * @param buf2 Second buffer pointer to compare
+ * @param len Length of the buffers in elements
+ * @param ... Extra parameters (e.g. max_ulp for checkasm_check(float_ulp, ...))
+ * @see checkasm_check2d()
+ *
+ * @code
+ * CHECKASM_ALIGN(uint8_t buf1[256]);
+ * CHECKASM_ALIGN(uint8_t buf2[256]);
+ * for (int w = 8; w <= 256; w <<= 1) {
+ *     if (checkasm_check_func(..., "myfunc_w%d", w)) {
+ *         checkasm_call_ref(buf1, w);
+ *         checkasm_call_new(buf2, w);
+ *         checkasm_check1d(uint8_t, buf1, buf2, w, "buffer");
+ *     }
+ */
+#define checkasm_check1d(type, buf1, buf2, len, ...) \
+    checkasm_check2d(type, buf1, 0, buf2, 0, len, 1, __VA_ARGS__)
+
+/**
+ * @def checkasm_check1d_padded(type, buf1, buf2, len, name, align_w, padding)
+ * @brief Compare two 1D buffers, including padding regions (detect over-write)
+ * @param type Element type (e.g., uint8_t, int, float)
+ * @param buf1 First buffer pointer to compare
+ * @param buf2 Second buffer pointer to compare
+ * @param len Length of the buffers in elements
+ * @param name Name of the buffer (for error reporting)
+ * @param align Alignment of the allowed over-write (elements)
+ * @param padding Number of extra elements of padding to check (past the
+ *        alignment boundary)
+ * @see checkasm_check2d_padded()
+ *
+ * @note For implementation reasons, this macro does not accept variadic
+ *       parameters (e.g. for `float_ulp` checks). If you need those, use
+ *       `checkasm_check2d_padded()` with `align_h = 0` instead.
+ */
+#define checkasm_check1d_padded(type, buf1, buf2, len, name, align, padding) \
+    checkasm_check2d_padded(type, buf1, 0, buf2, 0, len, 1, name, align, 0, padding)
+
 /** @} */ /* bufcmp */
 
 /** @addtogroup aliases
