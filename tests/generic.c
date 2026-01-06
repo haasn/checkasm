@@ -57,14 +57,27 @@ void selftest_test_copy(copy_func fun, const char *name, const int min_width)
                 c_dst[i] = a_dst[i] = ~src[i];
             checkasm_call_ref(c_dst, src, w);
             checkasm_call_new(a_dst, src, w);
+
+            /* Test all checkasm_check() variants */
+            checkasm_check1d(uint8_t, c_dst, a_dst, w, "1d");
+            checkasm_check2d(uint8_t, c_dst, 0, a_dst, 0, w, 1, "2d");
+            checkasm_check_rect(c_dst, c_dst_stride, a_dst, a_dst_stride, w, 1, "rect");
+
+            checkasm_check1d_padded(uint8_t, c_dst, a_dst, w, "1d_padded", 1, 64);
+            checkasm_check2d_padded(uint8_t, c_dst, 0, a_dst, 0, w, 1,
+                                    "2d_padded", 1, 1, 16);
             checkasm_check_rect_padded(c_dst, c_dst_stride, a_dst, a_dst_stride, w, 1,
-                                       "dst data");
+                                       "rect_padded");
+
+            checkasm_check_rect_padded_align(c_dst, c_dst_stride, a_dst, a_dst_stride, w, 1,
+                                             "rect_align", 1, 1);
 
             checkasm_bench_new(a_dst, src, w);
         }
     }
 
     checkasm_report("%s", name);
+#undef WIDTH
 }
 
 void selftest_test_noop(noop_func fun, const char *name)
