@@ -4,6 +4,9 @@
 
 ## Usage
 
+For a complete guide on getting started with checkasm, see the
+[Getting Started](https://checkasm.videolan.me/getting_started.html) page.
+
 ```
 Usage: checkasm [options...] <random seed>
     <random seed>              Use fixed value to seed the PRNG
@@ -37,165 +40,67 @@ In addition, hardware timers are available for benchmarking purposes on all of t
 
 ## Integration into your project
 
-You can either load checkasm as a library (e.g. via `pkg-config`), or include it directly in your project's build system.
+You can either load checkasm as a library (e.g. via `pkg-config`), or include
+it directly in your project's build system. See the
+[Getting Started: Installation](https://checkasm.videolan.me/getting_started.html#installation)
+and [Integration Guide](https://checkasm.videolan.me/integration.html) for more information.
 
-### Meson
+### Code example
 
-First, pull in this project as a git submodule:
-
-```bash
-$ git submodule init
-$ git submodule add https://code.videolan.org/videolan/checkasm subprojects/checkasm
-```
-
-Then integrate it into your build system:
-```meson
-# This first attempts loading checkasm as an external dependency using the
-# appropriate platform-specific method (e.g. pkg-config on POSIX systems),
-# and falls back to using the bundled version inside `subprojects/checkasm`
-# otherwise.
-checkasm_dependency = dependency('checkasm',
-    # Extracts the `checkasm_dep` variable from the `checkasm` subproject.
-    fallback: ['checkasm', 'checkasm_dep'],
-    required: false
-)
-
-# Alternatively, you can directly prefer the bundled version:
-# checkasm_dependency = subproject('checkasm').get_variable('checkasm_dep')
-
-if checkasm_dependency.found()
-    checkasm = executable('checkasm',
-        checkasm_sources,
-        dependencies: checkasm_dependency,
-    )
-
-    test('checkasm', checkasm, suite: 'checkasm')
-    benchmark('checkasm', checkasm, suite: 'checkasm', args: '--bench')
-endif
-```
-
-### Meson using wrap files (alternative)
-
-Create or edit `subprojects/checkasm.wrap`:
-
-```ini
-[wrap-git]
-url = https://code.videolan.org/videolan/checkasm.git
-revision = release
-directory = checkasm
-```
-
-Then declare the dependency in your `meson.build` as usual. (See the previous
-section)
-
-## Integration example
-
-Writing a checkasm executable is as simple as this:
+Here is what short example test demonstrating the public API. Check the
+[Quick Start Example](https://checkasm.videolan.me/getting_started.html#quick_start)
+for a full example.
 
 ```c
-#include <checkasm/checkasm.h>
-
-static const CheckasmCpuInfo cpus[] = {
-    { "CPU flag 1",     "flag1",  CPU_FLAG_1    },
-    { "CPU flag 2",     "flag2",  CPU_FLAG_2    },
-    // ...
-    {0}
-};
-
-static const CheckasmTest tests[] = {
-    { "test1", checkasm_test_1 },
-    { "test2", checkasm_test_2 },
-    // ...
-    {0}
-};
-
-int main(int argc, const char *argv[])
+static void test_add8(const CheckasmCpu cpu)
 {
-    CheckasmConfig cfg = {
-        .cpu_flags = cpus,
-        .tests     = tests,
-    };
+    #define WIDTH 1024
 
-    cfg.cpu = detect_cpu_flags();
-    return checkasm_main(&cfg, argc, argv);
-}
-```
+    // Declare aligned buffers for testing
+    CHECKASM_ALIGN(uint8_t src1[WIDTH]);
+    CHECKASM_ALIGN(uint8_t src2[WIDTH]);
+    CHECKASM_ALIGN(uint16_t dst_c[WIDTH]);
+    CHECKASM_ALIGN(uint16_t dst_a[WIDTH]);
 
-With an example test file looking like:
+    // Declare the function signature
+    checkasm_declare(void, uint16_t *, const uint8_t *, const uint8_t *, size_t);
 
-```c
-void func1_c  (uint8_t *dst, const uint8_t *src, int size);
-void func1_asm(uint8_t *dst, const uint8_t *src, int size);
+    if (checkasm_check_func(get_add8_func(cpu), "add_8")) {
+        // Initialize source buffers with quasi-random test vectors
+        INITIALIZE_BUF(src1);
+        INITIALIZE_BUF(src2);
 
-static void test_func1(void)
-{
-    declare_func(void, uint8_t *, const uint8_t *, int);
-
-    CHECKASM_ALIGN(uint8_t dst_c[1024]);
-    CHECKASM_ALIGN(uint8_t dst_a[1024]);
-    CHECKASM_ALIGN(uint8_t src[1024]);
-    INITIALIZE_BUF(src);
-
-    /* substitute for project-specific mechanisms */
-    func_type *func = func1_c;
-    if (checkasm_get_cpu_flags() & CPU_FLAG_X)
-        func = func1_asm;
-
-    for (int w = 1; w <= 1024; w <<= 1) {
-        if (check_func(func, "func1_%d", w)) {
+        // Test with various buffer sizes
+        for (int w = 1; w <= WIDTH; w <<= 1) {
+            // Clear destination buffers before each test
             CLEAR_BUF(dst_c);
             CLEAR_BUF(dst_a);
 
-            call_ref(dst_c, src, w);
-            call_new(dst_a, src, w);
+            // Call reference and optimized implementations
+            checkasm_call_ref(dst_c, src1, src2, w);
+            checkasm_call_new(dst_a, src1, src2, w);
 
-            checkasm_check(uint8_t, dst_c, sizeof(dst_c),
-                                    dst_a, sizeof(dst_a),
-                                    w, 1, "dst");
-
-            bench_new(alternate(dst_a, dst_c), src, w);
+            // Compare results - checkasm_check will report any mismatches
+            checkasm_check(uint16_t, dst_c, /*dst_c_stride=*/sizeof(dst_c),
+                                     dst_a, /*dst_a_stride=*/sizeof(dst_a),
+                                     /*width=*/w, /*height=*/1, "sum");
         }
+
+        // Benchmark the optimized version on the largest buffer size
+        checkasm_bench_new(checkasm_alternate(dst_c, dst_a), src1, src2, WIDTH);
     }
-}
-
-int func2_c  (int a, int b);
-int func2_asm(int a, int b);
-
-static void test_func2(void)
-{
-    declare_func(int, int, int);
-
-    func_type *func = func2_c;
-    if (checkasm_get_cpu_flags() & CPU_FLAG_Y)
-        func = func2_asm;
-
-    for (int a = 0; a < 10; a++) {
-        for (int b = 0; b <= a; b++) {
-            if (check_func(func, "func2_%d_%d", a, b)) {
-                int x = call_ref(a, b);
-                int y = call_new(a, b);
-                if (x != y) {
-                    if (fail()) {
-                        /* fail() returns whether we should log values */
-                        fprintf(stderr, "got: %d, expected: %d\n", y, x);
-                    }
-                }
-            }
-        }
-    }
-}
-
-void checkasm_test_1(void)
-{
-    test_func1();
-    test_func2();
-    // ...
 }
 ```
 
+For a complete tutorial on writing tests, read the
+[Writing Tests](https://checkasm.videolan.me/writing_tests.html) page.
+
 ### Example outputs
 
-This is what the output looks like, when using `--verbose` mode to print all timing data (on a pretty noisy/busy system):
+This is what the output looks like, when using `--verbose` mode to print all
+timing data (on a pretty noisy/busy system). For more information about the
+interpretation and usefulness of these results, refer to the
+[Benchmarking](https://checkasm.videolan.me/benchmarking.html) guide.
 
 ```
 checkasm:
