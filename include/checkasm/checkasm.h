@@ -44,6 +44,42 @@
 #include "checkasm/attributes.h"
 
 /**
+ * @defgroup config User-provided Configuration
+ * @{
+ *
+ * User-provided preprocessor definitions for configuring the behavior of
+ * the checkasm header files. These macros should be defined before including
+ * checkasm.h, based on the availability of compiler features in the target
+ * project.
+ */
+
+/**
+ * @def CHECKASM_HAVE_GENERIC
+ * @brief Enable C11 _Generic support
+ *
+ * When enabled (defined to a nonzero value), checkasm uses C11's _Generic
+ * keyword to enable extra checks that rely on type information. This enables
+ * register width checking and floating point state checks on supported
+ * platforms. When disabled (defined to 0), these features are silently
+ * disabled.
+ *
+ * By default (when not defined), this is automatically enabled for C11 and
+ * later, and disabled for older C standards. Define this macro before
+ * including checkasm.h to explicitly control the behavior.
+ *
+ * @note This is not needed when compiling with `-std=c11` or later.
+ */
+#ifndef CHECKASM_HAVE_GENERIC
+  #if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
+    #define CHECKASM_HAVE_GENERIC 1
+  #else
+    #define CHECKASM_HAVE_GENERIC 0
+  #endif
+#endif
+
+/** @} */ /* end of config group */
+
+/**
  * @brief Opaque type representing a set of CPU feature flags
  *
  * Bitfield type used to represent CPU capabilities and SIMD instruction set
@@ -345,13 +381,5 @@ CHECKASM_API int checkasm_run(const CheckasmConfig *config);
  * @see checkasm_run()
  */
 CHECKASM_API int checkasm_main(CheckasmConfig *config, int argc, const char *argv[]);
-
-#ifndef CHECKASM_HAVE_GENERIC
-  #if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
-    #define CHECKASM_HAVE_GENERIC 1
-  #else
-    #define CHECKASM_HAVE_GENERIC 0
-  #endif
-#endif
 
 #endif /* CHECKASM_CHECKASM_H */

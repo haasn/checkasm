@@ -4,6 +4,15 @@ This guide covers how to integrate checkasm into existing or new projects.
 
 @tableofcontents
 
+@section config_options Configuration Options
+
+Checkasm uses optional C11 features inside public header files. For safety, these are only enabled
+conservatively based on the C11 standard version signaled by the compiler. Sometimes, these checks
+could be relaxed, such as when the target project is explicitly compiled with `-std=c99` or older,
+but using a modern compiler that would still understand and accept C11 features. In this case,
+these feature checks may be checked by the user and defined before including checkasm.h. See
+@ref config for a list of such options.
+
 @section cpu_flags CPU Flags
 
 CPU flags represent instruction set extensions and features that your optimized implementations
