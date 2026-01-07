@@ -1,17 +1,17 @@
 #include "tests.h"
 
-uint64_t checkasm_get_cpu_flags_riscv(void)
+uint64_t selftest_get_cpu_flags_riscv(void)
 {
-    uint64_t flags = CHECKASM_CPU_FLAG_RVI;
+    uint64_t flags = SELFTEST_CPU_FLAG_RVI;
     if (checkasm_has_float())
-        flags |= CHECKASM_CPU_FLAG_RVF;
+        flags |= SELFTEST_CPU_FLAG_RVF;
     if (checkasm_has_vector())
-        flags |= CHECKASM_CPU_FLAG_RVV;
+        flags |= SELFTEST_CPU_FLAG_RVV;
     return flags;
 }
 
 DEF_COPY_FUNC(copy_rvv);
-DEF_COPY_GETTER(CHECKASM_CPU_FLAG_RVV, copy_rvv)
+DEF_COPY_GETTER(SELFTEST_CPU_FLAG_RVV, copy_rvv)
 
 DEF_NOOP_FUNC(clobber_ra);
 DEF_NOOP_FUNC(clobber_sp);
@@ -79,8 +79,8 @@ DEF_NOOP_FUNC(clobber_ft11);
 
 DEF_NOOP_FUNC(sigill_riscv);
 DEF_NOOP_FUNC(corrupt_stack_riscv);
-DEF_NOOP_GETTER(CHECKASM_CPU_FLAG_RVI, sigill_riscv)
-DEF_NOOP_GETTER(CHECKASM_CPU_FLAG_RVI, corrupt_stack_riscv)
+DEF_NOOP_GETTER(SELFTEST_CPU_FLAG_RVI, sigill_riscv)
+DEF_NOOP_GETTER(SELFTEST_CPU_FLAG_RVI, corrupt_stack_riscv)
 
 typedef struct RiscvRegister {
     const char *name;
@@ -88,98 +88,98 @@ typedef struct RiscvRegister {
 } RiscvRegister;
 
 static const RiscvRegister registers_safe[] = {
-    { "ra", checkasm_clobber_ra },
-    { "t0", checkasm_clobber_t0 },
-    { "t1", checkasm_clobber_t1 },
-    { "t2", checkasm_clobber_t2 },
-    { "t3", checkasm_clobber_t3 },
-    { "t4", checkasm_clobber_t4 },
-    { "t5", checkasm_clobber_t5 },
-    { "t6", checkasm_clobber_t6 },
-    { "a0", checkasm_clobber_a0 },
-    { "a1", checkasm_clobber_a1 },
-    { "a2", checkasm_clobber_a2 },
-    { "a3", checkasm_clobber_a3 },
-    { "a4", checkasm_clobber_a4 },
-    { "a5", checkasm_clobber_a5 },
-    { "a6", checkasm_clobber_a6 },
-    { "a7", checkasm_clobber_a7 },
+    { "ra", selftest_clobber_ra },
+    { "t0", selftest_clobber_t0 },
+    { "t1", selftest_clobber_t1 },
+    { "t2", selftest_clobber_t2 },
+    { "t3", selftest_clobber_t3 },
+    { "t4", selftest_clobber_t4 },
+    { "t5", selftest_clobber_t5 },
+    { "t6", selftest_clobber_t6 },
+    { "a0", selftest_clobber_a0 },
+    { "a1", selftest_clobber_a1 },
+    { "a2", selftest_clobber_a2 },
+    { "a3", selftest_clobber_a3 },
+    { "a4", selftest_clobber_a4 },
+    { "a5", selftest_clobber_a5 },
+    { "a6", selftest_clobber_a6 },
+    { "a7", selftest_clobber_a7 },
     { NULL, NULL                }
 };
 
 static const RiscvRegister float_registers_safe[] = {
-    { "ft0",  checkasm_clobber_ft0  },
-    { "ft1",  checkasm_clobber_ft1  },
-    { "ft2",  checkasm_clobber_ft2  },
-    { "ft3",  checkasm_clobber_ft3  },
-    { "ft4",  checkasm_clobber_ft4  },
-    { "ft5",  checkasm_clobber_ft5  },
-    { "ft6",  checkasm_clobber_ft6  },
-    { "ft7",  checkasm_clobber_ft7  },
+    { "ft0",  selftest_clobber_ft0  },
+    { "ft1",  selftest_clobber_ft1  },
+    { "ft2",  selftest_clobber_ft2  },
+    { "ft3",  selftest_clobber_ft3  },
+    { "ft4",  selftest_clobber_ft4  },
+    { "ft5",  selftest_clobber_ft5  },
+    { "ft6",  selftest_clobber_ft6  },
+    { "ft7",  selftest_clobber_ft7  },
 #ifdef __riscv_float_abi_soft
-    { "fs0",  checkasm_clobber_fs0  },
-    { "fs1",  checkasm_clobber_fs1  },
+    { "fs0",  selftest_clobber_fs0  },
+    { "fs1",  selftest_clobber_fs1  },
 #endif
-    { "fa0",  checkasm_clobber_fa0  },
-    { "fa1",  checkasm_clobber_fa1  },
-    { "fa2",  checkasm_clobber_fa2  },
-    { "fa3",  checkasm_clobber_fa3  },
-    { "fa4",  checkasm_clobber_fa4  },
-    { "fa5",  checkasm_clobber_fa5  },
-    { "fa6",  checkasm_clobber_fa6  },
-    { "fa7",  checkasm_clobber_fa7  },
+    { "fa0",  selftest_clobber_fa0  },
+    { "fa1",  selftest_clobber_fa1  },
+    { "fa2",  selftest_clobber_fa2  },
+    { "fa3",  selftest_clobber_fa3  },
+    { "fa4",  selftest_clobber_fa4  },
+    { "fa5",  selftest_clobber_fa5  },
+    { "fa6",  selftest_clobber_fa6  },
+    { "fa7",  selftest_clobber_fa7  },
 #ifdef __riscv_float_abi_soft
-    { "fs2",  checkasm_clobber_fs2  },
-    { "fs3",  checkasm_clobber_fs3  },
-    { "fs4",  checkasm_clobber_fs4  },
-    { "fs5",  checkasm_clobber_fs5  },
-    { "fs6",  checkasm_clobber_fs6  },
-    { "fs7",  checkasm_clobber_fs7  },
-    { "fs8",  checkasm_clobber_fs8  },
-    { "fs9",  checkasm_clobber_fs9  },
-    { "fs10", checkasm_clobber_fs10 },
-    { "fs11", checkasm_clobber_fs11 },
+    { "fs2",  selftest_clobber_fs2  },
+    { "fs3",  selftest_clobber_fs3  },
+    { "fs4",  selftest_clobber_fs4  },
+    { "fs5",  selftest_clobber_fs5  },
+    { "fs6",  selftest_clobber_fs6  },
+    { "fs7",  selftest_clobber_fs7  },
+    { "fs8",  selftest_clobber_fs8  },
+    { "fs9",  selftest_clobber_fs9  },
+    { "fs10", selftest_clobber_fs10 },
+    { "fs11", selftest_clobber_fs11 },
 #endif
-    { "ft8",  checkasm_clobber_ft8  },
-    { "ft9",  checkasm_clobber_ft9  },
-    { "ft10", checkasm_clobber_ft10 },
-    { "ft11", checkasm_clobber_ft11 },
+    { "ft8",  selftest_clobber_ft8  },
+    { "ft9",  selftest_clobber_ft9  },
+    { "ft10", selftest_clobber_ft10 },
+    { "ft11", selftest_clobber_ft11 },
     { NULL,   NULL                  },
 };
 
 static const RiscvRegister registers_unsafe[] = {
-    { "s0",  checkasm_clobber_s0  },
-    { "s1",  checkasm_clobber_s1  },
-    { "s2",  checkasm_clobber_s2  },
-    { "s3",  checkasm_clobber_s3  },
-    { "s4",  checkasm_clobber_s4  },
-    { "s5",  checkasm_clobber_s5  },
-    { "s6",  checkasm_clobber_s6  },
-    { "s7",  checkasm_clobber_s7  },
-    { "s8",  checkasm_clobber_s8  },
-    { "s9",  checkasm_clobber_s9  },
-    { "s10", checkasm_clobber_s10 },
-    { "s11", checkasm_clobber_s11 },
-    { "sp",  checkasm_clobber_sp  },
-    { "gp",  checkasm_clobber_gp  },
+    { "s0",  selftest_clobber_s0  },
+    { "s1",  selftest_clobber_s1  },
+    { "s2",  selftest_clobber_s2  },
+    { "s3",  selftest_clobber_s3  },
+    { "s4",  selftest_clobber_s4  },
+    { "s5",  selftest_clobber_s5  },
+    { "s6",  selftest_clobber_s6  },
+    { "s7",  selftest_clobber_s7  },
+    { "s8",  selftest_clobber_s8  },
+    { "s9",  selftest_clobber_s9  },
+    { "s10", selftest_clobber_s10 },
+    { "s11", selftest_clobber_s11 },
+    { "sp",  selftest_clobber_sp  },
+    { "gp",  selftest_clobber_gp  },
     /* Can't clobber tp because checkasm.S saves registers in TLS */
     { NULL,  NULL                 }
 };
 
 static const RiscvRegister float_registers_unsafe[] = {
 #ifndef __riscv_float_abi_soft
-    { "fs0",  checkasm_clobber_fs0  },
-    { "fs1",  checkasm_clobber_fs1  },
-    { "fs2",  checkasm_clobber_fs2  },
-    { "fs3",  checkasm_clobber_fs3  },
-    { "fs4",  checkasm_clobber_fs4  },
-    { "fs5",  checkasm_clobber_fs5  },
-    { "fs6",  checkasm_clobber_fs6  },
-    { "fs7",  checkasm_clobber_fs7  },
-    { "fs8",  checkasm_clobber_fs8  },
-    { "fs9",  checkasm_clobber_fs9  },
-    { "fs10", checkasm_clobber_fs10 },
-    { "fs11", checkasm_clobber_fs11 },
+    { "fs0",  selftest_clobber_fs0  },
+    { "fs1",  selftest_clobber_fs1  },
+    { "fs2",  selftest_clobber_fs2  },
+    { "fs3",  selftest_clobber_fs3  },
+    { "fs4",  selftest_clobber_fs4  },
+    { "fs5",  selftest_clobber_fs5  },
+    { "fs6",  selftest_clobber_fs6  },
+    { "fs7",  selftest_clobber_fs7  },
+    { "fs8",  selftest_clobber_fs8  },
+    { "fs9",  selftest_clobber_fs9  },
+    { "fs10", selftest_clobber_fs10 },
+    { "fs11", selftest_clobber_fs11 },
 #endif
     { NULL,  NULL                 }
 };
@@ -200,16 +200,16 @@ static void check_clobber(uint64_t mask, unsigned char letter,
     checkasm_report("clobber_%c", letter);
 }
 
-void checkasm_check_riscv(void)
+void selftest_check_riscv(void)
 {
-    checkasm_test_copy(get_copy_rvv(), "copy_rvv", 1);
-    check_clobber(CHECKASM_CPU_FLAG_RVI, 'x', registers_safe);
-    check_clobber(CHECKASM_CPU_FLAG_RVF, 'f', float_registers_safe);
+    selftest_test_copy(get_copy_rvv(), "copy_rvv", 1);
+    check_clobber(SELFTEST_CPU_FLAG_RVI, 'x', registers_safe);
+    check_clobber(SELFTEST_CPU_FLAG_RVF, 'f', float_registers_safe);
 
     if (!checkasm_should_fail(1))
         return;
-    checkasm_test_noop(get_sigill_riscv(), "sigill");
-    checkasm_test_noop(get_corrupt_stack_riscv(), "corrupt_stack");
-    check_clobber(CHECKASM_CPU_FLAG_RVI, 'x', registers_unsafe);
-    check_clobber(CHECKASM_CPU_FLAG_RVF, 'f', float_registers_unsafe);
+    selftest_test_noop(get_sigill_riscv(), "sigill");
+    selftest_test_noop(get_corrupt_stack_riscv(), "corrupt_stack");
+    check_clobber(SELFTEST_CPU_FLAG_RVI, 'x', registers_unsafe);
+    check_clobber(SELFTEST_CPU_FLAG_RVF, 'f', float_registers_unsafe);
 }

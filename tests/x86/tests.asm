@@ -1,5 +1,5 @@
 %undef private_prefix
-%define private_prefix checkasm
+%define private_prefix selftest
 
 %include "src/checkasm_config.asm"
 %include "src/x86/x86inc.asm"

@@ -34,7 +34,7 @@
 
 #include "tests.h"
 
-void checkasm_test_copy(copy_func fun, const char *name, const int min_width)
+void selftest_test_copy(copy_func fun, const char *name, const int min_width)
 {
 #define WIDTH 256
     BUF_RECT(uint8_t, c_dst, WIDTH, 1);
@@ -67,7 +67,7 @@ void checkasm_test_copy(copy_func fun, const char *name, const int min_width)
     checkasm_report("%s", name);
 }
 
-void checkasm_test_noop(noop_func fun, const char *name)
+void selftest_test_noop(noop_func fun, const char *name)
 {
     checkasm_declare(void, int);
 
@@ -81,7 +81,7 @@ void checkasm_test_noop(noop_func fun, const char *name)
     checkasm_report("%s", name);
 }
 
-void checkasm_test_float(float_func fun, const char *name, const float input)
+void selftest_test_float(float_func fun, const char *name, const float input)
 {
     checkasm_declare(float, float);
 
@@ -97,7 +97,7 @@ void checkasm_test_float(float_func fun, const char *name, const float input)
     checkasm_report("%s", name);
 }
 
-static void checkasm_test_double(double_func fun, const char *name,
+static void selftest_test_double(double_func fun, const char *name,
                                  const double input)
 {
     checkasm_declare(double, double);
@@ -156,7 +156,7 @@ static int identity_new(const int x)
     return x;
 }
 
-static void checkasm_test_retval(void)
+static void selftest_test_retval(void)
 {
     const uint64_t flags = checkasm_get_cpu_flags();
 
@@ -181,7 +181,7 @@ static int truncate_c(const float x)
     return (int) x;
 }
 
-static void checkasm_test_float_arg(void)
+static void selftest_test_float_arg(void)
 {
     checkasm_declare(int, float);
 
@@ -199,7 +199,7 @@ static void checkasm_test_float_arg(void)
     checkasm_report("truncate");
 }
 
-static void checkasm_test_double_arg(void)
+static void selftest_test_double_arg(void)
 {
     checkasm_declare(long, double);
 
@@ -218,13 +218,13 @@ static void checkasm_test_double_arg(void)
     checkasm_report("lrint");
 }
 
-DEF_COPY_GETTER(CHECKASM_CPU_FLAG_BAD_C, overwrite_left)
-DEF_COPY_GETTER(CHECKASM_CPU_FLAG_BAD_C, overwrite_right)
-DEF_COPY_GETTER(CHECKASM_CPU_FLAG_BAD_C, underwrite)
-DEF_NOOP_GETTER(CHECKASM_CPU_FLAG_BAD_C, segfault)
+DEF_COPY_GETTER(SELFTEST_CPU_FLAG_BAD_C, overwrite_left)
+DEF_COPY_GETTER(SELFTEST_CPU_FLAG_BAD_C, overwrite_right)
+DEF_COPY_GETTER(SELFTEST_CPU_FLAG_BAD_C, underwrite)
+DEF_NOOP_GETTER(SELFTEST_CPU_FLAG_BAD_C, segfault)
 
 /* Ensure we can call declare_func() inside check_func() */
-static void checkasm_test_check_declare(void)
+static void selftest_test_check_declare(void)
 {
     /* Pick a function that will actually crash, to ensure the error
      * handling still works in this case */
@@ -246,7 +246,7 @@ static int wrapper(int_func *func, int arg)
     return func(arg);
 }
 
-static void checkasm_test_wrappers(void)
+static void selftest_test_wrappers(void)
 {
     if (checkasm_check_func(identity_ref, "override_funcs")) {
         checkasm_declare(int, int);
@@ -267,22 +267,22 @@ static void checkasm_test_wrappers(void)
     checkasm_report("wrappers");
 }
 
-void checkasm_check_generic(void)
+void selftest_check_generic(void)
 {
-    checkasm_test_copy(checkasm_copy_c, "copy_generic", 1);
-    checkasm_test_float(checkasm_sqrt, "sqrt_generic", 2.0f);
-    checkasm_test_float_arg();
-    checkasm_test_double(sqrt, "sqrt", 2.);
-    checkasm_test_double_arg();
-    checkasm_test_retval();
-    checkasm_test_wrappers();
+    selftest_test_copy(selftest_copy_c, "copy_generic", 1);
+    selftest_test_float(selftest_sqrt, "sqrt_generic", 2.0f);
+    selftest_test_float_arg();
+    selftest_test_double(sqrt, "sqrt", 2.);
+    selftest_test_double_arg();
+    selftest_test_retval();
+    selftest_test_wrappers();
 
-    if (!checkasm_should_fail(CHECKASM_CPU_FLAG_BAD_C))
+    if (!checkasm_should_fail(SELFTEST_CPU_FLAG_BAD_C))
         return;
 
-    checkasm_test_copy(get_overwrite_left(), "overwrite_left", 1);
-    checkasm_test_copy(get_overwrite_right(), "overwrite_right", 1);
-    checkasm_test_copy(get_underwrite(), "underwrite", 1);
-    checkasm_test_noop(get_segfault(), "segfault");
-    checkasm_test_check_declare();
+    selftest_test_copy(get_overwrite_left(), "overwrite_left", 1);
+    selftest_test_copy(get_overwrite_right(), "overwrite_right", 1);
+    selftest_test_copy(get_underwrite(), "underwrite", 1);
+    selftest_test_noop(get_segfault(), "segfault");
+    selftest_test_check_declare();
 }

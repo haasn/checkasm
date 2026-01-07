@@ -37,50 +37,48 @@
 #include <checkasm/utils.h>
 
 enum {
-    CHECKASM_CPU_FLAG_BAD_C = 1 << 0, // dummy flag for "bad" C implementations
+    SELFTEST_CPU_FLAG_BAD_C = 1 << 0, // dummy flag for "bad" C implementations
 #if ARCH_X86
-    CHECKASM_CPU_FLAG_X86    = 1 << 1,
-    CHECKASM_CPU_FLAG_MMX    = 1 << 2,
-    CHECKASM_CPU_FLAG_SSE2   = 1 << 3,
-    CHECKASM_CPU_FLAG_AVX2   = 1 << 4,
-    CHECKASM_CPU_FLAG_AVX512 = 1 << 5,
+    SELFTEST_CPU_FLAG_X86    = 1 << 1,
+    SELFTEST_CPU_FLAG_MMX    = 1 << 2,
+    SELFTEST_CPU_FLAG_SSE2   = 1 << 3,
+    SELFTEST_CPU_FLAG_AVX2   = 1 << 4,
+    SELFTEST_CPU_FLAG_AVX512 = 1 << 5,
 #elif ARCH_RISCV
-    CHECKASM_CPU_FLAG_RVI    = 1 << 1,
-    CHECKASM_CPU_FLAG_RVF    = 1 << 2,
-    CHECKASM_CPU_FLAG_RVV    = 1 << 3,
+    SELFTEST_CPU_FLAG_RVI    = 1 << 1,
+    SELFTEST_CPU_FLAG_RVF    = 1 << 2,
+    SELFTEST_CPU_FLAG_RVV    = 1 << 3,
 #elif ARCH_AARCH64
-    CHECKASM_CPU_FLAG_AARCH64 = 1 << 1,
+    SELFTEST_CPU_FLAG_AARCH64 = 1 << 1,
 #elif ARCH_ARM
-    CHECKASM_CPU_FLAG_ARM  = 1 << 1,
-    CHECKASM_CPU_FLAG_VFP  = 1 << 2,
-    CHECKASM_CPU_FLAG_NEON = 1 << 3,
+    SELFTEST_CPU_FLAG_ARM  = 1 << 1,
+    SELFTEST_CPU_FLAG_VFP  = 1 << 2,
+    SELFTEST_CPU_FLAG_NEON = 1 << 3,
 #endif
 };
 
 #define DEF_GETTER(FLAG, NAME, func_type, fallback)                                      \
     static func_type *get_##NAME(void)                                                   \
     {                                                                                    \
-        return (checkasm_get_cpu_flags() & FLAG) ? checkasm_##NAME : fallback;           \
+        return (checkasm_get_cpu_flags() & FLAG) ? selftest_##NAME : fallback;           \
     }
 
-uint64_t checkasm_get_cpu_flags(void);
-
 /* Should return the arch-specific flags */
-uint64_t checkasm_get_cpu_flags_x86(void);
-uint64_t checkasm_get_cpu_flags_riscv(void);
-uint64_t checkasm_get_cpu_flags_aarch64(void);
-uint64_t checkasm_get_cpu_flags_arm(void);
+uint64_t selftest_get_cpu_flags_x86(void);
+uint64_t selftest_get_cpu_flags_riscv(void);
+uint64_t selftest_get_cpu_flags_aarch64(void);
+uint64_t selftest_get_cpu_flags_arm(void);
 
 /**
  * Copy `size` (power-of-two) bytes from aligned buffers `src` to `dst`.
  */
 typedef void(copy_func)(uint8_t *dst, const uint8_t *src, size_t size);
-void checkasm_test_copy(copy_func *func, const char *name, int min_width);
+void selftest_test_copy(copy_func *func, const char *name, int min_width);
 
 #define DEF_COPY_FUNC(NAME)                                                              \
-    void checkasm_##NAME(uint8_t *dst, const uint8_t *src, size_t size)
+    void selftest_##NAME(uint8_t *dst, const uint8_t *src, size_t size)
 
-#define DEF_COPY_GETTER(FLAG, NAME) DEF_GETTER(FLAG, NAME, copy_func, checkasm_copy_c)
+#define DEF_COPY_GETTER(FLAG, NAME) DEF_GETTER(FLAG, NAME, copy_func, selftest_copy_c)
 
 /* Reference function for copy routines */
 static inline DEF_COPY_FUNC(copy_c)
@@ -94,23 +92,23 @@ static inline DEF_COPY_FUNC(copy_c)
  * which is required by `declare_func`.
  */
 typedef void(noop_func)(int unused);
-void checkasm_test_noop(noop_func *func, const char *name);
+void selftest_test_noop(noop_func *func, const char *name);
 
-#define DEF_NOOP_FUNC(NAME) void checkasm_##NAME(int unused)
+#define DEF_NOOP_FUNC(NAME) void selftest_##NAME(int unused)
 #define DEF_NOOP_GETTER(FLAG, NAME) DEF_GETTER(FLAG, NAME, noop_func, NULL)
 
 /* Used for testing floating point operations */
 typedef float(float_func)(float input);
 typedef double(double_func)(double input);
-void checkasm_test_float(float_func *func, const char *name, float input);
+void selftest_test_float(float_func *func, const char *name, float input);
 
-#define DEF_FLOAT_FUNC(NAME) float checkasm_##NAME(float input)
+#define DEF_FLOAT_FUNC(NAME) float selftest_##NAME(float input)
 
 /* Platform-specific tests */
-void checkasm_check_generic(void);
-void checkasm_check_x86(void);
-void checkasm_check_riscv(void);
-void checkasm_check_aarch64(void);
-void checkasm_check_arm(void);
+void selftest_check_generic(void);
+void selftest_check_x86(void);
+void selftest_check_riscv(void);
+void selftest_check_aarch64(void);
+void selftest_check_arm(void);
 
 #endif /* CHECKASM_TESTS_H */

@@ -24,6 +24,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *****************************************************************************/
 
+#define PRIVATE_PREFIX selftest_
+
 #include "src/config.h"
 #include "src/arm/asm.S"
 
