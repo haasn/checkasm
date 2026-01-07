@@ -30,17 +30,17 @@
 
 #if HAVE_MACOS_KPERF
 
-#include <dlfcn.h>
+  #include <dlfcn.h>
 
-#include "internal.h"
+  #include "internal.h"
 
-#define CFGWORD_EL0A64EN_MASK       (0x20000)
-#define CPMU_CORE_CYCLE             0x02
-#define KPC_CLASS_FIXED_MASK        (1 << 0)
-#define KPC_CLASS_CONFIGURABLE_MASK (1 << 1)
-#define COUNTERS_COUNT              10
-#define CONFIG_COUNT                8
-#define KPC_MASK                    (KPC_CLASS_CONFIGURABLE_MASK | KPC_CLASS_FIXED_MASK)
+  #define CFGWORD_EL0A64EN_MASK       (0x20000)
+  #define CPMU_CORE_CYCLE             0x02
+  #define KPC_CLASS_FIXED_MASK        (1 << 0)
+  #define KPC_CLASS_CONFIGURABLE_MASK (1 << 1)
+  #define COUNTERS_COUNT              10
+  #define CONFIG_COUNT                8
+  #define KPC_MASK                    (KPC_CLASS_CONFIGURABLE_MASK | KPC_CLASS_FIXED_MASK)
 
 static int (*kpc_get_thread_counters)(int, unsigned int, void *);
 static int kperf_init;

@@ -30,12 +30,12 @@
 
 #if HAVE_LINUX_PERF
 
-#include <linux/perf_event.h>
-#include <sys/ioctl.h>
-#include <sys/syscall.h>
-#include <unistd.h>
+  #include <linux/perf_event.h>
+  #include <sys/ioctl.h>
+  #include <sys/syscall.h>
+  #include <unistd.h>
 
-#include "internal.h"
+  #include "internal.h"
 
 static int perf_sysfd = -1;
 

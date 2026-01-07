@@ -31,16 +31,16 @@
 
 #if ARCH_RISCV
 
-#include <stdatomic.h>
-#include <stdbool.h>
-#include <inttypes.h>
-#include <limits.h>
-#if HAVE_SYS_HWPROBE_H
-#include <sys/hwprobe.h>
-#elif HAVE_ASM_HWPROBE_H
-#include <asm/hwprobe.h>
-#include <sys/syscall.h>
-#include <unistd.h>
+  #include <inttypes.h>
+  #include <limits.h>
+  #include <stdatomic.h>
+  #include <stdbool.h>
+  #if HAVE_SYS_HWPROBE_H
+    #include <sys/hwprobe.h>
+  #elif HAVE_ASM_HWPROBE_H
+    #include <asm/hwprobe.h>
+    #include <sys/syscall.h>
+    #include <unistd.h>
 
 static int __riscv_hwprobe(struct riscv_hwprobe *pairs, size_t pair_count,
                            size_t cpu_count, unsigned long *cpus,
@@ -49,11 +49,11 @@ static int __riscv_hwprobe(struct riscv_hwprobe *pairs, size_t pair_count,
         return syscall(__NR_riscv_hwprobe, pairs, pair_count, cpu_count, cpus,
                        flags);
 }
-#endif
-#if HAVE_GETAUXVAL || HAVE_ELF_AUX_INFO
-#include <sys/auxv.h>
-#define HWCAP_RV(letter) (1ul << ((letter) - 'A'))
-#endif
+  #endif
+  #if HAVE_GETAUXVAL || HAVE_ELF_AUX_INFO
+    #include <sys/auxv.h>
+    #define HWCAP_RV(letter) (1ul << ((letter) - 'A'))
+  #endif
 
 int checkasm_get_cpuids(uint32_t *vendor, uintptr_t *arch, uintptr_t *imp)
 {
