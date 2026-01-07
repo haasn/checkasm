@@ -156,7 +156,7 @@ endif
 
 checkasm_config = []
 checkasm_config += configure_file(
-  output: 'checkasm_config.h',
+  output: 'checkasm_config_generated.h',
   configuration: cdata,
   install: false,
 )
@@ -204,6 +204,7 @@ endif
 
 if use_gaspp
   gaspp_args = api_export_flags_asm + [
+    '-I@0@'.format(meson.project_source_root() + '/include'),
     '-I@0@'.format(meson.current_source_dir()),
     '-I@0@'.format(meson.current_build_dir()),
   ]

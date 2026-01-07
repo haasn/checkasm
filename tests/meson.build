@@ -66,8 +66,10 @@ endif
 
 if use_gaspp and checkasm_asm_sources.length() > 0
   gaspp_args = [
+    '-I@0@'.format(meson.project_source_root() + '/include'),
     '-I@0@'.format(meson.project_source_root()),
     '-I@0@'.format(meson.project_build_root()),
+    '-I@0@'.format(meson.project_build_root() + '/src'),
   ]
   checkasm_asm_objs += gaspp_gen.process(checkasm_asm_sources, extra_args: gaspp_args)
 else
@@ -80,6 +82,7 @@ checkasm_test = executable('checkasm',
   checkasm_config,
   c_args: extra_arguments,
   dependencies: [checkasm_dep, libm_dependency],
+  include_directories: include_directories('../src'),
   build_by_default: false,
   install: false,
 )
