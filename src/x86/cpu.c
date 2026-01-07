@@ -28,8 +28,6 @@
 
 #include <stdint.h>
 
-#include "checkasm/platform.h"
-
 #include "config.h"
 #include "cpu.h"
 #include "internal.h"
