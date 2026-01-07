@@ -30,6 +30,7 @@
 #define CHECKASM_PLATFORM_AARCH64_H
 
 #include "checkasm/attributes.h"
+#include "checkasm/checkasm.h"
 #include <stdint.h>
 
 CHECKASM_API void checkasm_checked_call(void *func, ...);
