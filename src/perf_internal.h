@@ -71,4 +71,13 @@ static inline void checkasm_counter_enable(void)
 
 #endif
 
+/* This define isn't set by Meson, but can be deduced straight from the
+ * other defines. */
+#if defined(__APPLE__) && ARCH_AARCH64
+  /* This only depends on <dlfcn.h>, and isn't needed on other architectures. */
+  #define HAVE_MACOS_KPERF 1
+#else
+  #define HAVE_MACOS_KPERF 0
+#endif
+
 #endif /* CHECKASM_PERF_INTERNAL_H */

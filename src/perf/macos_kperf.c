@@ -28,6 +28,8 @@
 
 #include "config.h"
 
+#include "perf_internal.h"
+
 #if HAVE_MACOS_KPERF
 
   #include <dlfcn.h>

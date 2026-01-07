@@ -84,9 +84,6 @@ if host_machine.system() == 'linux'
   have_linux_perf = cc.has_header_symbol('linux/perf_event.h', 'PERF_COUNT_HW_CPU_CYCLES', args: test_args)
 endif
 
-# Only depends on <dlfcn.h>, and not needed on other architectures.
-have_macos_kperf = host_machine.system() == 'darwin' and arch_aarch64
-
 # Build configuration
 cdata = configuration_data()
 cdata.set('PREFIX',                         cc.symbols_have_underscore_prefix())
@@ -112,7 +109,6 @@ cdata.set10('HAVE_SIGLONGJMP',              have_siglongjmp)
 cdata.set10('HAVE_GETAUXVAL',               have_getauxval)
 cdata.set10('HAVE_ELF_AUX_INFO',            have_elf_aux_info)
 cdata.set10('HAVE_LINUX_PERF',              have_linux_perf)
-cdata.set10('HAVE_MACOS_KPERF',             have_macos_kperf)
 
 if arch_x86
   cdata.set10('PIC', true)
