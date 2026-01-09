@@ -34,7 +34,6 @@ extra_header_names = [
   'perf.h',
   'perf/aarch64.h',
   'perf/arm.h',
-  'perf/dummy.h',
   'perf/loongarch32.h',
   'perf/loongarch64.h',
   'perf/ppc64le.h',

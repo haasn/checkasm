@@ -42,8 +42,6 @@
   #include "checkasm/perf/loongarch64.h"
 #elif defined(__loongarch__)
   #include "checkasm/perf/loongarch32.h"
-#else
-  #include "checkasm/perf/dummy.h"
 #endif
 
 #endif /* CHECKASM_PERF_H */
