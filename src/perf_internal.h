@@ -32,6 +32,8 @@
 
 #if ARCH_AARCH64
 
+  #include <stdint.h>
+
   #if !defined(__APPLE__) && (!defined(_MSC_VER) || defined(__clang__))
 
 static inline void checkasm_pmccntr_enable(void)
