@@ -48,7 +48,7 @@ static int have_feature(const char *feature)
     }
     return supported;
 }
-  #else
+  #elif HAVE_GETAUXVAL || HAVE_ELF_AUX_INFO
 
     #include <sys/auxv.h>
 
@@ -68,8 +68,10 @@ int checkasm_has_sve(void)
   #elif defined(__APPLE__)
     /* No sysctlbyname feature defined for SVE yet */
     return 0;
-  #else
+  #elif HAVE_GETAUXVAL || HAVE_ELF_AUX_INFO
     return checkasm_getauxval(AT_HWCAP) & HWCAP_AARCH64_SVE;
+  #else
+    return 0;
   #endif
 }
 
@@ -83,14 +85,16 @@ int checkasm_has_sme(void)
     #endif
   #elif defined(__APPLE__)
     return have_feature("hw.optional.arm.FEAT_SME");
-  #else
+  #elif HAVE_GETAUXVAL || HAVE_ELF_AUX_INFO
     return checkasm_getauxval(AT_HWCAP2) & HWCAP2_AARCH64_SME;
+  #else
+    return 0;
   #endif
 }
 
 #elif ARCH_ARM
 
-  #if !defined(_WIN32) && !defined(__APPLE__)
+  #if HAVE_GETAUXVAL || HAVE_ELF_AUX_INFO
     #include <sys/auxv.h>
 
     #ifndef HWCAP_ARM_VFP
@@ -106,8 +110,10 @@ int checkasm_has_neon(void)
 {
   #if (defined(__APPLE__) && __ARM_ARCH >= 7) || defined(_WIN32)
     return 1;
-  #else
+  #elif HAVE_GETAUXVAL || HAVE_ELF_AUX_INFO
     return checkasm_getauxval(AT_HWCAP) & HWCAP_ARM_NEON;
+  #else
+    return 0;
   #endif
 }
 
@@ -115,8 +121,10 @@ int checkasm_has_vfp(void)
 {
   #if defined(__APPLE__) || defined(_WIN32)
     return 1;
-  #else
+  #elif HAVE_GETAUXVAL || HAVE_ELF_AUX_INFO
     return checkasm_getauxval(AT_HWCAP) & HWCAP_ARM_VFP;
+  #else
+    return 0;
   #endif
 }
 
