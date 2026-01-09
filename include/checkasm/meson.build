@@ -42,7 +42,6 @@ extra_header_names = [
   'platform.h',
   'platform/aarch64.h',
   'platform/arm.h',
-  'platform/generic.h',
   'platform/loongarch.h',
   'platform/ppc64le.h',
   'platform/riscv.h',

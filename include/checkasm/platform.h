@@ -44,8 +44,14 @@
   #include "checkasm/platform/riscv.h"
 #elif defined(__loongarch__)
   #include "checkasm/platform/loongarch.h"
-#else
-  #include "checkasm/platform/generic.h"
+#endif
+
+#ifndef checkasm_declare_impl
+  #define checkasm_declare_impl(ret, ...)
+#endif
+
+#ifndef CHECKASM_ALIGNMENT
+  #define CHECKASM_ALIGNMENT 8
 #endif
 
 #endif /* CHECKASM_PLATFORM_H */
