@@ -29,20 +29,21 @@
 #ifndef CHECKASM_PLATFORM_H
 #define CHECKASM_PLATFORM_H
 
-#if defined(__aarch64__) || defined(_M_ARM64) || defined(__arm64ec__)                    \
-    || defined(_M_ARM64EC)
+#include "checkasm/header_config.h"
+
+#if CHECKASM_ARCH_AARCH64
   #include "checkasm/platform/aarch64.h"
-#elif defined(__arm__) || defined(_M_ARM)
+#elif CHECKASM_ARCH_ARM
   #include "checkasm/platform/arm.h"
-#elif defined(__x86_64__) || defined(_M_AMD64)
+#elif CHECKASM_ARCH_X86_64
   #include "checkasm/platform/x86_64.h"
-#elif defined(__i386__) || defined(_M_IX86)
+#elif CHECKASM_ARCH_X86_32
   #include "checkasm/platform/x86_32.h"
-#elif defined(__powerpc64__) && defined(__LITTLE_ENDIAN__)
+#elif CHECKASM_ARCH_PPC64LE
   #include "checkasm/platform/ppc64le.h"
-#elif defined(__riscv)
+#elif CHECKASM_ARCH_RISCV
   #include "checkasm/platform/riscv.h"
-#elif defined(__loongarch__)
+#elif CHECKASM_ARCH_LOONGARCH
   #include "checkasm/platform/loongarch.h"
 #endif
 

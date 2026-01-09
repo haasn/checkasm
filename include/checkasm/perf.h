@@ -29,18 +29,19 @@
 #ifndef CHECKASM_PERF_H
 #define CHECKASM_PERF_H
 
-#if defined(__aarch64__) || defined(_M_ARM64) || defined(__arm64ec__)                    \
-    || defined(_M_ARM64EC)
+#include "checkasm/header_config.h"
+
+#if CHECKASM_ARCH_AARCH64
   #include "checkasm/perf/aarch64.h"
-#elif defined(__arm__) || defined(_M_ARM)
+#elif CHECKASM_ARCH_ARM
   #include "checkasm/perf/arm.h"
-#elif defined(__i386__) || defined(_M_IX86) || defined(__x86_64__) || defined(_M_AMD64)
+#elif CHECKASM_ARCH_X86
   #include "checkasm/perf/x86.h"
-#elif defined(__powerpc64__) && defined(__LITTLE_ENDIAN__)
+#elif CHECKASM_ARCH_PPC64LE
   #include "checkasm/perf/ppc64le.h"
-#elif defined(__loongarch64)
+#elif CHECKASM_ARCH_LOONGARCH64
   #include "checkasm/perf/loongarch64.h"
-#elif defined(__loongarch__)
+#elif CHECKASM_ARCH_LOONGARCH32
   #include "checkasm/perf/loongarch32.h"
 #endif
 

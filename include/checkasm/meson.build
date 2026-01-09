@@ -31,6 +31,8 @@ api_header_file_names = [
 ]
 
 extra_header_names = [
+  'header_config.h',
+
   'perf.h',
   'perf/aarch64.h',
   'perf/arm.h',
