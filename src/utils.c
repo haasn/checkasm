@@ -386,6 +386,10 @@ static int get_terminal_width(void)
     CONSOLE_SCREEN_BUFFER_INFO csbi;
     if (GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi))
         return csbi.srWindow.Right - csbi.srWindow.Left + 1;
+#elif defined(__OS2__)
+    int dst[2];
+    _scrsize(dst);
+    return dst[0];
 #elif HAVE_IOCTL && defined(TIOCGWINSZ)
     struct winsize w;
     if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) != -1)

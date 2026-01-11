@@ -64,7 +64,7 @@ endif
 add_project_arguments(cc.get_supported_arguments(optional_arguments), language : 'c')
 
 test_args = []
-if host_machine.system() in ['linux', 'gnu', 'emscripten']
+if host_machine.system() in ['linux', 'gnu', 'emscripten', 'os/2']
   add_project_arguments('-D_GNU_SOURCE', language: 'c')
   test_args += '-D_GNU_SOURCE'
 endif
