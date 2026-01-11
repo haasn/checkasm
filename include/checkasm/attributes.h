@@ -81,6 +81,8 @@
     #else
       #define CHECKASM_API
     #endif
+  #elif defined(__OS2__)
+    #define CHECKASM_API __declspec(dllexport)
   #else
     #if __GNUC__ >= 4
       #define CHECKASM_API __attribute__((visibility("default")))
