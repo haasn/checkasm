@@ -73,7 +73,7 @@ if get_option('b_sanitize') == 'memory'
   error('asm causes false positives with the memory sanitizer.')
 endif
 
-if host_machine.system() != 'windows'
+if host_machine.system() not in ['windows', 'os/2']
     if cc.has_argument('-fvisibility=hidden')
         add_project_arguments('-fvisibility=hidden', language: 'c')
     else
