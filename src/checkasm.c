@@ -1077,8 +1077,15 @@ static int parseu(unsigned *const dst, const char *const str, const int base)
     char         *end;
     errno = 0;
     val   = strtoul(str, &end, base);
-    if (errno || end == str || *end || val > (unsigned) -1)
+    if (errno || end == str || *end)
         return 0;
+#if !defined(__SIZEOF_LONG__) || !defined(__SIZEOF_INT__) || __SIZEOF_LONG__ > __SIZEOF_INT__
+    /* This condition is split out; it can cause -Wtype-limits warnings on
+     * 32 bit platforms and on Windows:
+     * warning: result of comparison 'unsigned long' > 4294967295 is always false [-Wtautological-type-limit-compare] */
+    if (val > (unsigned) -1)
+        return 0;
+#endif
     *dst = (unsigned) val;
     return 1;
 }

@@ -47,6 +47,7 @@ if cc.get_argument_syntax() != 'msvc'
       '-Wstrict-prototypes',
       '-Werror=missing-prototypes',
       '-Wshorten-64-to-32',
+      '-Wtype-limits',
     ]
 else
     optional_arguments += [
