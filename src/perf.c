@@ -88,17 +88,12 @@ COLD int checkasm_perf_init(void)
     }
   #endif
 
-  #if ARCH_AARCH64 || ARCH_ARM
-    /* On ARM, verify that the cycle counter increments */
+    /* If we got an asm timer, validate that it works. */
     if (checkasm_perf.asm_usable) {
         if (!checkasm_perf_validate_start(&checkasm_perf))
             return 0;
         checkasm_perf.asm_usable = 0;
     }
-  #else /* !ARM */
-    if (checkasm_perf.asm_usable)
-        return 0;
-  #endif
 #endif
 
 #if HAVE_LINUX_PERF
