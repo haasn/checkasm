@@ -80,7 +80,7 @@ COLD int checkasm_perf_init_linux(CheckasmPerf *perf)
     perf->stop  = perf_stop;
     perf->name  = "linux (perf)";
     perf->unit  = "tick";
-    return 0;
+    return checkasm_perf_validate_start_stop(perf);
 }
 
 #endif /* HAVE_LINUX_PERF */

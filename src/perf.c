@@ -146,6 +146,31 @@ COLD int checkasm_perf_validate_start(const CheckasmPerf *perf)
     return 0;
 }
 
+COLD int checkasm_perf_validate_start_stop(const CheckasmPerf *perf)
+{
+    /* Try to make the loop long enough to be sure that the timer should
+     * increment, if it is functional. */
+    const uint64_t target_nsec = 20000; /* 20 us */
+    const uint64_t start_nsec  = checkasm_gettime_nsec();
+
+    uint64_t cycles = perf->start();
+    /* For timers that require a pair of start/stop calls, run a busy loop
+     * until long enough has passed, that the timer should have incremented. */
+    while (checkasm_gettime_nsec_diff(start_nsec) <= target_nsec) {
+        for (int i = 0; i < 100; i++)
+            checkasm_noop(NULL);
+    }
+    cycles = perf->stop(cycles);
+
+    if (cycles == 0) {
+        /* The timer doesn't seem to increment at all. */
+        fprintf(stderr, "checkasm: %s timer doesn't increment\n", perf->name);
+        return 1;
+    }
+
+    return 0;
+}
+
 /* Measure the overhead of the timing code */
 COLD void checkasm_measure_nop_cycles(CheckasmMeasurement *meas, uint64_t target_cycles)
 {
