@@ -91,12 +91,8 @@ COLD int checkasm_perf_init(void)
   #if ARCH_AARCH64 || ARCH_ARM
     /* On ARM, verify that the cycle counter increments */
     if (checkasm_perf.asm_usable) {
-        const uint64_t t = CHECKASM_PERF_ASM();
-        for (int i = 0; i < 1000; i++) {
-            if (CHECKASM_PERF_ASM() > t)
-                return 0; /* asm timers work */
-        }
-        fprintf(stderr, "checkasm: cycle counter does not increment\n");
+        if (!checkasm_perf_validate_start(&checkasm_perf))
+            return 0;
         checkasm_perf.asm_usable = 0;
     }
   #else /* !ARM */
@@ -130,6 +126,28 @@ COLD int checkasm_perf_init(void)
     checkasm_perf.stop  = checkasm_gettime_nsec_diff;
     checkasm_perf.name  = "gettime";
     checkasm_perf.unit  = "nsec";
+    return 0;
+}
+
+COLD int checkasm_perf_validate_start(const CheckasmPerf *perf)
+{
+    /* Try to make the loop long enough to be sure that the timer should
+     * increment, if it is functional. */
+    const uint64_t target_nsec  = 20000; /* 20 us */
+    const uint64_t start_cycles = perf->start();
+    const uint64_t start_nsec   = checkasm_gettime_nsec();
+
+    /* Only loop as long as we get the initial timer value; we exit the loop
+     * as soon as we see the timer return a different value.
+     * This works for a timer where we can just call the ->start() function
+     * repeatedly, getting new timer values. */
+    while (perf->start() == start_cycles) {
+        if (checkasm_gettime_nsec_diff(start_nsec) > target_nsec) {
+            fprintf(stderr, "checkasm: %s timer doesn't increment\n", perf->name);
+            return 1;
+        }
+    }
+
     return 0;
 }
 

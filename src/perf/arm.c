@@ -133,24 +133,12 @@ COLD int checkasm_perf_init_arm(CheckasmPerf *perf)
             checkasm_run_on_all_cores(checkasm_ccnt_start);
         }
 
-        const uint64_t t     = checkasm_ccnt();
-        const int      iters = 1000;
-        int            i;
-        for (i = 0; i < iters; i++) {
-            if (checkasm_ccnt() > t)
-                break;
-        }
-        if (i == iters) {
-            fprintf(stderr, "checkasm: ARM11 cycle counter does not increment\n");
-            return 1;
-        }
-
         perf->start = perf_start;
         perf->stop  = perf_stop;
         perf->name  = "armv6 (ccnt)";
         perf->unit  = "cycle";
 
-        return 0;
+        return checkasm_perf_validate_start(perf);
     }
 
     fprintf(stderr, "checkasm: unable to access ARM11 cycle counter\n");
