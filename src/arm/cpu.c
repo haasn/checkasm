@@ -94,7 +94,9 @@ int checkasm_has_sme(void)
 
 #elif ARCH_ARM
 
-  #if HAVE_GETAUXVAL || HAVE_ELF_AUX_INFO
+  #ifdef _WIN32
+    #include <windows.h>
+  #elif HAVE_GETAUXVAL || HAVE_ELF_AUX_INFO
     #include <sys/auxv.h>
 
     #ifndef HWCAP_ARM_VFP
@@ -111,7 +113,13 @@ int checkasm_has_sme(void)
 
 int checkasm_has_vfpd32(void)
 {
-  #if (defined(__APPLE__) && __ARM_ARCH >= 7) || defined(_WIN32)
+  #ifdef _WIN32
+    #ifdef PF_ARM_VFP_32_REGISTERS_AVAILABLE
+    return IsProcessorFeaturePresent(PF_ARM_VFP_32_REGISTERS_AVAILABLE);
+    #else
+    return 0;
+    #endif
+  #elif (defined(__APPLE__) && __ARM_ARCH >= 7)
     return 1;
   #elif HAVE_GETAUXVAL || HAVE_ELF_AUX_INFO
     /* HWCAP_ARM_VFPD32 was introduced in Linux 3.7, alternatively check for NEON as a fallback */
