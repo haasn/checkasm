@@ -82,7 +82,7 @@ COLD int checkasm_perf_init_arm(CheckasmPerf *perf)
         else
             perf->unit = "tick";
 
-        return 0;
+        return checkasm_perf_validate_start(perf);
     }
     return 1;
 }

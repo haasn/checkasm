@@ -127,7 +127,7 @@ done:
     perf->stop  = perf_stop;
     perf->name  = "macOS (kperf)";
     perf->unit  = "cycle";
-    return 0;
+    return checkasm_perf_validate_start(perf);
 }
 
 #endif /* HAVE_MACOS_KPERF */
