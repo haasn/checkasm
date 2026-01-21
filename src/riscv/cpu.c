@@ -177,23 +177,6 @@ int checkasm_has_vector(void)
     return (checkasm_cpu_flags() & RISCV_VECTOR) != 0;
 }
 
-unsigned checkasm_vlen(void)
-{
-    unsigned long value;
-
-    if (!checkasm_has_vector())
-        return 0;
-
-    __asm__ (
-        ".option push\n"
-        ".option arch, +zicsr\n"
-        ".option arch, +zve32x\n"
-        "csrr    %0, vlenb\n"
-        ".option pop"
-        : "=r" (value));
-    return ((unsigned)value) * 8;
-}
-
 void *checkasm_checked_call_ptr(void)
 {
     void *checked_call = NULL;

@@ -321,3 +321,9 @@ function checked_call_ifv, export=1, ext=zve32x
         csrwi   vxsat, 1     /* Saturation:    encountered */
         jr      t0
 endfunc
+
+function get_vlen, export=1, ext="zve32x,zicsr"
+        csrr    a0, vlenb
+        slli    a0, a0, 0x3
+        ret
+endfunc

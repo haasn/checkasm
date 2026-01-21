@@ -694,9 +694,10 @@ static void print_info(void)
                 vendor, arch, impid);
     }
 
-    const int vlen = checkasm_vlen();
-    if (vlen > 0)
-        fprintf(stderr, " - CPU: VLEN = %d bits\n", vlen);
+    if (checkasm_has_vector()) {
+        const unsigned long vlen = checkasm_get_vlen();
+        fprintf(stderr, " - CPU: VLEN = %lu bits\n", vlen * 8);
+    }
 #endif
 #if ARCH_AARCH64
   #if HAVE_SVE

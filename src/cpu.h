@@ -63,7 +63,7 @@ int checkasm_has_float(void);
 int checkasm_has_vector(void);
 
 /* Returns the vector length in bits, 0 if unavailable. */
-unsigned checkasm_vlen(void);
+unsigned long checkasm_get_vlen(void);
 
 void checkasm_checked_call_i(void);
 void checkasm_checked_call_if(void);
