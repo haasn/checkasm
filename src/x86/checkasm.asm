@@ -216,6 +216,7 @@ cvisible empty_mmx, 0, 0
 
 %macro REPORT_FAILURE 1 ; err_msg
     lea            r0, [%1]
+    xor           eax, eax
     jmp fail_abort
 %endmacro
 
