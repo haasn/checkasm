@@ -36,7 +36,7 @@ The following architectures are explicitly supported for asm verification, with
 the listed detection mechanisms for typical asm mistakes:
 
 - **x86, x86-64**: registers, stack, AVX2, MMX/FPU state
-- **ARM, ARM64 (aarch64)**: registers, stack, NEON state
+- **ARM, ARM64 (aarch64)**: registers, stack, VFP state
 - **RISC-V**: registers, stack, vector state
 - **LoongArch (32, 64)**: registers
 - **PowerPC (64le)**: *none*

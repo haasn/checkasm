@@ -810,7 +810,7 @@ int checkasm_run(const CheckasmConfig *config)
     }
 
 #if ARCH_ARM
-    if (checkasm_has_neon() || checkasm_has_vfp())
+    if (checkasm_has_vfp())
         checkasm_checked_call_ptr = checkasm_checked_call_vfp;
     else
         checkasm_checked_call_ptr = checkasm_checked_call_novfp;
