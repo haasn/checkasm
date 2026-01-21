@@ -27,6 +27,9 @@
  *****************************************************************************/
 
 #include "checkasm_config.h"
+
+#if ARCH_ARM
+
 #include "arm/asm.S"
 
 #ifndef __ARM_ARCH
@@ -259,3 +262,5 @@ endfunc
 
 clobbercheck novfp
 clobbercheck vfp
+
+#endif

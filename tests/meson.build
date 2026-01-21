@@ -37,28 +37,24 @@ checkasm_asm_objs = []
 checkasm_asm_sources = []
 checkasm_test_sources = files(
   'selftest.c',
-  'generic.c'
+  'generic.c',
+  'arm/32/tests.c',
+  'arm/64/tests.c',
+  'riscv/tests.c',
+  'x86/tests.c',
 )
 
 if arch_x86
   checkasm_test_sources += files(
     'x86/tests_asm.asm',
-    'x86/tests.c',
   )
 elif arch_riscv
   checkasm_test_sources += files(
     'riscv/tests_asm.S',
-    'riscv/tests.c',
   )
 elif arch_aarch64
-  checkasm_test_sources += files(
-    'arm/64/tests.c',
-  )
   checkasm_asm_sources = files('arm/64/tests_asm.S')
 elif arch_arm
-  checkasm_test_sources += files(
-    'arm/32/tests.c',
-  )
   checkasm_asm_sources = files('arm/32/tests_asm.S')
 else
   warning('There are no assembly functions to test on the current platform.')

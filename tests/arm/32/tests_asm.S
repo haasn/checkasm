@@ -27,6 +27,9 @@
 #define PRIVATE_PREFIX selftest_
 
 #include "src/checkasm_config.h"
+
+#if ARCH_ARM
+
 #include "src/arm/asm.S"
 
 #ifndef __ARM_ARCH
@@ -101,3 +104,5 @@ function clobber_fpscr_vfp, export=1
         fmxr            fpscr, r12
         v4bx            lr
 endfunc
+
+#endif

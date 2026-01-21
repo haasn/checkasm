@@ -27,6 +27,9 @@
  *****************************************************************************/
 
 #include "checkasm_config.h"
+
+#if ARCH_AARCH64
+
 #include "arm/asm.S"
 
 const register_init, align=4
@@ -277,4 +280,6 @@ function sme_length, export=1
         ret
 endfunc
 DISABLE_SME
+#endif
+
 #endif

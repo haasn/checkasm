@@ -1,5 +1,7 @@
 #include "tests.h"
 
+#if ARCH_AARCH64
+
 uint64_t selftest_get_cpu_flags_aarch64(void)
 {
     return SELFTEST_CPU_FLAG_AARCH64;
@@ -381,3 +383,5 @@ void selftest_check_aarch64(void)
     check_clobber_x(19, 30);
     check_clobber_d(8, 16);
 }
+
+#endif

@@ -25,6 +25,10 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *****************************************************************************/
 
+#include "checkasm_config.h"
+
+#if ARCH_LOONGARCH
+
 #include "loongarch/loongson_asm.S"
 
 const register_init, align=4
@@ -206,3 +210,5 @@ function checked_call, visible=1
     fld.d   fs7,    sp,     128
     addi.d  sp,     sp,     136
 endfunc
+
+#endif

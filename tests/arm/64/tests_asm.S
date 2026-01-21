@@ -27,6 +27,9 @@
 #define PRIVATE_PREFIX selftest_
 
 #include "src/checkasm_config.h"
+
+#if ARCH_AARCH64
+
 #include "src/arm/asm.S"
 
 function sigill_aarch64, export=1
@@ -240,3 +243,5 @@ check_clobber_reg x\r
 .irpc r, 012
 check_clobber_stack \r
 .endr
+
+#endif

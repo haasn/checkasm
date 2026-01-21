@@ -25,6 +25,10 @@
  * POSSIBILITY OF SUCH DAMAGE.
  *****************************************************************************/
 
+#include "checkasm_config.h"
+
+#if ARCH_RISCV
+
 #include "riscv/asm.S"
 
 #if (__riscv_xlen == 32)
@@ -327,3 +331,5 @@ function get_vlen, export=1, ext="zve32x,zicsr"
         slli    a0, a0, 0x3
         ret
 endfunc
+
+#endif

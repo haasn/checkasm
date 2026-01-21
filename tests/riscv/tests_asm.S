@@ -28,6 +28,9 @@
 #define PRIVATE_PREFIX selftest_
 
 #include "src/checkasm_config.h"
+
+#if ARCH_RISCV
+
 #include "src/riscv/asm.S"
 
 function copy_rvv, export=1, ext=zve32x
@@ -89,3 +92,5 @@ function corrupt_stack_riscv, export=1
 
         ret
 endfunc
+
+#endif

@@ -3,6 +3,8 @@
 
 #include "tests.h"
 
+#if ARCH_X86
+
 /* Re-use helpers from main checkasm library */
 #include "src/cpu.h"
 
@@ -219,3 +221,5 @@ void selftest_check_x86(void)
     if (has_vzeroupper_check)
         selftest_test_copy(get_copy_novzeroupper_avx2(), "novzeroupper", 32);
 }
+
+#endif

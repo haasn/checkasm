@@ -1,5 +1,7 @@
 #include "tests.h"
 
+#if ARCH_ARM
+
 /* Re-use helpers from main checkasm library */
 #include "src/cpu.h"
 
@@ -216,3 +218,5 @@ void selftest_check_arm(void)
     check_clobber_r(10, 11);
     check_clobber_d(8, 16);
 }
+
+#endif

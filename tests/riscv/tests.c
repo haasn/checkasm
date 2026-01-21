@@ -1,5 +1,7 @@
 #include "tests.h"
 
+#if ARCH_RISCV
+
 /* Re-use helpers from main checkasm library */
 #include "src/cpu.h"
 
@@ -216,3 +218,5 @@ void selftest_check_riscv(void)
     check_clobber(SELFTEST_CPU_FLAG_RVI, 'x', registers_unsafe);
     check_clobber(SELFTEST_CPU_FLAG_RVF, 'f', float_registers_unsafe);
 }
+
+#endif
