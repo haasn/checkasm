@@ -51,9 +51,9 @@ enum {
 #elif ARCH_AARCH64
     SELFTEST_CPU_FLAG_AARCH64 = 1 << 1,
 #elif ARCH_ARM
-    SELFTEST_CPU_FLAG_ARM  = 1 << 1,
-    SELFTEST_CPU_FLAG_VFP  = 1 << 2,
-    SELFTEST_CPU_FLAG_NEON = 1 << 3,
+    SELFTEST_CPU_FLAG_ARM    = 1 << 1,
+    SELFTEST_CPU_FLAG_VFP    = 1 << 2,
+    SELFTEST_CPU_FLAG_VFPD32 = 1 << 3,
 #endif
 };
 

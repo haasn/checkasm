@@ -21,7 +21,7 @@ static const CheckasmCpuInfo cpus[] = {
 #if ARCH_ARM
     { "Generic ARM",     "arm",     SELFTEST_CPU_FLAG_ARM     },
     { "VFP",             "vfp",     SELFTEST_CPU_FLAG_VFP     },
-    { "NEON",            "neon",    SELFTEST_CPU_FLAG_NEON    },
+    { "VFP D32",         "vfpd32",  SELFTEST_CPU_FLAG_VFPD32  },
 #endif
     {0}
 };

@@ -96,10 +96,10 @@ int checkasm_sme_length(void);
 void checkasm_checked_call_vfp(void *func, int dummy, ...);
 void checkasm_checked_call_novfp(void *func, int dummy, ...);
 
-/* Returns a nonzero value if NEON is available, 0 otherwise */
-CHECKASM_API int checkasm_has_neon(void);
 /* Returns a nonzero value if VFP is available, 0 otherwise */
 CHECKASM_API int checkasm_has_vfp(void);
+/* Returns a nonzero value if VFP has 32 registers, 0 otherwise */
+CHECKASM_API int checkasm_has_vfpd32(void);
 
 #endif
 

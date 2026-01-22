@@ -103,15 +103,19 @@ int checkasm_has_sme(void)
     #ifndef HWCAP_ARM_NEON
       #define HWCAP_ARM_NEON (1 << 12)
     #endif
+    #ifndef HWCAP_ARM_VFPD32
+      #define HWCAP_ARM_VFPD32 (1 << 19)
+    #endif
 
   #endif
 
-int checkasm_has_neon(void)
+int checkasm_has_vfpd32(void)
 {
   #if (defined(__APPLE__) && __ARM_ARCH >= 7) || defined(_WIN32)
     return 1;
   #elif HAVE_GETAUXVAL || HAVE_ELF_AUX_INFO
-    return checkasm_getauxval(AT_HWCAP) & HWCAP_ARM_NEON;
+    /* HWCAP_ARM_VFPD32 was introduced in Linux 3.7, alternatively check for NEON as a fallback */
+    return checkasm_getauxval(AT_HWCAP) & (HWCAP_ARM_NEON | HWCAP_ARM_VFPD32);
   #else
     return 0;
   #endif

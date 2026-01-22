@@ -1,15 +1,15 @@
 #include "tests.h"
 
-int checkasm_has_neon(void);
 int checkasm_has_vfp(void);
+int checkasm_has_vfpd32(void);
 
 uint64_t selftest_get_cpu_flags_arm(void)
 {
     uint64_t flags = SELFTEST_CPU_FLAG_ARM;
     if (checkasm_has_vfp())
         flags |= SELFTEST_CPU_FLAG_VFP;
-    if (checkasm_has_neon())
-        flags |= SELFTEST_CPU_FLAG_NEON;
+    if (checkasm_has_vfpd32())
+        flags |= SELFTEST_CPU_FLAG_VFPD32;
     return flags;
 }
 
@@ -101,7 +101,7 @@ static noop_func *get_clobber_d(int reg)
 {
     if (!(checkasm_get_cpu_flags() & SELFTEST_CPU_FLAG_VFP))
         return NULL;
-    if (reg >= 16 && !(checkasm_get_cpu_flags() & SELFTEST_CPU_FLAG_NEON))
+    if (reg >= 16 && !(checkasm_get_cpu_flags() & SELFTEST_CPU_FLAG_VFPD32))
         return NULL;
 
     switch (reg) {
