@@ -160,25 +160,7 @@ struct arm_implementer {
     const char            *name;
 };
 
-static const struct arm_core cores_arm[] = {
-    { 0xb76, "ARM1176"     },
-    { 0xc07, "Cortex-A7"   },
-    { 0xc08, "Cortex-A8"   },
-    { 0xc09, "Cortex-A9"   },
-    { 0xd03, "Cortex-A53"  },
-    { 0xd08, "Cortex-A72"  },
-    { 0xd0c, "Neoverse-N1" },
-    { 0xd40, "Neoverse-V1" },
-    { 0xd4f, "Neoverse-V2" },
-    { 0xd80, "Cortex-A520" },
-    { 0xd81, "Cortex-A720" },
-    { 0,     NULL          },
-};
-
-static const struct arm_implementer arm_implementers[] = {
-    { 0x41, cores_arm, "ARM" },
-    { 0,    NULL,      NULL  },
-};
+  #include "cores.h"
 
 struct arm_core_id {
     unsigned implementer;
