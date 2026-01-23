@@ -674,7 +674,7 @@ static void print_info(void)
         name[len - 1] = '\0'; /* trim trailing whitespace */
     fprintf(stderr, " - CPU: %s (%08X)\n", name, cpuid);
 #else
-    char        buf[64];
+    char        buf[128];
     const char *name = checkasm_get_brand_string(
         buf, sizeof(buf), cfg.cpu_affinity_set ? (int) cfg.cpu_affinity : -1);
     if (name)
