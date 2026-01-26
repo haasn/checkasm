@@ -529,7 +529,7 @@ static void check_cpu_flag(const CheckasmCpuInfo *cpu)
             test->func();
             checkasm_report(NULL); // catch any un-reported functions
 
-            if (cfg.bench) {
+            if (cfg.bench && !state.skip_tests) {
                 /* Measure NOP and perf scale after each test+CPU flag configuration */
                 handle_interrupt();
                 checkasm_measure_nop_cycles(&state.nop_cycles, state.target_cycles);
