@@ -1,3 +1,6 @@
+#include <inttypes.h>
+#include <stdio.h>
+
 #include "tests.h"
 
 /* Re-use from main checkasm library */
@@ -100,9 +103,11 @@ static copy_func *get_copy_x86(void)
     #define NUM_SAFE 9
   #endif
   #define NUM_REGS 15
+  #define STACK_ALIGN 16
 #else
   #define NUM_SAFE 3
   #define NUM_REGS 7
+  #define STACK_ALIGN 4
 #endif
 
 static noop_func *get_clobber(int reg)
@@ -137,6 +142,26 @@ DEF_NOOP_GETTER(SELFTEST_CPU_FLAG_X86, sigill_x86)
 DEF_NOOP_GETTER(SELFTEST_CPU_FLAG_X86, corrupt_stack_x86)
 DEF_COPY_GETTER(SELFTEST_CPU_FLAG_MMX, copy_noemms_mmx)
 DEF_COPY_GETTER(SELFTEST_CPU_FLAG_AVX2, copy_novzeroupper_avx2)
+
+uintptr_t selftest_get_stack_pointer_x86(int unused);
+
+static void check_stack_alignment(void)
+{
+    checkasm_declare(uintptr_t, int);
+
+    if (checkasm_check_func(selftest_get_stack_pointer_x86, "stack_alignment")) {
+        uintptr_t sp = checkasm_call_new(0);
+
+        /* Subtract return address */
+        sp -= sizeof(sp);
+        if (sp & (STACK_ALIGN - 1)) {
+            if (checkasm_fail()) {
+                fprintf(stderr, "stack pointer not %d-byte aligned: 0x%" PRIxPTR "\n",
+                        STACK_ALIGN, sp);
+            }
+        }
+    }
+}
 
 static void check_clobber(int from, int to)
 {
@@ -184,6 +209,7 @@ void selftest_check_x86(void)
 {
     selftest_test_copy(get_copy_x86(), "copy", 1);
     test_copy_emms(get_copy_noemms_mmx(), "copy_noemms");
+    check_stack_alignment();
     check_clobber(0, NUM_SAFE);
 
     if (!checkasm_should_fail(SELFTEST_CPU_FLAG_X86))

@@ -87,6 +87,10 @@ cglobal corrupt_stack_x86
 %endif
     RET
 
+cglobal get_stack_pointer_x86
+    mov rax, rsp
+    RET
+
 ; MMX functions
 INIT_MMX mmx
 copy_mm
