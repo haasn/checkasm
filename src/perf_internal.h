@@ -38,15 +38,19 @@
 
 static inline void checkasm_pmccntr_enable(void)
 {
-    uint64_t cfg, cen;
+    uint64_t cfg, cen, flt;
 
     __asm__ __volatile__("mrs %[cfg], pmcr_el0       \n\t"
                          "mrs %[cen], pmcntenset_el0 \n\t"
+                         "mrs %[flt], pmccfiltr_el0  \n\t"
                          "orr %[cfg], %[cfg], 1      \n\t"
                          "orr %[cen], %[cen], 1<<31  \n\t"
+                         "bic %[flt], %[flt], (1<<30)\n\t"
+                         "bic %[flt], %[flt], (1<<28)\n\t"
                          "msr pmcntenset_el0, %[cen] \n\t"
                          "msr pmcr_el0, %[cfg]       \n\t"
-                         : [cfg] "=&r"(cfg), [cen] "=&r"(cen)::);
+                         "msr pmccfiltr_el0, %[flt]  \n\t"
+                         : [cfg] "=&r"(cfg), [cen] "=&r"(cen), [flt] "=&r"(flt));
 }
 
     #define CHECKASM_PERF_ASM_INIT checkasm_pmccntr_enable
