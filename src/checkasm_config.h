@@ -154,6 +154,14 @@
   #endif
 #endif
 
+#ifndef HAVE_STDBIT_H
+  #if __has_include(<stdbit.h>)
+    #define HAVE_STDBIT_H 1
+  #else
+    #define HAVE_STDBIT_H 0
+  #endif
+#endif
+
 #ifndef HAVE_PTHREAD_NP_H
   #if __has_include(<pthread_np.h>)
     /* DragonFlyBSD, FreeBSD */

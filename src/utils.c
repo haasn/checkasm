@@ -272,7 +272,15 @@ void checkasm_clear16(uint16_t *buf, int width, uint16_t val)
         *buf++ = val;
 }
 
-#if defined(_MSC_VER) && !defined(__clang__)
+#if HAVE_STDBIT_H
+  #include <stdbit.h>
+
+static inline int clz(const unsigned int mask)
+{
+    return stdc_leading_zeros_ui(mask);
+}
+
+#elif defined(_MSC_VER) && !defined(__clang__)
   #include <intrin.h>
 
 static inline int clz(const unsigned int mask)

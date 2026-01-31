@@ -59,6 +59,8 @@ if (arch_aarch64 or arch_arm or arch_loongarch or arch_ppc64le or arch_riscv)
     have_elf_aux_info = cc.has_function('elf_aux_info', prefix : '#include <sys/auxv.h>', args : test_args)
 endif
 
+have_stdbit_h = cc.check_header('stdbit.h')
+
 have_sys_hwprobe_h = false
 have_asm_hwprobe_h = false
 if arch_riscv
@@ -109,6 +111,7 @@ cdata.set10('HAVE_SIGLONGJMP',              have_siglongjmp)
 cdata.set10('HAVE_GETAUXVAL',               have_getauxval)
 cdata.set10('HAVE_ELF_AUX_INFO',            have_elf_aux_info)
 cdata.set10('HAVE_LINUX_PERF',              have_linux_perf)
+cdata.set10('HAVE_STDBIT_H',                have_stdbit_h)
 
 if arch_x86
   cdata_asm = configuration_data()
