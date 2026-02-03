@@ -301,7 +301,7 @@ test-macos-x86_64:
 test-macos-arm64:
     extends: .test-macos-common
     tags:
-        - macos-xcode15
+        - macos-xcode26
 
 test-debian-armv7:
     extends: .debian-armv7-common
