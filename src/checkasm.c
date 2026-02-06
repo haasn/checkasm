@@ -780,7 +780,7 @@ int checkasm_run(const CheckasmConfig *config)
         set_cpu_affinity(cfg.cpu_affinity);
     checkasm_setup_fprintf(stderr);
 
-    if (!cfg.seed)
+    if (!cfg.seed && !cfg.seed_set)
         cfg.seed = checkasm_seed();
     if (!cfg.repeat)
         cfg.repeat = 1;
@@ -1163,6 +1163,7 @@ int checkasm_main(CheckasmConfig *config, int argc, const char *argv[])
         } else if (!strcmp(argv[1], "--repeat")) {
             config->repeat = UINT_MAX;
         } else {
+            config->seed_set = 1;
             if (!parseu(&config->seed, argv[1], 10)) {
                 fprintf(stderr, "checkasm: unknown option (%s)\n", argv[1]);
                 print_usage(argv[0]);

@@ -245,11 +245,19 @@ typedef struct CheckasmConfig {
      */
     int verbose;
 
+    /** @brief Enable using the seed value
+     *
+     * If nonzero, the value in the seed field will be used even if it may be
+     * zero.
+     */
+    int seed_set;
+
     /**
      * @brief Random number generator seed
      *
-     * If nonzero, use this seed for deterministic random number generation.
-     * If zero, a seed will be chosen based on the current time.
+     * If nonzero or if seed_set is nonzero, use this seed for deterministic
+     * random number generation. If zero and seed_set is zero, a seed will
+     * be chosen based on the current time.
      */
     unsigned seed;
 
