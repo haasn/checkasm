@@ -1111,6 +1111,9 @@ int checkasm_main(CheckasmConfig *config, int argc, const char *argv[])
             return 0;
         } else if (!strcmp(argv[1], "--bench") || !strcmp(argv[1], "-b")) {
             config->bench = 1;
+        } else if (!strncmp(argv[1], "--bench=", 8)) {
+            config->bench            = 1;
+            config->function_pattern = argv[1] + 8;
         } else if (!strcmp(argv[1], "--csv")) {
             config->format = CHECKASM_FORMAT_CSV;
         } else if (!strcmp(argv[1], "--tsv")) {
