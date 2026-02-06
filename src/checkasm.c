@@ -757,7 +757,8 @@ static void handle_interrupt(void)
 {
     if (checkasm_interrupted) {
         fprintf(stderr, "checkasm: interrupted\n");
-        exit(print_summary());
+        print_summary();
+        exit(128 + checkasm_interrupted);
     }
 }
 

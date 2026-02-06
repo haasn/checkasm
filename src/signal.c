@@ -56,7 +56,7 @@ void checkasm_set_signal_handler_state(const int enabled)
 
 static void interrupt_handler(const int s)
 {
-    checkasm_interrupted = 1;
+    checkasm_interrupted = s;
 
     /* If we happen to be currently executing a test function, we should jump
      * directly out of it; since it may take an arbitrary amount of time */
