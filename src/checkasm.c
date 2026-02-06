@@ -619,7 +619,7 @@ static int set_cpu_affinity(const unsigned affinity)
 
 void checkasm_list_cpu_flags(const CheckasmConfig *cfg)
 {
-    checkasm_setup_fprintf(stdout);
+    checkasm_setup_fprintf();
 
     for (const CheckasmCpuInfo *info = cfg->cpu_flags; info->flag; info++) {
         if ((cfg->cpu & info->flag) == info->flag)
@@ -778,7 +778,7 @@ int checkasm_run(const CheckasmConfig *config)
     checkasm_set_signal_handlers();
     if (cfg.cpu_affinity_set)
         set_cpu_affinity(cfg.cpu_affinity);
-    checkasm_setup_fprintf(stderr);
+    checkasm_setup_fprintf();
 
     if (!cfg.seed && !cfg.seed_set)
         cfg.seed = checkasm_seed();

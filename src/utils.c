@@ -360,40 +360,51 @@ void checkasm_init(void *buf, size_t bytes)
 DEF_CHECKASM_INIT_MASK(8, uint8_t)
 DEF_CHECKASM_INIT_MASK(16, uint16_t)
 
-static int use_printf_color;
+static int use_printf_color[2];
 
 /* Print colored text to stderr if the terminal supports it */
 void checkasm_fprintf(FILE *const f, const int color, const char *const fmt, ...)
 {
     va_list arg;
+    int     use_color = use_printf_color[f == stderr];
 
-    if (color >= 0 && use_printf_color)
+    if (color >= 0 && use_color)
         fprintf(f, "\x1b[0;%dm", color);
 
     va_start(arg, fmt);
     vfprintf(f, fmt, arg);
     va_end(arg);
 
-    if (color >= 0 && use_printf_color)
+    if (color >= 0 && use_color)
         fprintf(f, "\x1b[0m");
 }
 
-COLD void checkasm_setup_fprintf(FILE *const f)
+static COLD int should_use_color(FILE *const f)
 {
 #ifdef _WIN32
   #if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
     HANDLE con       = GetStdHandle(f == stderr ? STD_ERROR_HANDLE : STD_OUTPUT_HANDLE);
     DWORD  con_mode  = 0;
-    use_printf_color = con && con != INVALID_HANDLE_VALUE
-                    && GetConsoleMode(con, &con_mode)
-                    && SetConsoleMode(con, con_mode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+    return con && con != INVALID_HANDLE_VALUE && GetConsoleMode(con, &con_mode)
+        && SetConsoleMode(con, con_mode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+  #else
+    return 0;
   #endif
 #elif HAVE_ISATTY
     if (isatty(f == stderr ? 2 : 1)) {
         const char *const term = getenv("TERM");
-        use_printf_color       = term && strcmp(term, "dumb");
+        return term && strcmp(term, "dumb");
     }
+    return 0;
+#else
+    return 0;
 #endif
+}
+
+COLD void checkasm_setup_fprintf(void)
+{
+    use_printf_color[0] = should_use_color(stdout);
+    use_printf_color[1] = should_use_color(stderr);
 }
 
 static int get_terminal_width(void)

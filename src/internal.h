@@ -95,7 +95,7 @@ NORETURN void checkasm_fail_abort(const char *msg, ...) CHECKASM_PRINTF(1, 2);
 #define COLOR_WHITE   37
 
 /* Colored variant of fprintf for terminals that support it */
-void checkasm_setup_fprintf(FILE *const f);
+void checkasm_setup_fprintf(void);
 void checkasm_fprintf(FILE *const f, const int color, const char *const fmt, ...)
     CHECKASM_PRINTF(3, 4);
 
