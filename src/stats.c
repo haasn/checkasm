@@ -112,7 +112,7 @@ CheckasmVar checkasm_stats_estimate(const CheckasmStats *const stats)
         const double         x = log((double) s.sum) - log((double) s.count);
         sum += x * s.count;
         sum2 += x * x * s.count;
-        sum_w2 += s.count * s.count;
+        sum_w2 += (double) s.count * s.count;
         count += s.count;
     }
 
