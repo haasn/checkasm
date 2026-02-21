@@ -29,7 +29,9 @@
 
 #include "checkasm/header_config.h"
 
+#ifdef CHECKASM_HAVE_GENERATED_H
 #include "checkasm_config_generated.h"
+#endif
 
 #ifndef __has_include
   #define __has_include(x) 0
