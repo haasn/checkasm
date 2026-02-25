@@ -439,6 +439,7 @@ static CheckasmKey checkasm_key_new;
 #define fail              checkasm_fail
 #define report            checkasm_report
 #define check_func        checkasm_check_func
+#define check_key         checkasm_check_key
 #define func_ref          checkasm_func_ref
 #define func_new          checkasm_func_new
 #define call_ref          checkasm_call_ref
