@@ -180,6 +180,15 @@
   #endif
 #endif
 
+#ifndef HAVE_CLOCK_GETTIME
+  #if defined(__linux__) || defined(__APPLE__) || defined(__DragonFly__)                 \
+      || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__)
+    #define HAVE_CLOCK_GETTIME 1
+  #else
+    #define HAVE_CLOCK_GETTIME 0
+  #endif
+#endif
+
 #ifndef PREFIX
   /* This one is different; this one is defined/undefined, not defined to
    * 0/1. */
