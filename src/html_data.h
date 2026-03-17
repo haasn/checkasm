@@ -34,10 +34,10 @@
 #endif
 
 #if HAVE_HTML_DATA
-#ifdef __clang__
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wc23-extensions"
-#endif
+  #ifdef __clang__
+    #pragma clang diagnostic push
+    #pragma clang diagnostic ignored "-Wc23-extensions"
+  #endif
 static const char checkasm_chart_js[] = {
   #embed "html_data/chart.min.js" suffix(, 0)
 };
@@ -54,9 +54,9 @@ static const char checkasm_html_body[] = {
   #embed "html_data/body.html" suffix(, 0)
 };
 
-#ifdef __clang__
-#pragma clang diagnostic pop
-#endif
+  #ifdef __clang__
+    #pragma clang diagnostic pop
+  #endif
 #else /* !HAVE_HTML_DATA */
 
 static const char checkasm_chart_js[]  = "";
