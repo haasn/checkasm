@@ -55,11 +55,6 @@ else
       '-wd4996', # use of POSIX functions
     ]
 endif
-if cc.get_argument_syntax() != 'msvc' or cc.get_id() == 'clang-cl'
-    optional_arguments += [
-      '-Wno-c23-extensions' # silence use of #embed
-    ]
-endif
 
 add_project_arguments(cc.get_supported_arguments(optional_arguments), language : 'c')
 
