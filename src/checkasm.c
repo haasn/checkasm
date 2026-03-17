@@ -27,6 +27,15 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "checkasm_config.h"
+
+#if HAVE_PTHREAD_SETAFFINITY_NP
+  /* _GNU_SOURCE is required for pthread_setaffinity_np and CPU_SET on glibc. */
+  #ifndef _GNU_SOURCE
+    #define _GNU_SOURCE
+  #endif
+#endif
+
 #include <assert.h>
 #include <errno.h>
 #include <inttypes.h>
@@ -35,8 +44,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include "checkasm_config.h"
 
 #include "checkasm/checkasm.h"
 #include "checkasm/test.h"
