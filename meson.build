@@ -59,7 +59,11 @@ endif
 add_project_arguments(cc.get_supported_arguments(optional_arguments), language : 'c')
 
 test_args = []
-if host_machine.system() in ['linux', 'gnu', 'emscripten', 'os/2']
+if host_machine.system() in ['linux', 'gnu']
+  add_project_arguments(['-D_POSIX_C_SOURCE=200112', '-D_XOPEN_SOURCE=600'], language: 'c')
+  test_args += ['-D_POSIX_C_SOURCE=200112', '-D_XOPEN_SOURCE=600']
+endif
+if host_machine.system() in ['emscripten', 'os/2']
   add_project_arguments('-D_GNU_SOURCE', language: 'c')
   test_args += '-D_GNU_SOURCE'
 endif

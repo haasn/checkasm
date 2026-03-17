@@ -40,7 +40,7 @@ have_pthread_setaffinity_np = cc.has_function('pthread_setaffinity_np',
     #include <pthread_np.h>
     #endif
   ''',
-  args: test_args,
+  args: test_args + '-D_GNU_SOURCE',
   dependencies: thread_dependency,
 )
 if not have_pthread_setaffinity_np

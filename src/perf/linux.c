@@ -30,9 +30,6 @@
 
 #if HAVE_LINUX_PERF
 
-  /* We define this globally in Meson, but foreign build systems might not
-   * define exactly this define, so make sure it is enabled. This is required
-   * for the syscall function to be visible. */
   #ifndef _GNU_SOURCE
     #define _GNU_SOURCE
   #endif
