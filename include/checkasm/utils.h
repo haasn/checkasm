@@ -35,7 +35,7 @@
  * - Random number generation (uniform and normal distributions)
  * - Memory initialization and randomization
  * - Floating-point comparison utilities
- * - Buffer definiton and checking helpers
+ * - Buffer definition and checking helpers
  */
 
 #ifndef CHECKASM_UTILS_H
@@ -255,7 +255,7 @@ CHECKASM_API void checkasm_init_mask16(uint16_t *buf, int width, uint16_t mask);
 
 /**
  * @def RANDOMIZE_BUF(buf)
- * @brief Fill a fixed size buffer wth random data (convenience macro)
+ * @brief Fill a fixed size buffer with random data (convenience macro)
  * @param buf Fixed-size buffer array to randomize
  */
 #define RANDOMIZE_BUF(buf) checkasm_randomize(buf, sizeof(buf))

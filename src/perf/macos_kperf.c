@@ -94,11 +94,11 @@ COLD int checkasm_perf_init_macos(CheckasmPerf *perf)
     }
 
     if (!kpc_get_counter_count || kpc_get_counter_count(KPC_MASK) != COUNTERS_COUNT) {
-        fprintf(stderr, "checkasm: Unxpected kpc_get_counter_count\n");
+        fprintf(stderr, "checkasm: Unexpected kpc_get_counter_count\n");
         return 1;
     }
     if (!kpc_get_config_count || kpc_get_config_count(KPC_MASK) != CONFIG_COUNT) {
-        fprintf(stderr, "checkasm: Unxpected kpc_get_config_count\n");
+        fprintf(stderr, "checkasm: Unexpected kpc_get_config_count\n");
         return 1;
     }
 

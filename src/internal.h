@@ -139,7 +139,7 @@ uint64_t checkasm_gettime_nsec_diff(uint64_t t); /* subtracts t */
 unsigned checkasm_seed(void);
 void     checkasm_noop(void *);
 
-/* These functions update the measurements in `meas` directly; must be inialized */
+/* These functions update the measurements in `meas` directly; must be initialized */
 void checkasm_measure_nop_cycles(CheckasmMeasurement *meas, uint64_t target_cycles);
 void checkasm_measure_perf_scale(CheckasmMeasurement *meas); /* ns per cycle */
 

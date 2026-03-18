@@ -136,7 +136,7 @@ static int checkasm_hwprobe(void)
 #endif
     }
     /*
-     * We purposedly do not fallback to HWCAP on Linux. Kernel versions without
+     * We purposely do not fallback to HWCAP on Linux. Kernel versions without
      * `hwprobe()` have hard-coded float support (on or off) and do not support
      * other register extensions such as vectors.
      */
