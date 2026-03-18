@@ -30,12 +30,22 @@ OBJS = \
 	tests/riscv/tests.o \
 	tests/riscv/tests_asm.o \
 	tests/x86/tests.o
+NASM_OBJS = \
+	src/x86/checkasm.o \
+	tests/x86/tests_asm.o
 
-# TODO: Build NASM sources
+NASM_FMT ?=
+ifdef NASM_FMT
+OBJS += $(NASM_OBJS)
+endif
+
 # TODO: Keep sources and objects in separate directories?
 
 $(EXE): $(OBJS)
 	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS)
 
+%.o: %.asm
+	nasm -f $(NASM_FMT) $(CPPFLAGS) -o $@ $<
+
 clean:
-	$(RM) $(EXE) $(OBJS)
+	$(RM) $(EXE) $(OBJS) $(NASM_OBJS)
