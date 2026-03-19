@@ -54,7 +54,7 @@ typedef struct {
 
   #endif /* WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP) */
 
-#else /* !_WIN32 || ARCH_X86_32 */
+#elif !defined(_WASI_EMULATED_SIGNAL) /* (!_WIN32 || ARCH_X86_32) && !_WASI_EMULATED_SIGNAL */
 
   #include <setjmp.h>
 
@@ -68,7 +68,7 @@ typedef jmp_buf checkasm_jmp_buf;
     #define checkasm_load_context(ctx) longjmp(ctx, 1)
   #endif /* !HAVE_SIGLONGJMP */
 
-#endif /* !_WIN32 || ARCH_X86_32 */
+#endif /* (!_WIN32 || ARCH_X86_32) && !_WASI_EMULATED_SIGNAL */
 
 #ifdef checkasm_save_context
   #define CHECKASM_HAVE_LONGJMP 1
