@@ -189,6 +189,14 @@
   #endif
 #endif
 
+#ifndef HAVE_PRCTL
+  #if defined(__linux__)
+    #define HAVE_PRCTL 1
+  #else
+    #define HAVE_PRCTL 0
+  #endif
+#endif
+
 #ifndef PREFIX
   /* This one is different; this one is defined/undefined, not defined to
    * 0/1. */

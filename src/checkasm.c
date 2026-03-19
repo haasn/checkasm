@@ -66,6 +66,10 @@
   #include <windows.h>
 #endif
 
+#if HAVE_PRCTL
+  #include <sys/prctl.h>
+#endif
+
 #if ARCH_ARM
 static checkasm_checked_call_func checkasm_checked_call_ptr;
 
@@ -783,6 +787,9 @@ int checkasm_run(const CheckasmConfig *config)
     cfg = *config;
 
     checkasm_set_signal_handlers();
+#if HAVE_PRCTL && defined(PR_SET_UNALIGN)
+    prctl(PR_SET_UNALIGN, PR_UNALIGN_SIGBUS);
+#endif
     if (cfg.cpu_affinity_set)
         set_cpu_affinity(cfg.cpu_affinity);
     checkasm_setup_fprintf();

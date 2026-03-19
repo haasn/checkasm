@@ -51,6 +51,7 @@ endif
 have_clock_gettime = cc.has_function('clock_gettime', prefix : '#include <time.h>', args : test_args, dependencies : rt_dependency)
 have_ioctl = cc.has_function('ioctl', prefix : '#include <sys/ioctl.h>', args : test_args)
 have_isatty = cc.has_function('isatty', prefix : '#include <unistd.h>', args : test_args)
+have_prctl = cc.has_function('prctl', prefix : '#include <sys/prctl.h>', args : test_args)
 have_sigaction = cc.has_function('sigaction', prefix : '#include <signal.h>', args : test_args)
 have_siglongjmp = cc.has_function('siglongjmp', prefix : '#include <setjmp.h>', args : test_args)
 
@@ -115,6 +116,7 @@ cdata.set10('HAVE_GETAUXVAL',               have_getauxval)
 cdata.set10('HAVE_ELF_AUX_INFO',            have_elf_aux_info)
 cdata.set10('HAVE_LINUX_PERF',              have_linux_perf)
 cdata.set10('HAVE_STDBIT_H',                have_stdbit_h)
+cdata.set10('HAVE_PRCTL',                   have_prctl)
 
 if arch_x86
   cdata_asm = configuration_data()
