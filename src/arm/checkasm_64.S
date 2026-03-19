@@ -98,17 +98,18 @@ endconst
 #define ARG_STACK (((8*(MAX_ARGS - 8) + 15) & ~15) + 16)
 
 function checked_call, export=1, visible=1
-        stp             x29, x30, [sp, #-16]!
-        mov             x29, sp
-        stp             x19, x20, [sp, #-16]!
-        stp             x21, x22, [sp, #-16]!
-        stp             x23, x24, [sp, #-16]!
-        stp             x25, x26, [sp, #-16]!
-        stp             x27, x28, [sp, #-16]!
-        stp             d8,  d9,  [sp, #-16]!
-        stp             d10, d11, [sp, #-16]!
-        stp             d12, d13, [sp, #-16]!
-        stp             d14, d15, [sp, #-16]!
+        sub             sp,  sp,  #160
+        stp             x29, x30, [sp, #144]
+        add             x29, sp,  #144
+        stp             x19, x20, [sp, #128]
+        stp             x21, x22, [sp, #112]
+        stp             x23, x24, [sp, #96]
+        stp             x25, x26, [sp, #80]
+        stp             x27, x28, [sp, #64]
+        stp             d8,  d9,  [sp, #48]
+        stp             d10, d11, [sp, #32]
+        stp             d12, d13, [sp, #16]
+        stp             d14, d15, [sp]
 
         movrel          x9, register_init
         ldp             d8,  d9,  [x9], #16
@@ -246,17 +247,18 @@ function checked_call, export=1, visible=1
 1:
         b               X(fail_abort)
 0:
-        ldp             x0,  x1,  [sp], #16
-        ldp             d14, d15, [sp], #16
-        ldp             d12, d13, [sp], #16
-        ldp             d10, d11, [sp], #16
-        ldp             d8,  d9,  [sp], #16
-        ldp             x27, x28, [sp], #16
-        ldp             x25, x26, [sp], #16
-        ldp             x23, x24, [sp], #16
-        ldp             x21, x22, [sp], #16
-        ldp             x19, x20, [sp], #16
-        ldp             x29, x30, [sp], #16
+        ldp             x0,  x1,  [sp]
+        ldp             d14, d15, [sp, #16]
+        ldp             d12, d13, [sp, #32]
+        ldp             d10, d11, [sp, #48]
+        ldp             d8,  d9,  [sp, #64]
+        ldp             x27, x28, [sp, #80]
+        ldp             x25, x26, [sp, #96]
+        ldp             x23, x24, [sp, #112]
+        ldp             x21, x22, [sp, #128]
+        ldp             x19, x20, [sp, #144]
+        ldp             x29, x30, [sp, #160]
+        add             sp,  sp,  #176
         ret
 endfunc
 
