@@ -60,4 +60,6 @@ foreach file_name : api_header_file_names
   checkasm_api_header_paths += checkasm_include_dir / file_name
 endforeach
 
-install_headers(checkasm_api_headers, subdir: meson.project_name(), preserve_path: true)
+if not meson.is_subproject()
+  install_headers(checkasm_api_headers, subdir: meson.project_name(), preserve_path: true)
+endif

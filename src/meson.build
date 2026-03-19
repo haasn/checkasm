@@ -234,7 +234,7 @@ checkasm_library = library(meson.project_name(),
   nasm_args : [api_export_flags_asm],
   include_directories: checkasm_inc_dirs,
   dependencies: checkasm_dependencies,
-  install: true,
+  install: not meson.is_subproject(),
 )
 
 checkasm_dep = declare_dependency(
