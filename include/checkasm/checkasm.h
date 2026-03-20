@@ -352,6 +352,10 @@ CHECKASM_API void checkasm_list_functions(const CheckasmConfig *config);
  * @note This is the lower-level entry point. Most users should use
  *       checkasm_main() instead, which handles argument parsing.
  *
+ * @warning This function may override the processor state in subtle ways,
+ *          including enabling high-precision performance timers, installing
+ *          signal handlers and configuring the terminal output.
+ *
  * @see checkasm_main()
  */
 CHECKASM_API int checkasm_run(const CheckasmConfig *config);
