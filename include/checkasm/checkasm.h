@@ -274,6 +274,9 @@ typedef struct CheckasmConfig {
      *
      * If nonzero, the test process will be pinned to the CPU core specified
      * in cpu_affinity.
+     *
+     * @warning This will override the CPU affinity of the calling process, and
+     *          will persist even after checkasm_run() returns.
      */
     int cpu_affinity_set;
 
