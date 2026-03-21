@@ -245,6 +245,17 @@ static void print_bench_header(struct IterState *const iter)
         checkasm_json(json, "numFailed", "%d", current.num_failed);
         checkasm_json(json, "targetCycles", "%" PRIu64, state.target_cycles);
         checkasm_json(json, "numBenchmarks", "%d", current.num_benched);
+        checkasm_json_push(json, "config", '{');
+        if (cfg.test_pattern)
+            checkasm_json_str(json, "testPattern", cfg.test_pattern);
+        if (cfg.function_pattern)
+            checkasm_json_str(json, "functionPattern", cfg.function_pattern);
+        checkasm_json(json, "benchUsec", "%u", cfg.bench_usec);
+        checkasm_json(json, "seed", "%u", cfg.seed);
+        checkasm_json(json, "repeat", "%u", cfg.repeat);
+        if (cfg.cpu_affinity_set)
+            checkasm_json(json, "cpuAffinity", "%u", cfg.cpu_affinity);
+        checkasm_json_pop(json, '}'); /* close config */
         checkasm_json_push(json, "cpuInfo", '[');
         checkasm_cpu_info(cpu_info_json, json, &cfg);
         checkasm_json_pop(json, ']');
