@@ -34,6 +34,8 @@
   #include <sys/sysctl.h>
 #endif
 
+#include <inttypes.h>
+
 #include "cpu.h"
 #include "internal.h"
 
@@ -75,6 +77,49 @@ COLD const char *checkasm_get_brand_string(char *buf, size_t buflen, int affinit
     return checkasm_get_arm_win32_reg(buf, buflen, affinity);
 #else
     return NULL;
+#endif
+}
+
+COLD void checkasm_cpu_info(void (*info_cb)(void *priv, const char *fmt, ...), void *priv,
+                            const CheckasmConfig *config)
+{
+    char buf[128];
+
+    const int affinity = config->cpu_affinity_set ? (int) config->cpu_affinity : -1;
+    const char *name = checkasm_get_brand_string(buf, sizeof(buf), affinity);
+    if (name)
+        info_cb(priv, "%s", name);
+
+#if ARCH_RISCV
+    uint32_t  vendorid;
+    uintptr_t archid, impid;
+
+    if (checkasm_get_cpuids(&vendorid, &archid, &impid) == 0) {
+        const char *vendor = checkasm_get_riscv_vendor_name(vendorid);
+        const char *arch
+            = checkasm_get_riscv_arch_name(buf, sizeof(buf), vendorid, archid);
+
+        info_cb(priv, "%s, %s, imp 0x%" PRIXPTR, vendor, arch, impid);
+    }
+
+    if (checkasm_has_vector()) {
+        const unsigned long vlen = checkasm_get_vlen();
+        info_cb(priv, "VLEN = %lu bits", vlen * 8);
+    }
+#endif
+#if ARCH_AARCH64
+  #if HAVE_SVE
+    if (checkasm_has_sve()) {
+        const unsigned sve_len = checkasm_sve_length();
+        info_cb(priv, "SVE = %d bits", sve_len);
+    }
+  #endif
+  #if HAVE_SME
+    if (checkasm_has_sme()) {
+        const unsigned sme_len = checkasm_sme_length();
+        info_cb(priv, "SME = %d bits", sme_len);
+    }
+  #endif
 #endif
 }
 

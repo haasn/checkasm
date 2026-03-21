@@ -33,6 +33,7 @@
 #include <stdint.h>
 
 #include "checkasm/attributes.h"
+#include "checkasm/checkasm.h"
 #include "internal.h"
 
 #if ARCH_X86
@@ -126,5 +127,9 @@ const char *checkasm_get_arm_cpuinfo(char *buf, size_t buflen, int affinity);
 #if (ARCH_ARM || ARCH_AARCH64) && defined(_WIN32)
 const char *checkasm_get_arm_win32_reg(char *buf, size_t buflen, int affinity);
 #endif
+
+/* Iterate over all known CPU information and run the callback on each line */
+void checkasm_cpu_info(void (*info_cb)(void *priv, const char *fmt, ...), void *priv,
+                       const CheckasmConfig *config);
 
 #endif /* CHECKASM_CPU_H */
