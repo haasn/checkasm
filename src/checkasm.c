@@ -668,15 +668,17 @@ void checkasm_list_functions(const CheckasmConfig *config)
     checkasm_func_tree_uninit(&current.tree);
 }
 
-static void print_info(void)
+/* Parametrized to support both console and JSON/HTML output */
+COLD static void checkasm_cpu_info(void (*info_cb)(void *priv, const char *fmt, ...),
+                                   void *priv)
 {
     char buf[128];
 
-    checkasm_fprintf(stderr, COLOR_YELLOW, "checkasm:\n");
     const char *name = checkasm_get_brand_string(
         buf, sizeof(buf), cfg.cpu_affinity_set ? (int) cfg.cpu_affinity : -1);
     if (name)
-        fprintf(stderr, " - CPU: %s\n", name);
+        info_cb(priv, "%s", name);
+
 #if ARCH_RISCV
     uint32_t vendorid;
     uintptr_t archid, impid;
@@ -686,29 +688,47 @@ static void print_info(void)
         const char *arch = checkasm_get_riscv_arch_name(buf, sizeof (buf),
                                                         vendorid, archid);
 
-        fprintf(stderr, " - CPU: %s, %s, imp 0x%"PRIXPTR"\n",
-                vendor, arch, impid);
+        info_cb(priv, "%s, %s, imp 0x%"PRIXPTR, vendor, arch, impid);
     }
 
     if (checkasm_has_vector()) {
         const unsigned long vlen = checkasm_get_vlen();
-        fprintf(stderr, " - CPU: VLEN = %lu bits\n", vlen * 8);
+        info_cb(priv, "VLEN = %lu bits", vlen * 8);
     }
 #endif
 #if ARCH_AARCH64
   #if HAVE_SVE
     if (checkasm_has_sve()) {
         const unsigned sve_len = checkasm_sve_length();
-        fprintf(stderr, " - CPU: SVE = %d bits\n", sve_len);
+        info_cb(priv, "SVE = %d bits", sve_len);
     }
   #endif
   #if HAVE_SME
     if (checkasm_has_sme()) {
         const unsigned sme_len = checkasm_sme_length();
-        fprintf(stderr, " - CPU: SME = %d bits\n", sme_len);
+        info_cb(priv, "SME = %d bits", sme_len);
     }
   #endif
 #endif
+}
+
+static void cpu_fprintf(void *priv, const char *fmt, ...)
+{
+    FILE *f = priv;
+
+    va_list ap;
+    va_start(ap, fmt);
+    fprintf(f, " - CPU: ");
+    vfprintf(f, fmt, ap);
+    fprintf(f, "\n");
+    va_end(ap);
+}
+
+static COLD void print_info(void)
+{
+    checkasm_fprintf(stderr, COLOR_YELLOW, "checkasm:\n");
+    checkasm_cpu_info(cpu_fprintf, stderr);
+
     if (cfg.bench) {
         fprintf(stderr, " - Timing source: %s\n", checkasm_perf.name);
         if (cfg.verbose) {
