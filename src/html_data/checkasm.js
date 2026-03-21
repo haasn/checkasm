@@ -865,6 +865,29 @@
     return toggleReport;
   }
 
+  function mkConfigInfo(config) {
+    const prettyNames = {
+      testPattern:     "Test pattern",
+      functionPattern: "Function pattern",
+      benchUsec:       "Bench duration (µs)",
+      seed:            "Random seed",
+      repeat:          "Repeat count",
+      cpuAffinity:     "CPU affinity",
+    };
+    var items = [];
+    Object.entries(config).forEach(function ([key, value]) {
+      const label = prettyNames[key] || key;
+      items.push(elem("li", {}, [
+        elem("em", {}, [label + ": "]),
+        String(value),
+      ]));
+    });
+    return elem("details", { id: "configuration", className: "report-details" }, [
+      elem("summary", {}, ["configuration"]),
+      elem("p", {}, [elem("ul", {}, items)]),
+    ]);
+  }
+
   document.addEventListener(
     "DOMContentLoaded",
     function () {
@@ -936,7 +959,8 @@
       ]);
       reports.appendChild(internalDiv);
 
-      internalDiv.appendChild(mkToggleAll(internalDiv, false)),
+      internalDiv.appendChild(mkToggleAll(internalDiv, false));
+      internalDiv.appendChild(mkConfigInfo(reportJSON.config));
       internalDiv.appendChild(elem("details", { className: "report-details" }, [
         elem("summary", {}, ["no-op"]),
         elem("p", {}, [

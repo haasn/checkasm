@@ -123,6 +123,11 @@ footer a, footer a:hover, footer a:visited, footer a:active {
   color: #fff;
 }
 
+#configuration em {
+  font-weight: 600;
+  font-style: normal;
+}
+
 .explanation {
   margin-top: 3em;
 }
