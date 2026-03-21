@@ -117,19 +117,19 @@ int checkasm_has_sme(void)
 
   #endif
 
-static checkasm_checked_call_func checkasm_checked_call_ptr;
+static checkasm_checked_call_func checked_call_ptr;
 
-checkasm_checked_call_func checkasm_get_checked_call_ptr(void)
+checkasm_checked_call_func checkasm_checked_call_ptr(void)
 {
-    return checkasm_checked_call_ptr;
+    return checked_call_ptr;
 }
 
 COLD void checkasm_init_arm(void)
 {
     if (checkasm_has_vfp())
-        checkasm_checked_call_ptr = checkasm_checked_call_vfp;
+        checked_call_ptr = checkasm_checked_call_vfp;
     else
-        checkasm_checked_call_ptr = checkasm_checked_call_novfp;
+        checked_call_ptr = checkasm_checked_call_novfp;
 }
 
 int checkasm_has_vfpd32(void)
