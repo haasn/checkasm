@@ -681,8 +681,6 @@ static void print_info(void)
 #if ARCH_X86
     char           name[48];
     const unsigned cpuid = checkasm_init_x86(name);
-    for (size_t len = strlen(name); len && name[len - 1] == ' '; len--)
-        name[len - 1] = '\0'; /* trim trailing whitespace */
     fprintf(stderr, " - CPU: %s (%08X)\n", name, cpuid);
 #else
     char        buf[128];

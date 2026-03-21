@@ -63,6 +63,12 @@ COLD unsigned checkasm_init_x86(char *name)
         name[12] = '\0';
     }
 
+    /* trim trailing whitespace */
+    size_t len = strlen(name);
+    while (len && name[len - 1] == ' ')
+        len--;
+    name[len] = '\0';
+
     checkasm_cpu_cpuid(&r, 0, 0);
     const uint32_t max_leaf = r.eax;
     if (!max_leaf)
