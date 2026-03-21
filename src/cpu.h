@@ -114,6 +114,7 @@ CHECKASM_API int checkasm_has_vfpd32(void);
 
 #endif
 
+void          checkasm_init_cpu(void);
 unsigned long checkasm_getauxval(unsigned long);
 const char   *checkasm_get_brand_string(char *buf, size_t buflen, int affinity);
 const char *checkasm_get_jedec_vendor_name(unsigned bank, unsigned offset);

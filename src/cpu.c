@@ -37,6 +37,15 @@
 #include "cpu.h"
 #include "internal.h"
 
+COLD void checkasm_init_cpu(void)
+{
+#if ARCH_X86
+    checkasm_init_x86();
+#elif ARCH_ARM
+    checkasm_init_arm();
+#endif
+}
+
 COLD unsigned long checkasm_getauxval(unsigned long type)
 {
 #if HAVE_GETAUXVAL

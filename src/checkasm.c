@@ -809,11 +809,7 @@ int checkasm_run(const CheckasmConfig *config)
         checkasm_measure_nop_cycles(&state.nop_cycles, state.target_cycles);
     }
 
-#if ARCH_X86
-    checkasm_init_x86();
-#elif ARCH_ARM
-    checkasm_init_arm();
-#endif
+    checkasm_init_cpu();
 
     print_info();
 
