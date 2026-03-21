@@ -62,7 +62,7 @@ COLD unsigned long checkasm_getauxval(unsigned long type)
 #endif
 }
 
-COLD const char *checkasm_get_brand_string(char *buf, size_t buflen, int affinity)
+static COLD const char *get_brand_string(char *buf, size_t buflen, int affinity)
 {
 #if ARCH_X86
     return checkasm_get_x86_cpuid(buf, buflen);
@@ -86,7 +86,7 @@ COLD void checkasm_cpu_info(void (*info_cb)(void *priv, const char *fmt, ...), v
     char buf[128];
 
     const int affinity = config->cpu_affinity_set ? (int) config->cpu_affinity : -1;
-    const char *name = checkasm_get_brand_string(buf, sizeof(buf), affinity);
+    const char *name = get_brand_string(buf, sizeof(buf), affinity);
     if (name)
         info_cb(priv, "%s", name);
 
