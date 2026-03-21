@@ -43,7 +43,7 @@ static void noop(void)
 {
 }
 
-COLD unsigned checkasm_init_x86(char *name)
+static size_t get_model_name(char *name)
 {
     CpuidRegisters r;
 
@@ -68,6 +68,12 @@ COLD unsigned checkasm_init_x86(char *name)
     while (len && name[len - 1] == ' ')
         len--;
     name[len] = '\0';
+    return len;
+}
+
+static unsigned get_cpuid(void)
+{
+    CpuidRegisters r;
 
     checkasm_cpu_cpuid(&r, 0, 0);
     const uint32_t max_leaf = r.eax;
@@ -76,19 +82,42 @@ COLD unsigned checkasm_init_x86(char *name)
 
     checkasm_cpu_cpuid(&r, 1, 0);
     const uint32_t cpuid_sig = r.eax;
-    if (~r.ecx & 0x18000000 /* OSXSAVE/AVX */ || max_leaf < 13)
-        return cpuid_sig;
+    return cpuid_sig;
+}
+
+COLD char *checkasm_get_x86_cpuid(char *buf, size_t buflen)
+{
+    if (buflen < 64)
+        return NULL;
+
+    const size_t   len   = get_model_name(buf);
+    const unsigned cpuid = get_cpuid();
+    snprintf(buf + len, buflen - len, " (%08X)", cpuid);
+    return buf;
+}
+
+COLD void checkasm_init_x86(void)
+{
+    CpuidRegisters r;
+
+    checkasm_cpu_cpuid(&r, 0, 0);
+    const uint32_t max_leaf = r.eax;
+    if (max_leaf < 13)
+        return;
+
+    checkasm_cpu_cpuid(&r, 1, 0);
+    if (~r.ecx & 0x18000000 /* OSXSAVE/AVX */)
+        return;
 
     checkasm_cpu_cpuid(&r, 13, 1);
     if (!(r.eax & 0x04)) /* XCR1 not supported */
-        return cpuid_sig;
+        return;
 
     const uint64_t xcr1 = checkasm_cpu_xgetbv(1);
     if (xcr1 & 0x04) /* always-dirty ymm state */
-        return cpuid_sig;
+        return;
 
     checkasm_check_vzeroupper = 1;
-    return cpuid_sig;
 }
 
 typedef void (*checkasm_simd_warmup_func)(void);

@@ -53,7 +53,9 @@ COLD unsigned long checkasm_getauxval(unsigned long type)
 
 COLD const char *checkasm_get_brand_string(char *buf, size_t buflen, int affinity)
 {
-#ifdef __APPLE__
+#if ARCH_X86
+    return checkasm_get_x86_cpuid(buf, buflen);
+#elif defined(__APPLE__)
     if (sysctlbyname("machdep.cpu.brand_string", buf, &buflen, NULL, 0) != 0) {
         return NULL;
     }

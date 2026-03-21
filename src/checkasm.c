@@ -677,24 +677,18 @@ void checkasm_list_functions(const CheckasmConfig *config)
 
 static void print_info(void)
 {
+    char buf[128];
+
     checkasm_fprintf(stderr, COLOR_YELLOW, "checkasm:\n");
-#if ARCH_X86
-    char           name[48];
-    const unsigned cpuid = checkasm_init_x86(name);
-    fprintf(stderr, " - CPU: %s (%08X)\n", name, cpuid);
-#else
-    char        buf[128];
     const char *name = checkasm_get_brand_string(
         buf, sizeof(buf), cfg.cpu_affinity_set ? (int) cfg.cpu_affinity : -1);
     if (name)
         fprintf(stderr, " - CPU: %s\n", name);
-#endif
 #if ARCH_RISCV
     uint32_t vendorid;
     uintptr_t archid, impid;
 
     if (checkasm_get_cpuids(&vendorid, &archid, &impid) == 0) {
-        char buf[32];
         const char *vendor = checkasm_get_riscv_vendor_name(vendorid);
         const char *arch = checkasm_get_riscv_arch_name(buf, sizeof (buf),
                                                         vendorid, archid);
@@ -824,7 +818,9 @@ int checkasm_run(const CheckasmConfig *config)
         checkasm_measure_nop_cycles(&state.nop_cycles, state.target_cycles);
     }
 
-#if ARCH_ARM
+#if ARCH_X86
+    checkasm_init_x86();
+#elif ARCH_ARM
     if (checkasm_has_vfp())
         checkasm_checked_call_ptr = checkasm_checked_call_vfp;
     else

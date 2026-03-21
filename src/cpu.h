@@ -43,9 +43,11 @@ typedef struct __attribute__((packed)) {
 void     checkasm_cpu_cpuid(CpuidRegisters *regs, unsigned leaf, unsigned subleaf);
 uint64_t checkasm_cpu_xgetbv(unsigned xcr);
 
-/* Initializes internal state for checkasm_checked_call().
- * Returns cpuid and model name. */
-unsigned checkasm_init_x86(char *name);
+/* Initializes internal state for checkasm_checked_call(). */
+void checkasm_init_x86(void);
+
+/* Returns cpuid and model name. */
+char *checkasm_get_x86_cpuid(char *buf, size_t buflen);
 
 /* YMM and ZMM registers on x86 are turned off to save power when they haven't
  * been used for some period of time. When they are used there will be a
