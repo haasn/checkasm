@@ -102,6 +102,8 @@ int checkasm_sme_length(void);
 
 #elif ARCH_ARM
 
+void checkasm_init_arm(void);
+
 void checkasm_checked_call_vfp(void *func, int dummy, ...);
 void checkasm_checked_call_novfp(void *func, int dummy, ...);
 

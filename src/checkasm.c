@@ -70,15 +70,6 @@
   #include <sys/prctl.h>
 #endif
 
-#if ARCH_ARM
-static checkasm_checked_call_func checkasm_checked_call_ptr;
-
-checkasm_checked_call_func checkasm_get_checked_call_ptr(void)
-{
-    return checkasm_checked_call_ptr;
-}
-#endif
-
 /* Internal state */
 static CheckasmConfig cfg;
 static CheckasmStats  stats; /* temporary buffer for function measurements */
@@ -821,10 +812,7 @@ int checkasm_run(const CheckasmConfig *config)
 #if ARCH_X86
     checkasm_init_x86();
 #elif ARCH_ARM
-    if (checkasm_has_vfp())
-        checkasm_checked_call_ptr = checkasm_checked_call_vfp;
-    else
-        checkasm_checked_call_ptr = checkasm_checked_call_novfp;
+    checkasm_init_arm();
 #endif
 
     print_info();
