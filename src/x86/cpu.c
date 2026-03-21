@@ -61,7 +61,6 @@ COLD unsigned checkasm_init_x86(char *name)
         memcpy(name + 4, &r.edx, 4);
         memcpy(name + 8, &r.ecx, 4);
         name[12] = '\0';
-        return 0;
     }
 
     checkasm_cpu_cpuid(&r, 0, 0);
