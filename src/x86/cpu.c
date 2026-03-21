@@ -92,7 +92,8 @@ COLD char *checkasm_get_x86_cpuid(char *buf, size_t buflen)
 
     const size_t   len   = get_model_name(buf);
     const unsigned cpuid = get_cpuid();
-    snprintf(buf + len, buflen - len, " (%08X)", cpuid);
+    if (cpuid)
+        snprintf(buf + len, buflen - len, " (%08X)", cpuid);
     return buf;
 }
 
