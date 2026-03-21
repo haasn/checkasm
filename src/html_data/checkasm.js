@@ -865,6 +865,15 @@
     return toggleReport;
   }
 
+  function mkCpuInfo(cpuInfo) {
+    return elem("div", { id: "cpu-info" }, [
+      elem("h2", {}, [elem("a", { href: "#cpu-info" }, ["cpu info"])]),
+      elem("ul", {}, cpuInfo.map(function (info) {
+        return elem("li", {}, [info]);
+      })),
+    ]);
+  }
+
   function mkConfigInfo(config) {
     const prettyNames = {
       testPattern:     "Test pattern",
@@ -899,6 +908,9 @@
       const overview = document.getElementById("overview-charts");
       const reports = document.getElementById("reports");
       const overviewLineHeight = 16 * 1.25;
+
+      if (reportJSON.cpuInfo)
+        overview.appendChild(mkCpuInfo(reportJSON.cpuInfo));
 
       Object.entries(reportData).forEach(([testName, testData], testNumber) => {
         const tid = slugify([testName]);

@@ -53,6 +53,10 @@ div.scatter, div.kde {
   content:"\2039";
 }
 
+#cpu-info {
+  font-size: 90%;
+}
+
 select, button {
   outline: none;
   border: none;
