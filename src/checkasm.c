@@ -186,6 +186,18 @@ static void json_measurement(CheckasmJson *json, const char *key, const char *un
         checkasm_json_pop(json, '}');
 }
 
+static void cpu_info_json(void *priv, const char *fmt, ...)
+{
+    CheckasmJson *json = priv;
+    char buf[128];
+    va_list ap;
+    va_start(ap, fmt);
+    vsnprintf(buf, sizeof(buf), fmt, ap);
+    va_end(ap);
+
+    checkasm_json_str(json, NULL, buf);
+}
+
 struct IterState {
     const char  *test;
     const char  *report;
@@ -233,6 +245,9 @@ static void print_bench_header(struct IterState *const iter)
         checkasm_json(json, "numFailed", "%d", current.num_failed);
         checkasm_json(json, "targetCycles", "%" PRIu64, state.target_cycles);
         checkasm_json(json, "numBenchmarks", "%d", current.num_benched);
+        checkasm_json_push(json, "cpuInfo", '[');
+        checkasm_cpu_info(cpu_info_json, json, &cfg);
+        checkasm_json_pop(json, ']');
         checkasm_json_push(json, "cpuFlags", '{');
         for (const CheckasmCpuInfo *info = cfg.cpu_flags; info->flag; info++) {
             const int available = (cfg.cpu & info->flag) == info->flag;
