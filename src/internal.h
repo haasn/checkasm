@@ -79,6 +79,12 @@
 
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
 
+#ifdef _MSC_VER
+  #define PACKED(...) __pragma(pack(push, 1)) __VA_ARGS__ __pragma(pack(pop))
+#else
+  #define PACKED(...) __VA_ARGS__ __attribute__((__packed__))
+#endif
+
 void checkasm_srand(unsigned seed);
 
 /* Internal variant of checkasm_fail_func() that also jumps back to the signal
