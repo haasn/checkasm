@@ -66,10 +66,10 @@ const char *checkasm_get_riscv_arch_name(char *buf, size_t len,
                                          uint32_t vendorid, uintptr_t archid);
 
 /* Checks if floating point registers are supported. */
-int checkasm_has_float(void);
+CHECKASM_API int checkasm_has_float(void);
 
 /* Checks if vector registers are supported. */
-int checkasm_has_vector(void);
+CHECKASM_API int checkasm_has_vector(void);
 
 /* Returns the vector length in bits, 0 if unavailable. */
 unsigned long checkasm_get_vlen(void);

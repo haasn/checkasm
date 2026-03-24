@@ -29,8 +29,8 @@
 #ifndef CHECKASM_PLATFORM_RISCV_H
 #define CHECKASM_PLATFORM_RISCV_H
 
-CHECKASM_API void checkasm_set_function(void *);
-void *checkasm_checked_call_ptr(void);
+CHECKASM_API void  checkasm_set_function(void *);
+CHECKASM_API void *checkasm_checked_call_ptr(void);
 
 #define checkasm_declare_impl(ret, ...) \
     ret (*checked_call)(__VA_ARGS__) = checkasm_checked_call_ptr()
