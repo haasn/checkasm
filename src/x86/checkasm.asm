@@ -60,12 +60,9 @@ errmsg_register: db "failed to preserve register:%s", 0
 errmsg_vzeroupper: db "missing vzeroupper", 0
 errmsg_emms: db "missing emms, fpu tag = 0x%x", 0
 
-SECTION .bss
-
-check_vzeroupper: resd 1
-
 SECTION .text
 
+cextern check_vzeroupper
 cextern fail_abort
 
 ; max number of args used by any asm function.
@@ -77,81 +74,6 @@ cextern fail_abort
 %else
     DECLARE_REG_TMP 4
 %endif
-
-;-----------------------------------------------------------------------------
-; unsigned checkasm_init_x86(char *name)
-;-----------------------------------------------------------------------------
-cglobal init_x86, 0, 5
-%if ARCH_X86_64
-    push          rbx
-%endif
-    movifnidn      t0, r0mp
-    mov           eax, 0x80000000
-    cpuid
-    cmp           eax, 0x80000004
-    jb .no_brand ; processor brand string not supported
-    mov           eax, 0x80000002
-    cpuid
-    mov     [t0+4* 0], eax
-    mov     [t0+4* 1], ebx
-    mov     [t0+4* 2], ecx
-    mov     [t0+4* 3], edx
-    mov           eax, 0x80000003
-    cpuid
-    mov     [t0+4* 4], eax
-    mov     [t0+4* 5], ebx
-    mov     [t0+4* 6], ecx
-    mov     [t0+4* 7], edx
-    mov           eax, 0x80000004
-    cpuid
-    mov     [t0+4* 8], eax
-    mov     [t0+4* 9], ebx
-    mov     [t0+4*10], ecx
-    mov     [t0+4*11], edx
-    xor           eax, eax
-    cpuid
-    jmp .check_xcr1
-.no_brand: ; use manufacturer id as a fallback
-    xor           eax, eax
-    mov      [t0+4*3], eax
-    cpuid
-    mov      [t0+4*0], ebx
-    mov      [t0+4*1], edx
-    mov      [t0+4*2], ecx
-.check_xcr1:
-    test          eax, eax
-    jz .end2 ; cpuid leaf 1 not supported
-    mov           t0d, eax ; max leaf
-    mov           eax, 1
-    cpuid
-    and           ecx, 0x18000000
-    cmp           ecx, 0x18000000
-    jne .end2 ; osxsave/avx not supported
-    cmp           t0d, 13 ; cpuid leaf 13 not supported
-    jb .end2
-    mov           t0d, eax ; cpuid signature
-    mov           eax, 13
-    mov           ecx, 1
-    cpuid
-    test           al, 0x04
-    jz .end ; xcr1 not supported
-    mov           ecx, 1
-    xgetbv
-    test           al, 0x04
-    jnz .end ; always-dirty ymm state
-%if ARCH_X86_64 == 0 && PIC
-    LEA           eax, check_vzeroupper
-    mov         [eax], ecx
-%else
-    mov [check_vzeroupper], ecx
-%endif
-.end:
-    mov           eax, t0d
-.end2:
-%if ARCH_X86_64
-    pop           rbx
-%endif
-    RET
 
 ;-----------------------------------------------------------------------------
 ; uint64_t checkasm_cpu_xgetbv(unsigned xcr)

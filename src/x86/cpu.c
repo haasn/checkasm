@@ -34,11 +34,56 @@
 
 #if ARCH_X86
 
+int checkasm_check_vzeroupper = 0;
+
 void checkasm_warmup_avx(void);
 void checkasm_warmup_avx512(void);
 
 static void noop(void)
 {
+}
+
+COLD unsigned checkasm_init_x86(char *name)
+{
+    CpuidRegisters r;
+
+    checkasm_cpu_cpuid(&r, 0x80000000, 0);
+    if (r.eax >= 0x80000004) {
+        /* processor brand string */
+        CpuidRegisters *buf = (CpuidRegisters *) name;
+        checkasm_cpu_cpuid(buf + 0, 0x80000002, 0);
+        checkasm_cpu_cpuid(buf + 1, 0x80000003, 0);
+        checkasm_cpu_cpuid(buf + 2, 0x80000004, 0);
+    } else {
+        /* use manufacturer id as a fallback */
+        checkasm_cpu_cpuid(&r, 0, 0);
+        memcpy(name + 0, &r.ebx, 4);
+        memcpy(name + 4, &r.edx, 4);
+        memcpy(name + 8, &r.ecx, 4);
+        name[12] = '\0';
+        return 0;
+    }
+
+    checkasm_cpu_cpuid(&r, 0, 0);
+    const uint32_t max_leaf = r.eax;
+    if (!max_leaf)
+        return 0;
+
+    checkasm_cpu_cpuid(&r, 1, 0);
+    const uint32_t cpuid_sig = r.eax;
+    if (~r.ecx & 0x18000000 /* OSXSAVE/AVX */ || max_leaf < 13)
+        return cpuid_sig;
+
+    checkasm_cpu_cpuid(&r, 13, 1);
+    if (!(r.eax & 0x04)) /* XCR1 not supported */
+        return cpuid_sig;
+
+    const uint64_t xcr1 = checkasm_cpu_xgetbv(1);
+    if (xcr1 & 0x04) /* always-dirty ymm state */
+        return cpuid_sig;
+
+    checkasm_check_vzeroupper = 1;
+    return cpuid_sig;
 }
 
 typedef void (*checkasm_simd_warmup_func)(void);
