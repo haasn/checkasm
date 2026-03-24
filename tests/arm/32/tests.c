@@ -1,7 +1,7 @@
 #include "tests.h"
 
-int checkasm_has_vfp(void);
-int checkasm_has_vfpd32(void);
+/* Re-use helpers from main checkasm library */
+#include "src/cpu.h"
 
 uint64_t selftest_get_cpu_flags_arm(void)
 {
