@@ -196,7 +196,7 @@ test-win:
                             --libdir lib
                             --prefix "$(pwd)/build/checkasm_install"
                             --cross-file crossfiles/${CROSSFILE}.meson
-                            -Ddefault_library=both
+                            --default-library both
         - cd build && ninja install
         - meson test -v
         - time meson test --bench -v
@@ -219,7 +219,7 @@ build-win-arm:
                             --libdir lib
                             --prefix "$(pwd)/build/checkasm_install"
                             --cross-file crossfiles/${CROSSFILE}.meson
-                            -Ddefault_library=both
+                            --default-library both
         - cd build && ninja install
         - ${CROSSFILE}-nm -A -g src/libcheckasm.a | grep " [ABCDGRST] " | (! grep -E -v " \.| _*checkasm_")
     artifacts:
@@ -240,7 +240,7 @@ build-win-arm:
                             --libdir lib
                             --prefix "$(pwd)/build/checkasm_install"
                             --cross-file $CROSSFILE
-                            -Ddefault_library=both
+                            --default-library both
         - cd build && ninja install
 
 build-android-armv7:
@@ -286,7 +286,7 @@ test-debian-aarch64-clang-18:
     stage: test
     script:
         - meson setup build --buildtype release
-                            -Ddefault_library=both
+                            --default-library both
                             --werror
         - cd build && ninja
         - meson test -v
