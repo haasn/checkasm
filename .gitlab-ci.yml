@@ -99,6 +99,7 @@ build-docs:
 .test-common:
     script:
         - meson setup build --buildtype release
+                            --default-library both
                             --werror
         - cd build && ninja
         - meson test -v
