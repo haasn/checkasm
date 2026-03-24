@@ -36,8 +36,8 @@
 
 #if ARCH_X86
 
-typedef struct {
-    uint32_t eax, ebx, edx, ecx;
+typedef struct __attribute__((packed)) {
+    uint32_t eax, ebx, ecx, edx;
 } CpuidRegisters;
 
 void     checkasm_cpu_cpuid(CpuidRegisters *regs, unsigned leaf, unsigned subleaf);
