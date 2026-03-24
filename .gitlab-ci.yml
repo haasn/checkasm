@@ -337,6 +337,7 @@ test-debian-riscv64:
         QEMU_LD_PREFIX: /usr/riscv64-linux-gnu/
     script:
         - meson setup build --buildtype release
+                            --default-library both
                             --werror
                             --cross-file crossfiles/${CROSSFILE}.meson
         - cd build && ninja
@@ -357,6 +358,7 @@ test-debian-loongarch64:
         QEMU_LD_PREFIX: /opt/cross-tools/target/
     script:
         - meson setup build --buildtype release
+                            --default-library both
                             --werror
                             --cross-file crossfiles/loongarch64-linux.meson
         - cd build && ninja
