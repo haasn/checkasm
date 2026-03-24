@@ -50,7 +50,7 @@
 #define ASM_PREF PRIVATE_PREFIX
 #endif
 
-.macro function name, align=DEFAULT_ALIGN
+.macro function name, align=DEFAULT_ALIGN, visible=0
 .macro endfunc
     jirl    $r0, $r1, 0x0
     .size ASM_PREF\name, . - ASM_PREF\name
@@ -59,7 +59,9 @@
 .text ;
 .align \align ;
 .globl ASM_PREF\name ;
+.if !\visible
 .hidden ASM_PREF\name ;
+.endif
 .type  ASM_PREF\name, @function ;
 ASM_PREF\name: ;
 .endm

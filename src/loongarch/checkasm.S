@@ -72,7 +72,7 @@ endfunc
 
 #define ARG_STACK ((8*(MAX_ARGS - 8) + 15) & ~15)
 
-function checked_call
+function checked_call, visible=1
     // Saved s0 - s8, fs0 - fs7
     move    t4,     sp
     addi.d  sp,     sp,     -136
