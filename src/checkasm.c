@@ -251,6 +251,7 @@ static void print_bench_header(struct IterState *const iter)
         json_measurement(json, "nopCycles", checkasm_perf.unit, state.nop_cycles);
         json_measurement(json, "timerScale", perf_scale_unit, state.perf_scale);
         json_var(json, "nopTime", checkasm_perf.unit, nop_time);
+        checkasm_json(json, "numFunctions", "%d", current.num_funcs);
         checkasm_json_push(json, "functions", '{');
         break;
     case CHECKASM_FORMAT_PRETTY:
