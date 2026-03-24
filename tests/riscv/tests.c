@@ -1,5 +1,8 @@
 #include "tests.h"
 
+/* Re-use helpers from main checkasm library */
+#include "src/cpu.h"
+
 uint64_t selftest_get_cpu_flags_riscv(void)
 {
     uint64_t flags = SELFTEST_CPU_FLAG_RVI;

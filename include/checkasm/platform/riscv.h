@@ -46,7 +46,5 @@ void *checkasm_checked_call_ptr(void);
 #define CHECKASM_ALIGNMENT 16
 
 void checkasm_clobber_args(void);
-int checkasm_has_float(void);
-int checkasm_has_vector(void);
 
 #endif /* CHECKASM_PLATFORM_RISCV_H */
