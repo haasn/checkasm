@@ -29,7 +29,7 @@
 #ifndef CHECKASM_PLATFORM_RISCV_H
 #define CHECKASM_PLATFORM_RISCV_H
 
-void checkasm_set_function(void *);
+CHECKASM_API void checkasm_set_function(void *);
 void *checkasm_checked_call_ptr(void);
 
 #define checkasm_declare_impl(ret, ...) \
@@ -45,6 +45,6 @@ void *checkasm_checked_call_ptr(void);
     checkasm_set_signal_handler_state(0)
 #define CHECKASM_ALIGNMENT 16
 
-void checkasm_clobber_args(void);
+CHECKASM_API void checkasm_clobber_args(void);
 
 #endif /* CHECKASM_PLATFORM_RISCV_H */
