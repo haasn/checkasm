@@ -92,9 +92,10 @@ static struct {
     uint64_t             cycles;
 
     /* Overall stats for this test run */
-    int    num_checked;
-    int    num_failed;
-    int    num_benched;
+    int    num_funcs;                   /* known functions */
+    int    num_checked;                 /* checked versions */
+    int    num_failed;                  /* failed versions */
+    int    num_benched;                 /* benched versions */
     int    prev_checked, prev_failed;   /* reset by report() */
     int    saved_checked, saved_failed; /* for restoring after a crash */
     double var_sum, var_max;
@@ -898,6 +899,8 @@ CheckasmKey checkasm_check_key(const CheckasmKey version, const char *const name
     v->key   = version;
     v->state = CHECKASM_FUNC_OK;
     v->cpu   = current.cpu;
+    if (ref == version)
+        current.num_funcs++;
 
     if (state.skip_tests)
         return 0;
