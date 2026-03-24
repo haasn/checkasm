@@ -734,11 +734,13 @@ static void print_info(void)
 
 static int print_summary(void)
 {
+    /* Exclude C/ref versions from count reported to user */
+    const int num_checked_asm = current.num_checked - current.num_funcs;
     if (current.num_failed) {
         fprintf(stderr, "checkasm: %d of %d tests failed\n", current.num_failed,
-                current.num_checked);
-    } else if (current.num_checked) {
-        fprintf(stderr, "checkasm: all %d tests passed\n", current.num_checked);
+                num_checked_asm);
+    } else if (num_checked_asm) {
+        fprintf(stderr, "checkasm: all %d tests passed\n", num_checked_asm);
     } else {
         fprintf(stderr, "checkasm: no tests to perform\n");
     }
