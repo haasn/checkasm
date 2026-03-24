@@ -34,13 +34,6 @@
 
 #if ARCH_X86
 
-typedef struct {
-    uint32_t eax, ebx, edx, ecx;
-} CpuidRegisters;
-
-void     checkasm_cpu_cpuid(CpuidRegisters *regs, unsigned leaf, unsigned subleaf);
-uint64_t checkasm_cpu_xgetbv(unsigned xcr);
-
 void checkasm_warmup_avx(void);
 void checkasm_warmup_avx512(void);
 

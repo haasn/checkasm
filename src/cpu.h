@@ -36,6 +36,13 @@
 
 #if ARCH_X86
 
+typedef struct {
+    uint32_t eax, ebx, edx, ecx;
+} CpuidRegisters;
+
+void     checkasm_cpu_cpuid(CpuidRegisters *regs, unsigned leaf, unsigned subleaf);
+uint64_t checkasm_cpu_xgetbv(unsigned xcr);
+
 /* Initializes internal state for checkasm_checked_call().
  * Returns cpuid and model name. */
 unsigned checkasm_init_x86(char *name);

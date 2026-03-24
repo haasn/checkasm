@@ -3,13 +3,9 @@
 
 #include "tests.h"
 
-/* Re-use from main checkasm library */
-typedef struct {
-    uint32_t eax, ebx, edx, ecx;
-} CpuidRegisters;
+/* Re-use helpers from main checkasm library */
+#include "src/cpu.h"
 
-void       checkasm_cpu_cpuid(CpuidRegisters *regs, unsigned leaf, unsigned subleaf);
-uint64_t   checkasm_cpu_xgetbv(unsigned xcr);
 static int has_vzeroupper_check;
 
 uint64_t selftest_get_cpu_flags_x86(void)
