@@ -419,6 +419,16 @@ test-dav2d:
         - cd build && ninja
         - meson test -v checkasm
 
+test-ffmpeg:
+    extends: .debian-amd64-common
+    script:
+        - git clone --depth 1 --branch master https://code.ffmpeg.org/ffmpeg/ffmpeg
+        - cd ffmpeg
+        - rm -rf tests/checkasm/ext
+        - ln -s ../../.. tests/checkasm/ext
+        - ./configure --enable-gpl
+        - make -j$(getconf _NPROCESSORS_ONLN) run-checkasm
+
 deploy-docs:
     extends: .debian-amd64-common
     stage: deploy
