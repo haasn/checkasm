@@ -116,6 +116,7 @@ CheckasmVar checkasm_stats_estimate(const CheckasmStats *const stats)
         count += s.count;
     }
 
+    assert(count > 0);
     const double mean = sum / count;
     const double denom = count - sum_w2 / count;
     double var;
