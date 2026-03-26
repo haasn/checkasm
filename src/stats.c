@@ -117,8 +117,14 @@ CheckasmVar checkasm_stats_estimate(const CheckasmStats *const stats)
     }
 
     const double mean = sum / count;
-    return (CheckasmVar) {
-        .lmean = mean,
-        .lvar  = (sum2 - count * mean * mean) / (count - sum_w2 / count),
-    };
+    const double denom = count - sum_w2 / count;
+    double var;
+    if (denom > 0.0) {
+        var = (sum2 - count * mean * mean) / denom;
+    } else {
+        /* Lower bound on the variance predicted by the sample count alone */
+        var = 1.0 / count;
+    }
+
+    return (CheckasmVar) { .lmean = mean, .lvar  = var };
 }
