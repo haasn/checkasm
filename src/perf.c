@@ -199,6 +199,8 @@ COLD void checkasm_measure_nop_cycles(CheckasmMeasurement *meas, uint64_t target
 
         checkasm_stats_add(&stats, (CheckasmSample) { cycles, count });
         checkasm_stats_count_grow(&stats, cycles, target_cycles);
+        if (stats.nb_samples == (int) ARRAY_SIZE(stats.samples))
+            break;
     }
 
     checkasm_measurement_update(meas, stats);
