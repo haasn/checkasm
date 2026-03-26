@@ -121,7 +121,7 @@ CheckasmVar checkasm_stats_estimate(const CheckasmStats *const stats)
     const double denom = count - sum_w2 / count;
     double var;
     if (denom > 0.0) {
-        var = (sum2 - count * mean * mean) / denom;
+        var = fmax(sum2 - count * mean * mean, 0.0) / denom;
     } else {
         /* Lower bound on the variance predicted by the sample count alone */
         var = 1.0 / count;
