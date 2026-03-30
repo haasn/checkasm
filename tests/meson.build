@@ -76,7 +76,7 @@ else
   checkasm_test_sources += checkasm_asm_sources
 endif
 
-checkasm_test = executable('checkasm',
+checkasm_test = executable('checkasm-selftest',
   checkasm_test_sources,
   checkasm_asm_objs,
   checkasm_config,
@@ -87,5 +87,5 @@ checkasm_test = executable('checkasm',
   install: false,
 )
 
-test('checkasm',      checkasm_test, suite: 'checkasm', args: ['--verbose'])
-benchmark('checkasm', checkasm_test, suite: 'checkasm', args: ['--bench', '--verbose'])
+test('selftest',      checkasm_test, suite: 'checkasm', args: ['--verbose'])
+benchmark('selftest', checkasm_test, suite: 'checkasm', args: ['--bench', '--verbose'])
