@@ -215,7 +215,7 @@ if use_gaspp
     '-I@0@'.format(meson.project_source_root() + '/include'),
     '-I@0@'.format(meson.current_source_dir()),
     '-I@0@'.format(meson.current_build_dir()),
-    '-DCHECKASM_HAVE_GENERATED_H=1',
+    '-DCHECKASM_HAVE_GENERATED_H',
   ]
   checkasm_asm_objs += gaspp_gen.process(checkasm_asm_sources, extra_args: gaspp_args)
 else
@@ -233,8 +233,8 @@ checkasm_library = library(meson.project_name(),
   checkasm_sources,
   checkasm_config,
   checkasm_asm_objs,
-  c_args : [api_export_flags, '-DCHECKASM_HAVE_GENERATED_H=1'],
-  nasm_args : [api_export_flags_asm, '-DCHECKASM_HAVE_GENERATED_H=1'],
+  c_args : [api_export_flags, '-DCHECKASM_HAVE_GENERATED_H'],
+  nasm_args : [api_export_flags_asm, '-DCHECKASM_HAVE_GENERATED_H'],
   include_directories: checkasm_inc_dirs,
   dependencies: checkasm_dependencies,
   install: not meson.is_subproject(),

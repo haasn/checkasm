@@ -66,7 +66,7 @@ if use_gaspp and checkasm_asm_sources.length() > 0
     '-I@0@'.format(meson.project_source_root()),
     '-I@0@'.format(meson.project_build_root()),
     '-I@0@'.format(meson.project_build_root() + '/src'),
-    '-DCHECKASM_HAVE_GENERATED_H=1',
+    '-DCHECKASM_HAVE_GENERATED_H',
   ]
   checkasm_asm_objs += gaspp_gen.process(checkasm_asm_sources, extra_args: gaspp_args)
 else
@@ -77,8 +77,8 @@ checkasm_test = executable('checkasm-selftest',
   checkasm_test_sources,
   checkasm_asm_objs,
   checkasm_config,
-  c_args: [extra_arguments, '-DCHECKASM_HAVE_GENERATED_H=1'],
-  nasm_args: '-DCHECKASM_HAVE_GENERATED_H=1',
+  c_args: [extra_arguments, '-DCHECKASM_HAVE_GENERATED_H'],
+  nasm_args: '-DCHECKASM_HAVE_GENERATED_H',
   dependencies: [checkasm_dep, libm_dependency],
   include_directories: include_directories('../src'),
   build_by_default: false,
