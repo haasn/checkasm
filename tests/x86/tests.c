@@ -20,8 +20,8 @@ uint64_t selftest_get_cpu_flags_x86(void)
     checkasm_cpu_cpuid(&r, 1, 0);
     if (r.edx & 0x00800000) /* MMX */
         flags |= SELFTEST_CPU_FLAG_MMX;
-    if (r.edx & 0x02000000) /* SSE2 */
-        flags |= SELFTEST_CPU_FLAG_SSE2;
+    if (r.edx & 0x02000000) /* SSE */
+        flags |= SELFTEST_CPU_FLAG_SSE;
     if (~r.ecx & 0x18000000) /* OSXSAVE/AVX */
         return flags;
 
@@ -43,7 +43,7 @@ uint64_t selftest_get_cpu_flags_x86(void)
 
 DEF_COPY_FUNC(copy_x86);
 DEF_COPY_FUNC(copy_mmx);
-DEF_COPY_FUNC(copy_sse2);
+DEF_COPY_FUNC(copy_sse);
 DEF_COPY_FUNC(copy_avx2);
 DEF_COPY_FUNC(copy_avx512);
 
@@ -79,8 +79,8 @@ static copy_func *get_copy_x86(void)
         return selftest_copy_avx512;
     if (flags & SELFTEST_CPU_FLAG_AVX2)
         return selftest_copy_avx2;
-    if (flags & SELFTEST_CPU_FLAG_SSE2)
-        return selftest_copy_sse2;
+    if (flags & SELFTEST_CPU_FLAG_SSE)
+        return selftest_copy_sse;
     if (flags & SELFTEST_CPU_FLAG_MMX)
         return selftest_copy_mmx;
     if (flags & SELFTEST_CPU_FLAG_X86)
