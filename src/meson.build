@@ -215,6 +215,7 @@ if use_gaspp
     '-I@0@'.format(meson.project_source_root() + '/include'),
     '-I@0@'.format(meson.current_source_dir()),
     '-I@0@'.format(meson.current_build_dir()),
+    '-DCHECKASM_HAVE_GENERATED_H=1',
   ]
   checkasm_asm_objs += gaspp_gen.process(checkasm_asm_sources, extra_args: gaspp_args)
 else

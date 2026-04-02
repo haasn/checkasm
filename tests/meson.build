@@ -66,6 +66,7 @@ if use_gaspp and checkasm_asm_sources.length() > 0
     '-I@0@'.format(meson.project_source_root()),
     '-I@0@'.format(meson.project_build_root()),
     '-I@0@'.format(meson.project_build_root() + '/src'),
+    '-DCHECKASM_HAVE_GENERATED_H=1',
   ]
   checkasm_asm_objs += gaspp_gen.process(checkasm_asm_sources, extra_args: gaspp_args)
 else
