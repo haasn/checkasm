@@ -104,7 +104,7 @@ COLD void checkasm_cpu_info(void (*info_cb)(void *priv, const char *fmt, ...), v
 
     if (checkasm_has_vector()) {
         const unsigned long vlen = checkasm_get_vlen();
-        info_cb(priv, "VLEN = %lu bits", vlen * 8);
+        info_cb(priv, "VLEN = %lu bits", vlen);
     }
 #endif
 #if ARCH_AARCH64
