@@ -1,3 +1,6 @@
+# A simple makefile for testing building the files in a foreign build
+# system. This is not intended as the user facing way of building the library.
+
 CPPFLAGS = -I. -Iinclude -Isrc -Itests
 CFLAGS = -std=gnu11 -Wundef
 LIBS = -lm
