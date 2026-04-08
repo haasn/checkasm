@@ -111,6 +111,17 @@ cvisible empty_mmx, 0, 0
     emms
     RET
 
+%macro REPORT_FAILURE 1 ; err_msg
+    LEA            r0, %1
+%if ARCH_X86_64
+    xor           eax, eax
+%else
+    mov         [esp], r0
+%endif
+    call fail_abort
+    ud2 ; should never be reached
+%endmacro
+
 %if ARCH_X86_64
 
 %if WIN64
@@ -134,12 +145,6 @@ cvisible empty_mmx, 0, 0
     or            r13, r8
     test          r9b, %2
     cmovnz         %1, r13
-%endmacro
-
-%macro REPORT_FAILURE 1 ; err_msg
-    lea            r0, [%1]
-    xor           eax, eax
-    jmp fail_abort
 %endmacro
 
 %macro checked_call_fn 0-1
@@ -335,12 +340,6 @@ checked_call_fn _emms
 %assign n4 0xe02f3e23
 %assign n5 0xb78d0d1d
 %assign n6 0x33627ba7
-
-%macro REPORT_FAILURE 1 ; err_msg
-    LEA            r1, %1
-    mov         [esp], r1
-    jmp fail_abort
-%endmacro
 
 ;-----------------------------------------------------------------------------
 ; void checkasm_checked_call(void *func, ...)
