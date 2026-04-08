@@ -378,6 +378,12 @@ test-debian-asan:
         - time meson test --bench -v || exit_code=$((exit_code + $?))
         - if [ $exit_code -ne 0 ]; then exit $exit_code; fi
 
+test-ext-build:
+    extends: .debian-amd64-common
+    script:
+        - make -f ext-build-test.make NASM_FMT=elf64 -j$(getconf _NPROCESSORS_ONLN) EXTRA_CFLAGS=-Werror
+        - ./checkasm-selftest
+
 deploy-docs:
     extends: .debian-amd64-common
     stage: deploy
