@@ -2,7 +2,7 @@
 # system. This is not intended as the user facing way of building the library.
 
 CPPFLAGS = -I. -Iinclude -Isrc -Itests
-CFLAGS = -std=gnu11 -Wundef
+CFLAGS = -std=gnu11 -Wundef $(EXTRA_CFLAGS)
 LIBS = -lm
 EXE = checkasm-selftest
 OBJS = \
