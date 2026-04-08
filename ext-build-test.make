@@ -1,7 +1,12 @@
 # A simple makefile for testing building the files in a foreign build
 # system. This is not intended as the user facing way of building the library.
 
-CPPFLAGS = -I. -Iinclude -Isrc -Itests
+SRC_PATH = $(word 1, $(dir $(MAKEFILE_LIST)))
+vpath %.c $(SRC_PATH)
+vpath %.S $(SRC_PATH)
+vpath %.asm $(SRC_PATH)
+
+CPPFLAGS = -I$(SRC_PATH) -I$(SRC_PATH)include -I$(SRC_PATH)src -I$(SRC_PATH)tests
 CFLAGS = -std=gnu11 -Wundef $(EXTRA_CFLAGS)
 LIBS = -lm
 EXE = checkasm-selftest
@@ -42,13 +47,18 @@ ifdef NASM_FMT
 OBJS += $(NASM_OBJS)
 endif
 
-# TODO: Keep sources and objects in separate directories?
-
 $(EXE): $(OBJS)
 	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS)
 
 %.o: %.asm
 	nasm -f $(NASM_FMT) $(CPPFLAGS) -o $@ $<
+
+OBJDIRS = $(sort $(dir $(OBJS)))
+
+$(OBJDIRS):
+	mkdir -p $@
+
+$(OBJS): | $(OBJDIRS)
 
 clean:
 	$(RM) $(EXE) $(OBJS) $(NASM_OBJS)
