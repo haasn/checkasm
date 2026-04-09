@@ -34,8 +34,13 @@ uint64_t selftest_get_cpu_flags_x86(void)
     checkasm_cpu_cpuid(&r, 7, 0);
     if (r.ebx & 0x00000020) { /* AVX2 */
         flags |= SELFTEST_CPU_FLAG_AVX2;
+#if ARCH_X86_32 && defined(_WIN32)
+        /* See checkasm_init_x86 */
+        has_vzeroupper_check = 0;
+#else
         has_vzeroupper_check
             = !(checkasm_cpu_xgetbv(1) & 0x04); /* YMM state always dirty */
+#endif
     }
 
     if (~xcr0 & 0xe0) /* ZMM/OPMASK */

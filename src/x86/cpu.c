@@ -118,7 +118,12 @@ COLD void checkasm_init_x86(void)
     if (xcr1 & 0x04) /* always-dirty ymm state */
         return;
 
+#if ARCH_X86_32 && defined(_WIN32)
+    /* x86_32 processes on Windows can spuriously get the dirty ymm bit set
+     * while running; skip checking this aspect. */
+#else
     checkasm_check_vzeroupper = 1;
+#endif
 }
 
 typedef void (*checkasm_simd_warmup_func)(void);
