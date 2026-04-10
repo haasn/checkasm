@@ -23,6 +23,10 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+if get_option('tests').disabled()
+  subdir_done()
+endif
+
 libm_dependency = cc.find_library('m', required: false)
 
 optional_arguments = []

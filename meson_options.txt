@@ -27,3 +27,9 @@ option('docs',
   value: 'auto',
   description: 'Build API documentation with Doxygen'
 )
+
+option('tests',
+  type: 'feature',
+  value: 'auto',
+  description: 'Build internal self-tests'
+)
