@@ -129,6 +129,16 @@ test-debian-static:
         - time meson test --bench -v
         - nm -A -g src/libcheckasm.a | grep " [ABCDGRST] " | (! grep -v " _*checkasm_")
 
+test-debian-notests:
+    extends: .debian-amd64-common
+    script:
+        - meson setup build --buildtype release
+                            --default-library shared
+                            -Dtests=disabled
+                            --werror
+        - cd build && ninja
+        - meson test -v
+
 test-debian32:
     extends: .debian-amd64-common
     script:
