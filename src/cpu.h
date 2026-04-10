@@ -40,16 +40,16 @@
 
 PACKED(typedef struct { uint32_t eax, ebx, ecx, edx; }) CpuidRegisters;
 
-CHECKASM_API void checkasm_cpu_cpuid(CpuidRegisters *regs, unsigned leaf,
-                                     unsigned subleaf);
-CHECKASM_API uint64_t checkasm_cpu_xgetbv(unsigned xcr);
+CHECKASM_SELF_API void
+checkasm_cpu_cpuid(CpuidRegisters *regs, unsigned leaf, unsigned subleaf);
+CHECKASM_SELF_API uint64_t checkasm_cpu_xgetbv(unsigned xcr);
 
 /* Initializes internal state for checkasm_checked_call(). */
 void checkasm_init_x86(void);
 
 /* Returns whether the vzeroupper state check is active. Exported only for use
  * inside the selftest. */
-CHECKASM_API int checkasm_get_check_vzeroupper(void);
+CHECKASM_SELF_API int checkasm_get_check_vzeroupper(void);
 
 /* Returns cpuid and model name. */
 char *checkasm_get_x86_cpuid(char *buf, size_t buflen);
@@ -71,10 +71,10 @@ const char *checkasm_get_riscv_arch_name(char *buf, size_t len,
                                          uint32_t vendorid, uintptr_t archid);
 
 /* Checks if floating point registers are supported. */
-CHECKASM_API int checkasm_has_float(void);
+CHECKASM_SELF_API int checkasm_has_float(void);
 
 /* Checks if vector registers are supported. */
-CHECKASM_API int checkasm_has_vector(void);
+CHECKASM_SELF_API int checkasm_has_vector(void);
 
 /* Returns the vector length in bits, 0 if unavailable. */
 unsigned long checkasm_get_vlen(void);
@@ -113,9 +113,9 @@ void checkasm_checked_call_vfp(void *func, int dummy, ...);
 void checkasm_checked_call_novfp(void *func, int dummy, ...);
 
 /* Returns a nonzero value if VFP is available, 0 otherwise */
-CHECKASM_API int checkasm_has_vfp(void);
+CHECKASM_SELF_API int checkasm_has_vfp(void);
 /* Returns a nonzero value if VFP has 32 registers, 0 otherwise */
-CHECKASM_API int checkasm_has_vfpd32(void);
+CHECKASM_SELF_API int checkasm_has_vfpd32(void);
 
 #endif
 
