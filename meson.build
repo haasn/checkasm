@@ -121,12 +121,13 @@ if ((arch_aarch64 or arch_arm) and
         ])
 endif
 
+# Global component configuration
+build_tests = get_option('tests').disable_auto_if(meson.is_subproject())
+build_docs  = get_option('docs' ).disable_auto_if(meson.is_subproject())
+
 subdir('include/checkasm')
 subdir('src')
-
-if not meson.is_subproject()
-  subdir('docs')
-  subdir('tests')
-endif
+subdir('docs')
+subdir('tests')
 
 meson.override_dependency(meson.project_name(), checkasm_dep)
