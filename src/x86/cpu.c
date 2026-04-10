@@ -36,6 +36,11 @@
 
 int checkasm_check_vzeroupper = 0;
 
+COLD int checkasm_get_check_vzeroupper(void)
+{
+    return checkasm_check_vzeroupper;
+}
+
 void checkasm_warmup_avx(void);
 void checkasm_warmup_avx512(void);
 

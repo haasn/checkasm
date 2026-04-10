@@ -8,8 +8,6 @@
 /* Re-use helpers from main checkasm library */
 #include "src/cpu.h"
 
-static int has_vzeroupper_check;
-
 uint64_t selftest_get_cpu_flags_x86(void)
 {
     uint64_t       flags = SELFTEST_CPU_FLAG_X86;
@@ -32,16 +30,8 @@ uint64_t selftest_get_cpu_flags_x86(void)
         return flags;
 
     checkasm_cpu_cpuid(&r, 7, 0);
-    if (r.ebx & 0x00000020) { /* AVX2 */
+    if (r.ebx & 0x00000020) /* AVX2 */
         flags |= SELFTEST_CPU_FLAG_AVX2;
-#if ARCH_X86_32 && defined(_WIN32)
-        /* See checkasm_init_x86 */
-        has_vzeroupper_check = 0;
-#else
-        has_vzeroupper_check
-            = !(checkasm_cpu_xgetbv(1) & 0x04); /* YMM state always dirty */
-#endif
-    }
 
     if (~xcr0 & 0xe0) /* ZMM/OPMASK */
         return flags;
@@ -223,7 +213,7 @@ void selftest_check_x86(void)
     selftest_test_copy(get_copy_noemms_mmx(), "noemms", 8);
     check_clobber(NUM_SAFE, NUM_REGS);
 
-    if (has_vzeroupper_check)
+    if (checkasm_get_check_vzeroupper())
         selftest_test_copy(get_copy_novzeroupper_avx2(), "novzeroupper", 32);
 }
 

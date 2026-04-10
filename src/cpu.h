@@ -47,6 +47,10 @@ uint64_t checkasm_cpu_xgetbv(unsigned xcr);
 /* Initializes internal state for checkasm_checked_call(). */
 void checkasm_init_x86(void);
 
+/* Returns whether the vzeroupper state check is active. Exported only for use
+ * inside the selftest. */
+CHECKASM_API int checkasm_get_check_vzeroupper(void);
+
 /* Returns cpuid and model name. */
 char *checkasm_get_x86_cpuid(char *buf, size_t buflen);
 
