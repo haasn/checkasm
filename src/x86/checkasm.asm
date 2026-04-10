@@ -78,7 +78,7 @@ cextern fail_abort
 ;-----------------------------------------------------------------------------
 ; uint64_t checkasm_cpu_xgetbv(unsigned xcr)
 ;-----------------------------------------------------------------------------
-cvisible cpu_xgetbv, 0, 0, 0, xcr
+cvisible_for_tests cpu_xgetbv, 0, 0, 0, xcr
     movifnidn ecx, xcrm
     xgetbv
 %if ARCH_X86_64
@@ -90,7 +90,7 @@ cvisible cpu_xgetbv, 0, 0, 0, xcr
 ;-----------------------------------------------------------------------------
 ; void checkasm_cpu_cpuid(CpuidRegisters *regs, unsigned leaf, unsigned subleaf)
 ;-----------------------------------------------------------------------------
-cvisible cpu_cpuid, 0, 5, 0, regs, leaf, subleaf
+cvisible_for_tests cpu_cpuid, 0, 5, 0, regs, leaf, subleaf
     mov        r4, regsmp
     mov       eax, leafm
     mov       ecx, subleafm

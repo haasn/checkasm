@@ -85,7 +85,8 @@ if host_machine.system() == 'windows'
 endif
 
 if build_tests.allowed()
-    api_export_flags += '-DCHECKASM_BUILDING_TESTS'
+    api_export_flags     += '-DCHECKASM_BUILDING_TESTS'
+    api_export_flags_asm += '-DCHECKASM_BUILDING_TESTS'
 endif
 
 have_linux_perf = false

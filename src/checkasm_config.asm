@@ -63,3 +63,9 @@
 %ifndef FORCE_VEX_ENCODING
     %define FORCE_VEX_ENCODING 0
 %endif
+
+%ifdef CHECKASM_BUILDING_TESTS
+    %define cvisible_for_tests cvisible
+%else
+    %define cvisible_for_tests cglobal
+%endif
