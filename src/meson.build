@@ -84,6 +84,10 @@ if host_machine.system() == 'windows'
     endif
 endif
 
+if build_tests.allowed()
+    api_export_flags += '-DCHECKASM_BUILDING_TESTS'
+endif
+
 have_linux_perf = false
 if host_machine.system() == 'linux'
   have_linux_perf = cc.has_header_symbol('linux/perf_event.h', 'PERF_COUNT_HW_CPU_CYCLES', args: test_args)

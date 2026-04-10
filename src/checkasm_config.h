@@ -244,4 +244,15 @@
   #endif
 #endif
 
+/**
+ * Exports symbols for internal use inside the checkasm self-tests.
+ */
+#ifndef CHECKASM_SELF_API
+  #ifdef CHECKASM_BUILDING_TESTS
+    #define CHECKASM_SELF_API CHECKASM_API
+  #else
+    #define CHECKASM_SELF_API
+  #endif
+#endif
+
 #endif /* CHECKASM_CONFIG_H */
