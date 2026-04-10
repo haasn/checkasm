@@ -42,7 +42,7 @@ PACKED(typedef struct { uint32_t eax, ebx, ecx, edx; }) CpuidRegisters;
 
 CHECKASM_API void checkasm_cpu_cpuid(CpuidRegisters *regs, unsigned leaf,
                                      unsigned subleaf);
-uint64_t checkasm_cpu_xgetbv(unsigned xcr);
+CHECKASM_API uint64_t checkasm_cpu_xgetbv(unsigned xcr);
 
 /* Initializes internal state for checkasm_checked_call(). */
 void checkasm_init_x86(void);
