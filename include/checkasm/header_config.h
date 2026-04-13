@@ -29,32 +29,50 @@
 #ifndef CHECKASM_HEADER_CONFIG_H
 #define CHECKASM_HEADER_CONFIG_H
 
+#ifdef CHECKASM_HAVE_HEADER_GENERATED_H
+  #include "checkasm_header_config_generated.h"
+#endif
+
 #if defined(__aarch64__) || defined(_M_ARM64) || defined(__arm64ec__)                    \
     || defined(_M_ARM64EC)
-  #define CHECKASM_ARCH_AARCH64 1
+  #ifndef CHECKASM_ARCH_AARCH64
+    #define CHECKASM_ARCH_AARCH64 1
+  #endif
 #elif defined(__arm__) || defined(_M_ARM)
-  #define CHECKASM_ARCH_ARM 1
+  #ifndef CHECKASM_ARCH_ARM
+    #define CHECKASM_ARCH_ARM 1
+  #endif
 #elif defined(__x86_64__) || defined(_M_AMD64)
-  #define CHECKASM_ARCH_X86    1
-  #define CHECKASM_ARCH_X86_64 1
+  #ifndef CHECKASM_ARCH_X86
+    #define CHECKASM_ARCH_X86    1
+    #define CHECKASM_ARCH_X86_64 1
+  #endif
 #elif defined(__i386__) || defined(_M_IX86)
-  #define CHECKASM_ARCH_X86    1
-  #define CHECKASM_ARCH_X86_32 1
+  #ifndef CHECKASM_ARCH_X86
+    #define CHECKASM_ARCH_X86    1
+    #define CHECKASM_ARCH_X86_32 1
+  #endif
 #elif defined(__powerpc64__) && defined(__LITTLE_ENDIAN__)
-  #define CHECKASM_ARCH_PPC64LE 1
+  #ifndef CHECKASM_ARCH_PPC64LE
+    #define CHECKASM_ARCH_PPC64LE 1
+  #endif
 #elif defined(__riscv)
-  #define CHECKASM_ARCH_RISCV 1
-  #if __riscv_xlen == 64
-    #define CHECKASM_ARCH_RV64 1
-  #else
-    #define CHECKASM_ARCH_RV32 1
+  #ifndef CHECKASM_ARCH_RISCV
+    #define CHECKASM_ARCH_RISCV 1
+    #if __riscv_xlen == 64
+      #define CHECKASM_ARCH_RV64 1
+    #else
+      #define CHECKASM_ARCH_RV32 1
+    #endif
   #endif
 #elif defined(__loongarch__)
-  #define CHECKASM_ARCH_LOONGARCH 1
-  #if defined(__loongarch64)
-    #define CHECKASM_ARCH_LOONGARCH64 1
-  #else
-    #define CHECKASM_ARCH_LOONGARCH32 1
+  #ifndef CHECKASM_ARCH_LOONGARCH
+    #define CHECKASM_ARCH_LOONGARCH 1
+    #if defined(__loongarch64)
+      #define CHECKASM_ARCH_LOONGARCH64 1
+    #else
+      #define CHECKASM_ARCH_LOONGARCH32 1
+    #endif
   #endif
 #endif
 
