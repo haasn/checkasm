@@ -180,4 +180,6 @@ static inline char *checkasm_strdup(const char *str)
     return checkasm_handle_oom(strdup(str));
 }
 
+char *checkasm_vasprintf(const char *fmt, va_list arg);
+
 #endif /* CHECKASM_INTERNAL_H */

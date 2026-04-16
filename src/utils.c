@@ -707,3 +707,17 @@ int checkasm_check_impl_float_ulp(const char *file, int line, const float *buf1,
     DEF_CHECKASM_CHECK_BODY(cmp_float, float, "%7g", 7);
 #undef cmp_float
 }
+
+char *checkasm_vasprintf(const char *fmt, va_list arg)
+{
+    va_list arg2;
+    va_copy(arg2, arg);
+    int len = vsnprintf(NULL, 0, fmt, arg2);
+    va_end(arg2);
+    if (len < 0)
+        return NULL;
+
+    char *buf = checkasm_mallocz(len + 1);
+    vsnprintf(buf, len + 1, fmt, arg);
+    return buf;
+}
