@@ -89,6 +89,7 @@ static struct {
     /* (Re)set per function (check_func, bench_finish) */
     CheckasmFunc        *func;
     CheckasmFuncVersion *func_ver;
+    char                *func_variant;
     uint64_t             cycles;
 
     /* Overall stats for this test run */
@@ -577,6 +578,9 @@ static void check_cpu_flag(const CheckasmCpuInfo *cpu)
                 checkasm_measure_perf_scale(&state.perf_scale);
             }
         }
+
+        free(current.func_variant);
+        current.func_variant = NULL;
     }
 }
 
@@ -860,16 +864,15 @@ CheckasmKey checkasm_check_key(const CheckasmKey version, const char *const name
     va_list arg;
 
     if (checkasm_interrupted)
-        return 0;
+        goto skip;
 
     va_start(arg, name);
     int name_length = vsnprintf(name_buf, sizeof(name_buf), name, arg);
     va_end(arg);
 
     if (!version || name_length <= 0 || (size_t) name_length >= sizeof(name_buf)
-        || (cfg.function_pattern && wildstrcmp(name_buf, cfg.function_pattern))) {
-        return 0;
-    }
+        || (cfg.function_pattern && wildstrcmp(name_buf, cfg.function_pattern)))
+        goto skip;
 
     CheckasmFunc *const  f   = checkasm_func_get(&current.tree, name_buf);
     CheckasmFuncVersion *v   = &f->versions;
@@ -892,13 +895,14 @@ CheckasmKey checkasm_check_key(const CheckasmKey version, const char *const name
 
             /* Skip functions without a working reference */
             if (!v->cpu && v->state != CHECKASM_FUNC_OK)
-                return 0;
+                goto skip;
 
             /* Only test functions that haven't already been tested */
             if (v->key == version)
-                return 0;
+                goto skip;
 
-            if (v->state == CHECKASM_FUNC_OK)
+            /* Exclude failed or variant functions from being used as ref */
+            if (v->state == CHECKASM_FUNC_OK && !v->suffix)
                 ref = v->key;
 
             prev = v;
@@ -907,7 +911,14 @@ CheckasmKey checkasm_check_key(const CheckasmKey version, const char *const name
         v = prev->next = checkasm_mallocz(sizeof(CheckasmFuncVersion));
     }
 
-    name_length += current.cpu_suffix_length;
+    if (current.func_variant) {
+        v->suffix = current.func_variant;
+        current.func_variant = NULL;
+        name_length += (int) strlen(v->suffix) + 1;
+    } else {
+        name_length += current.cpu_suffix_length;
+    }
+
     if (name_length > state.max_function_name_length)
         state.max_function_name_length = name_length;
 
@@ -918,7 +929,7 @@ CheckasmKey checkasm_check_key(const CheckasmKey version, const char *const name
         current.num_funcs++;
 
     if (state.skip_tests)
-        return 0;
+        goto skip;
 
     /* Associate this function with each other function that was last used
      * as part of the same report group */
@@ -936,7 +947,22 @@ CheckasmKey checkasm_check_key(const CheckasmKey version, const char *const name
 #endif
         checkasm_measurement_init(&v->cycles);
     }
+
     return ref;
+
+skip:
+    free(current.func_variant);
+    current.func_variant = NULL;
+    return 0;
+}
+
+void checkasm_set_func_variant(const char *id_fmt, ...)
+{
+    va_list arg;
+    va_start(arg, id_fmt);
+    assert(!current.func_variant);
+    current.func_variant = checkasm_vasprintf(id_fmt, arg);
+    va_end(arg);
 }
 
 /* Indicate that the current test has failed, return whether verbose printing

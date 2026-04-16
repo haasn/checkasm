@@ -100,6 +100,23 @@ CHECKASM_API CheckasmKey checkasm_check_key(CheckasmKey key, const char *name, .
     CHECKASM_PRINTF(2, 3);
 
 /**
+ * @brief Set a custom variant identifier for the next checkasm_check_func() call
+ *
+ * Mark the next call to checkasm_check_func() or checkasm_check_key() as a
+ * variant, with a customizable suffix. This will be used in reports instead of
+ * the default suffix (equivalent to checkasm_get_cpu_suffix()).
+ *
+ * @note Variant functions are ineligible for being used as references for other
+ *       functions, and are intended to test non-standard behavior such as
+ *       non-bitexact, uncached or aligned implementations.
+ *
+ * @param[in] id Printf-style format string for the variant identifier
+ * @param[in] ... Format arguments for the identifier
+ * @since v1.2.0
+ */
+CHECKASM_API void checkasm_set_func_variant(const char *id, ...) CHECKASM_PRINTF(1, 2);
+
+/**
  * @brief Mark the current function as failed with a custom message
  *
  * Records a test failure with a printf-style formatted message.
