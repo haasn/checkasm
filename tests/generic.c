@@ -280,6 +280,23 @@ static void selftest_test_wrappers(void)
     checkasm_report("wrappers");
 }
 
+static void selftest_test_variants(void)
+{
+    for (int i = 0; i < 2; i++) {
+        checkasm_set_func_variant(i ? "new" : "ref");
+        if (checkasm_check_func(i ? identity_new : identity_ref, "func_id")) {
+            checkasm_declare(int, int);
+            int x = checkasm_call_ref(12345);
+            int y = checkasm_call_new(12345);
+            if (x != y)
+                checkasm_fail();
+            checkasm_bench_new(12345);
+        }
+    }
+
+    checkasm_report("func_id");
+}
+
 void selftest_check_generic(void)
 {
     selftest_test_copy(selftest_copy_c, "copy_generic", 1);
@@ -289,6 +306,7 @@ void selftest_check_generic(void)
     selftest_test_double_arg();
     selftest_test_retval();
     selftest_test_wrappers();
+    selftest_test_variants();
 
     if (!checkasm_should_fail(SELFTEST_CPU_FLAG_BAD_C))
         return;
