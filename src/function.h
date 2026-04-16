@@ -41,6 +41,7 @@ typedef enum CheckasmFuncState {
 typedef struct CheckasmFuncVersion {
     struct CheckasmFuncVersion *next;
     const CheckasmCpuInfo      *cpu;
+    char                       *suffix; /* optional custom suffix */
     CheckasmKey                 key;
     CheckasmMeasurement         cycles;
     CheckasmFuncState           state;

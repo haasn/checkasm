@@ -127,6 +127,11 @@ static const char *cpu_suffix(const CheckasmCpuInfo *cpu)
     return cpu ? cpu->suffix : "c";
 }
 
+static const char *ver_suffix(const CheckasmFuncVersion *ver)
+{
+    return ver->suffix ? ver->suffix : cpu_suffix(ver->cpu);
+}
+
 /* Returns the coefficient of variation (CV) */
 static double relative_error(double lvar)
 {
@@ -376,7 +381,7 @@ static void print_bench_iter(const CheckasmFunc *const f, struct IterState *cons
                     json_func_pushed = 1;
                 }
 
-                checkasm_json_push(json, cpu_suffix(v->cpu), '{');
+                checkasm_json_push(json, ver_suffix(v), '{');
                 json_measurement(json, "rawCycles", checkasm_perf.unit, v->cycles);
                 json_var(json, "rawTime", "nsec", raw_time);
                 json_var(json, "adjustedCycles", checkasm_perf.unit, cycles);
@@ -387,13 +392,13 @@ static void print_bench_iter(const CheckasmFunc *const f, struct IterState *cons
                 break;
             case CHECKASM_FORMAT_TSV:
             case CHECKASM_FORMAT_CSV:
-                printf("%s%c%s%c%.4f%c%.5f%c%.4f\n", f->name, sep, cpu_suffix(v->cpu),
+                printf("%s%c%s%c%.4f%c%.5f%c%.4f\n", f->name, sep, ver_suffix(v),
                        sep, checkasm_mode(cycles), sep, checkasm_stddev(cycles), sep,
                        checkasm_mode(time));
                 break;
             case CHECKASM_FORMAT_PRETTY:;
                 const int pad = 12 + state.max_function_name_length
-                              - printf("  %s_%s:", f->name, cpu_suffix(v->cpu));
+                              - printf("  %s_%s:", f->name, ver_suffix(v));
                 printf("%*.1f", imax(pad, 0), checkasm_mode(cycles));
                 if (cfg.verbose) {
                     printf(" +/- %-7.1f %11.1f ns +/- %-6.1f", checkasm_stddev(cycles),
@@ -671,9 +676,9 @@ static void print_functions(const CheckasmFunc *const f)
     if (f) {
         print_functions(f->child[0]);
         const CheckasmFuncVersion *v = &f->versions;
-        printf("%s (%s", f->name, cpu_suffix(v->cpu));
+        printf("%s (%s", f->name, ver_suffix(v));
         while ((v = v->next))
-            printf(", %s", cpu_suffix(v->cpu));
+            printf(", %s", ver_suffix(v));
         printf(")\n");
         print_functions(f->child[1]);
     }
@@ -938,7 +943,7 @@ static int fail_internal(const char *const msg, va_list arg)
         if (!current.should_fail) {
             print_cpu_name();
             checkasm_fprintf(stderr, COLOR_RED, "FAILURE:");
-            fprintf(stderr, " %s_%s (", current.func->name, cpu_suffix(v->cpu));
+            fprintf(stderr, " %s_%s (", current.func->name, ver_suffix(v));
             vfprintf(stderr, msg, arg);
             fputs(")\n", stderr);
         }

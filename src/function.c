@@ -42,6 +42,7 @@ static void func_uninit(CheckasmFunc *const f)
     CheckasmFuncVersion *v = f->versions.next;
     while (v) {
         CheckasmFuncVersion *next = v->next;
+        free(v->suffix);
         free(v);
         v = next;
     }
