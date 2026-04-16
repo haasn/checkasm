@@ -303,6 +303,33 @@ typedef struct CheckasmConfig {
 CHECKASM_API CheckasmCpu checkasm_get_cpu_flags(void);
 
 /**
+ * @brief Get the CPU flag currently being tested
+ *
+ * Returns the CheckasmCpuInfo structure for the CPU flag currently being
+ * tested, or NULL if testing the baseline configuration with no additional
+ * CPU flags.
+ *
+ * @return Currently active CPU flag info, or NULL
+ *
+ * @note Unlike checkasm_get_cpu_flags(), this only reflects the currently
+ *       running test, and does not include any information about previously
+ *       tested CPU flags.
+ *
+ * @since v1.2.0
+ */
+CHECKASM_API const CheckasmCpuInfo *checkasm_get_cpu_info(void);
+
+/**
+ * @brief Get the suffix for the current CPU flag, or "c" if none
+ * @since v1.2.0
+ */
+static inline const char *checkasm_get_cpu_suffix(void)
+{
+    const CheckasmCpuInfo *info = checkasm_get_cpu_info();
+    return info ? info->suffix : "c";
+}
+
+/**
  * @brief Print available CPU flags to stdout.
  *
  * Prints a list of all CPU flags/features that are available for testing

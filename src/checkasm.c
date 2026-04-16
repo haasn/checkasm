@@ -121,6 +121,11 @@ CheckasmCpu checkasm_get_cpu_flags(void)
     return current.cpu_flags;
 }
 
+const CheckasmCpuInfo *checkasm_get_cpu_info(void)
+{
+    return current.cpu;
+}
+
 /* Get the suffix of the specified cpu flag */
 static const char *cpu_suffix(const CheckasmCpuInfo *cpu)
 {
