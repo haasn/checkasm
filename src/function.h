@@ -53,6 +53,7 @@ typedef struct CheckasmFunc {
     CheckasmFuncVersion  versions;
     const char          *test_name;
     char                *report_name;
+    int                  report_idx; /* when was this function last reported? */
     uint8_t              color; /* 0 = red, 1 = black */
     char                 name[];
 } CheckasmFunc;

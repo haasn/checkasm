@@ -85,6 +85,7 @@ static struct {
     int                    cpu_suffix_length;
     const char            *test_name;
     int                    should_fail;
+    int                    report_idx;
 
     /* (Re)set per function (check_func, bench_finish) */
     CheckasmFunc        *func;
@@ -538,6 +539,7 @@ static void check_cpu_flag(const CheckasmCpuInfo *cpu)
     }
 
     if (!cpu || current.cpu_flags != prev_cpu_flags) {
+        current.report_idx        = 1;
         current.cpu               = cpu;
         current.cpu_name_printed  = 0;
         current.cpu_suffix_length = (int) strlen(cpu_suffix(cpu)) + 1;
@@ -933,8 +935,11 @@ CheckasmKey checkasm_check_key(const CheckasmKey version, const char *const name
 
     /* Associate this function with each other function that was last used
      * as part of the same report group */
-    f->prev      = current.func;
-    f->test_name = current.test_name;
+    if (f->report_idx < current.report_idx) {
+        f->report_idx = current.report_idx;
+        f->prev       = current.func;
+        f->test_name  = current.test_name;
+    }
 
     current.func     = f;
     current.func_ver = v;
@@ -1082,6 +1087,7 @@ void checkasm_report(const char *const name, ...)
     }
 
     current.func = NULL; /* reset current function for new report */
+    current.report_idx++;
     handle_interrupt();
 }
 
