@@ -538,47 +538,48 @@ static void check_cpu_flag(const CheckasmCpuInfo *cpu)
             current.cpu_flags &= ~info->flag;
     }
 
-    if (!cpu || current.cpu_flags != prev_cpu_flags) {
-        current.report_idx        = 1;
-        current.cpu               = cpu;
-        current.cpu_name_printed  = 0;
-        current.cpu_suffix_length = (int) strlen(cpu_suffix(cpu)) + 1;
-        if (cfg.set_cpu_flags)
-            cfg.set_cpu_flags(current.cpu_flags);
+    if (cpu && current.cpu_flags == prev_cpu_flags)
+        return;
 
-        for (const CheckasmTest *test = cfg.tests; test->func; test++) {
-            if (cfg.test_pattern && wildstrcmp(test->name, cfg.test_pattern))
-                continue;
-            current.test_name = test->name;
+    current.report_idx        = 1;
+    current.cpu               = cpu;
+    current.cpu_name_printed  = 0;
+    current.cpu_suffix_length = (int) strlen(cpu_suffix(cpu)) + 1;
+    if (cfg.set_cpu_flags)
+        cfg.set_cpu_flags(current.cpu_flags);
 
-            if (checkasm_save_context(checkasm_context)) {
-                const char *signal = checkasm_get_last_signal_desc();
-                handle_interrupt();
-                checkasm_fail_func("%s", signal);
+    for (const CheckasmTest *test = cfg.tests; test->func; test++) {
+        if (cfg.test_pattern && wildstrcmp(test->name, cfg.test_pattern))
+            continue;
+        current.test_name = test->name;
 
-                /* We want to associate this (and any prior) failures with the
-                 * correct report group, so remember the failure state until we
-                 * reach the same position in the test() function again */
-                current.func_ver->state = CHECKASM_FUNC_CRASHED;
-                current.saved_checked   = current.num_checked - current.prev_checked;
-                current.saved_failed    = current.num_failed - current.prev_failed;
-                current.num_failed      = current.prev_failed;
-                current.num_checked     = current.prev_checked;
-                current.func            = NULL;
-            }
+        if (checkasm_save_context(checkasm_context)) {
+            const char *signal = checkasm_get_last_signal_desc();
+            handle_interrupt();
+            checkasm_fail_func("%s", signal);
 
-            checkasm_srand(cfg.seed);
-            current.should_fail = 0; // reset between tests
-            test->func();
-            checkasm_report(NULL); // catch any un-reported functions
+            /* We want to associate this (and any prior) failures with the
+             * correct report group, so remember the failure state until we
+             * reach the same position in the test() function again */
+            current.func_ver->state = CHECKASM_FUNC_CRASHED;
+            current.saved_checked   = current.num_checked - current.prev_checked;
+            current.saved_failed    = current.num_failed - current.prev_failed;
+            current.num_failed      = current.prev_failed;
+            current.num_checked     = current.prev_checked;
+            current.func            = NULL;
+        }
 
-            if (cfg.bench && !state.skip_tests) {
-                /* Measure NOP and perf scale after each test+CPU flag configuration */
-                handle_interrupt();
-                checkasm_measure_nop_cycles(&state.nop_cycles, state.target_cycles);
-                handle_interrupt();
-                checkasm_measure_perf_scale(&state.perf_scale);
-            }
+        checkasm_srand(cfg.seed);
+        current.should_fail = 0; // reset between tests
+        test->func();
+        checkasm_report(NULL); // catch any un-reported functions
+
+        if (cfg.bench && !state.skip_tests) {
+            /* Measure NOP and perf scale after each test+CPU flag configuration */
+            handle_interrupt();
+            checkasm_measure_nop_cycles(&state.nop_cycles, state.target_cycles);
+            handle_interrupt();
+            checkasm_measure_perf_scale(&state.perf_scale);
         }
 
         free(current.func_variant);
