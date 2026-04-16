@@ -48,11 +48,11 @@
  * @def checkasm_check_func(func, name, ...)
  * @brief Check if a function should be tested and set up function references
  *
- * Determines if the given function implementation should be tested, and if so,
- * sets up the function pointers for subsequent calls to checkasm_call_ref() and
- * checkasm_call_new().
+ * Determines if the given function implementation should be tested, identified
+ * by the function pointer, and if so, sets up the function pointers for
+ * subsequent calls to checkasm_call_ref() and checkasm_call_new().
  *
- * @param[in] func Function pointer (or arbitrary CheckasmKey) to test, or 0 to skip
+ * @param[in] func Function pointer to test, or 0 to skip
  * @param[in] name Printf-style format string for the function name
  * @param[in] ... Format arguments for the function name
  * @return Non-zero if testing should proceed, 0 if this function should be skipped
@@ -72,10 +72,32 @@
  *
  * @see checkasm_func_ref, checkasm_func_new
  * @see checkasm_call_ref(), checkasm_call_new()
+ * @see checkasm_check_key()
  */
 #define checkasm_check_func(func, ...)                                                   \
     (checkasm_key_ref                                                                    \
      = checkasm_check_key((checkasm_key_new = (CheckasmKey) (func)), __VA_ARGS__))
+
+/**
+ * @brief Check if a key should be tested
+ *
+ * Determines if the given implementation should be tested, identified by an
+ * arbitrary CheckasmKey.
+ *
+ * @note Unlike checkasm_check_func(), this does not set up any references for
+ *       checkasm_call_ref() or checkasm_call_new(), and is intended for use
+ *       with e.g. nontrivial function wrappers.
+ *
+ * @param[in] key Arbitrary CheckasmKey to test, or 0 to skip
+ * @param[in] name Printf-style format string for the function name
+ * @param[in] ... Format arguments for the function name
+ * @return Non-zero if testing should proceed, 0 if this function should be skipped
+ *
+ * @return Reference key if testing should proceed, 0 to skip
+ * @see checkasm_check_func()
+ */
+CHECKASM_API CheckasmKey checkasm_check_key(CheckasmKey key, const char *name, ...)
+    CHECKASM_PRINTF(2, 3);
 
 /**
  * @brief Mark the current function as failed with a custom message
@@ -458,13 +480,6 @@ static CheckasmKey checkasm_key_new;
  * not be called or referenced directly by test code.
  * @{
  */
-
-/**
- * @brief Internal implementation of checkasm_check_func()
- * @return Reference key if testing should proceed, 0 to skip
- */
-CHECKASM_API CheckasmKey checkasm_check_key(CheckasmKey version, const char *name, ...)
-    CHECKASM_PRINTF(2, 3);
 
 /**
  * @brief Enable or disable signal handling
