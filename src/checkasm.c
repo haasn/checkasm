@@ -541,6 +541,7 @@ static void check_cpu_flag(const CheckasmCpuInfo *cpu)
     if (cpu && current.cpu_flags == prev_cpu_flags)
         return;
 
+    current.func              = NULL;
     current.report_idx        = 1;
     current.cpu               = cpu;
     current.cpu_name_printed  = 0;
@@ -894,6 +895,8 @@ CheckasmKey checkasm_check_key(const CheckasmKey version, const char *const name
                 current.saved_failed  = 0;
                 current.func          = f;
                 current.func_ver      = v;
+                for (CheckasmFunc *fp = f; fp; fp = fp->prev)
+                    fp->report_idx = current.report_idx;
             }
 
             /* Skip functions without a working reference */
