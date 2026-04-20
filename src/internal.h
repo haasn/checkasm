@@ -34,6 +34,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 
 #include "checkasm/attributes.h"
 #include "checkasm/test.h"
