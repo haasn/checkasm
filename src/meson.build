@@ -250,10 +250,12 @@ checkasm_dep = declare_dependency(
   include_directories: checkasm_inc_dirs,
 )
 
-pkg = import('pkgconfig')
-pkg.generate(
-  name: meson.project_name(),
-  description: 'checkasm for all your asm checking needs',
-  libraries: checkasm_library,
-  version: meson.project_version(),
-)
+if not meson.is_subproject()
+  pkg = import('pkgconfig')
+  pkg.generate(
+    name: meson.project_name(),
+    description: 'checkasm for all your asm checking needs',
+    libraries: checkasm_library,
+    version: meson.project_version(),
+  )
+endif
