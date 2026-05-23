@@ -49,6 +49,7 @@ if cc.get_argument_syntax() != 'msvc'
       '-Wshorten-64-to-32',
       '-Wtype-limits',
       '-Wredundant-decls',
+      '-Wimplicit-fallthrough=5',
     ]
 else
     optional_arguments += [
