@@ -249,7 +249,7 @@ static void print_bench_header(struct IterState *const iter)
                "  </style>\n"
                "  <script type=\"application/json\" id=\"report-data\">\n",
                checkasm_chart_js, checkasm_js, checkasm_css);
-        /* fall through */
+        FALLTHROUGH;
     case CHECKASM_FORMAT_JSON:
         checkasm_json_push(json, NULL, '{');
         checkasm_json_str(json, "checkasmVersion", CHECKASM_VERSION);

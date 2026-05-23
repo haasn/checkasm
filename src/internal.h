@@ -86,6 +86,12 @@
   #define PACKED(...) __VA_ARGS__ __attribute__((__packed__))
 #endif
 
+#if __has_attribute(fallthrough)
+    #define FALLTHROUGH __attribute__((fallthrough))
+#else
+    #define FALLTHROUGH do {} while (0)
+#endif
+
 void checkasm_srand(unsigned seed);
 
 /* Internal variant of checkasm_fail_func() that also jumps back to the signal
