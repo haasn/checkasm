@@ -459,3 +459,14 @@ INIT_YMM avx
 WARMUP
 INIT_ZMM avx512
 WARMUP
+
+INIT_XMM
+cglobal dirty_ymm_state
+    ; Test if the YMM state is considered dirty or clean, after touching an
+    ; XMM register using a non-VEX-encoded instruction, after using YMM
+    ; followed by vzeroupper. (This currently fails on Zen4 CPUs.)
+    vxorps       ymm0, ymm0
+    vmulps       ymm0, ymm0
+    vzeroupper
+    MULPS        xmm0, xmm0 ; Use the raw instruction to circumvent FORCE_VEX_ENCODING conversion
+    ret

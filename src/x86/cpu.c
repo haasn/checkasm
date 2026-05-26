@@ -43,6 +43,7 @@ COLD int checkasm_get_check_vzeroupper(void)
 
 void checkasm_warmup_avx(void);
 void checkasm_warmup_avx512(void);
+void checkasm_dirty_ymm_state(void);
 
 static void noop(void)
 {
@@ -119,6 +120,10 @@ COLD void checkasm_init_x86(void)
     if (!(r.eax & 0x04)) /* XCR1 not supported */
         return;
 
+    /* Check that the state is clean after touching XMM registers (with a
+     * non-VEX-encoded instruction), without vzeroupper, after using YMM
+     * with vzeroupper. (This currently fails on Zen 4 CPUs.) */
+    checkasm_dirty_ymm_state();
     const uint64_t xcr1 = checkasm_cpu_xgetbv(1);
     if (xcr1 & 0x04) /* always-dirty ymm state */
         return;
