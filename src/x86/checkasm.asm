@@ -154,6 +154,12 @@ cvisible checked_call%1, 2, 15, 16, max_args*8+64+8
     mov           r9d, [num_fn_args+r10*8+16] ; clobber_mask
     mov            t0, [num_fn_args+r10*8+8]  ; func
 
+    ; Ensure a clean initial YMM state if vzeroupper-checking is enabled
+    cmp dword [check_vzeroupper], 0
+    je .clobber_upper_register_halves
+    vzeroupper
+
+.clobber_upper_register_halves:
     ; Clobber the upper halves of 32-bit parameters
     CLOBBER_UPPER  r0, 1
     CLOBBER_UPPER  r1, 2
@@ -351,6 +357,13 @@ cvisible checked_call%1, 1, 7
     mov            r2, 27
     not            r3
     sub            r2, r1
+
+    ; Ensure a clean initial YMM state if vzeroupper-checking is enabled
+    LEA            r4, check_vzeroupper
+    cmp    dword [r4], 0
+    je .push_canary
+    vzeroupper
+
 .push_canary:
     push           r3
     dec            r2
