@@ -109,5 +109,5 @@ copy_mm
 copy_mm _novzeroupper
 
 ; AVX512 functions
-INIT_YMM avx512
+INIT_ZMM avx512
 copy_mm

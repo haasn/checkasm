@@ -35,7 +35,7 @@ uint64_t selftest_get_cpu_flags_x86(void)
         return flags;
 
     checkasm_cpu_cpuid(&r, 7, 0);
-    if (r.ebx & 0x00000020) /* AVX512F */
+    if (r.ebx & 0x00010000) /* AVX512F */
         flags |= SELFTEST_CPU_FLAG_AVX512;
     return flags;
 }
