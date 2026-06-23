@@ -42,7 +42,7 @@ enum {
     SELFTEST_CPU_FLAG_X86    = 1 << 1,
     SELFTEST_CPU_FLAG_MMX    = 1 << 2,
     SELFTEST_CPU_FLAG_SSE    = 1 << 3,
-    SELFTEST_CPU_FLAG_AVX2   = 1 << 4,
+    SELFTEST_CPU_FLAG_AVX    = 1 << 4,
     SELFTEST_CPU_FLAG_AVX512 = 1 << 5,
 #elif ARCH_RISCV
     SELFTEST_CPU_FLAG_RVI    = 1 << 1,

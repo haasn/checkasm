@@ -103,8 +103,8 @@ cglobal noemms, 3, 3, 0, dst, src, size
 INIT_XMM sse
 copy_mm
 
-; AVX2 functions
-INIT_YMM avx2
+; AVX functions
+INIT_YMM avx
 copy_mm
 copy_mm _novzeroupper
 

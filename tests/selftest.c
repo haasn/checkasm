@@ -7,7 +7,7 @@ static const CheckasmCpuInfo cpus[] = {
     { "Generic x86",     "x86",     SELFTEST_CPU_FLAG_X86     },
     { "MMX",             "mmx",     SELFTEST_CPU_FLAG_MMX     },
     { "SSE",             "sse",     SELFTEST_CPU_FLAG_SSE     },
-    { "AVX-2",           "avx2",    SELFTEST_CPU_FLAG_AVX2    },
+    { "AVX",             "avx",     SELFTEST_CPU_FLAG_AVX     },
     { "AVX-512",         "avx512",  SELFTEST_CPU_FLAG_AVX512  },
 #endif
 #if ARCH_RISCV

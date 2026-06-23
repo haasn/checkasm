@@ -26,16 +26,15 @@ uint64_t selftest_get_cpu_flags_x86(void)
         return flags;
 
     const uint64_t xcr0 = checkasm_cpu_xgetbv(0);
-    if (max_leaf < 7 || ~xcr0 & 0x6) /* XMM/YMM */
+    if (~xcr0 & 0x6) /* XMM/YMM */
+        return flags;
+
+    flags |= SELFTEST_CPU_FLAG_AVX;
+
+    if (max_leaf < 7 || ~xcr0 & 0xe0) /* ZMM/OPMASK */
         return flags;
 
     checkasm_cpu_cpuid(&r, 7, 0);
-    if (r.ebx & 0x00000020) /* AVX2 */
-        flags |= SELFTEST_CPU_FLAG_AVX2;
-
-    if (~xcr0 & 0xe0) /* ZMM/OPMASK */
-        return flags;
-
     if (r.ebx & 0x00000020) /* AVX512F */
         flags |= SELFTEST_CPU_FLAG_AVX512;
     return flags;
@@ -44,7 +43,7 @@ uint64_t selftest_get_cpu_flags_x86(void)
 DEF_COPY_FUNC(copy_x86);
 DEF_COPY_FUNC(copy_mmx);
 DEF_COPY_FUNC(copy_sse);
-DEF_COPY_FUNC(copy_avx2);
+DEF_COPY_FUNC(copy_avx);
 DEF_COPY_FUNC(copy_avx512);
 
 DEF_NOOP_FUNC(clobber_r0);
@@ -69,7 +68,7 @@ DEF_NOOP_FUNC(sigill_x86);
 DEF_NOOP_FUNC(corrupt_stack_x86);
 
 DEF_COPY_FUNC(copy_noemms_mmx);
-DEF_COPY_FUNC(copy_novzeroupper_avx2);
+DEF_COPY_FUNC(copy_novzeroupper_avx);
 
 static copy_func *get_copy_x86(void)
 {
@@ -77,8 +76,8 @@ static copy_func *get_copy_x86(void)
 #if ARCH_X86
     if (flags & SELFTEST_CPU_FLAG_AVX512)
         return selftest_copy_avx512;
-    if (flags & SELFTEST_CPU_FLAG_AVX2)
-        return selftest_copy_avx2;
+    if (flags & SELFTEST_CPU_FLAG_AVX)
+        return selftest_copy_avx;
     if (flags & SELFTEST_CPU_FLAG_SSE)
         return selftest_copy_sse;
     if (flags & SELFTEST_CPU_FLAG_MMX)
@@ -134,7 +133,7 @@ static noop_func *get_clobber(int reg)
 DEF_NOOP_GETTER(SELFTEST_CPU_FLAG_X86, sigill_x86)
 DEF_NOOP_GETTER(SELFTEST_CPU_FLAG_X86, corrupt_stack_x86)
 DEF_COPY_GETTER(SELFTEST_CPU_FLAG_MMX, copy_noemms_mmx)
-DEF_COPY_GETTER(SELFTEST_CPU_FLAG_AVX2, copy_novzeroupper_avx2)
+DEF_COPY_GETTER(SELFTEST_CPU_FLAG_AVX, copy_novzeroupper_avx)
 
 uintptr_t selftest_get_stack_pointer_x86(int unused);
 
@@ -214,7 +213,7 @@ void selftest_check_x86(void)
     check_clobber(NUM_SAFE, NUM_REGS);
 
     if (checkasm_get_check_vzeroupper())
-        selftest_test_copy(get_copy_novzeroupper_avx2(), "novzeroupper", 32);
+        selftest_test_copy(get_copy_novzeroupper_avx(), "novzeroupper", 32);
 }
 
 #endif
