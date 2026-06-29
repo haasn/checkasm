@@ -38,6 +38,9 @@
 
 enum {
     SELFTEST_CPU_FLAG_BAD_C  = 1 << 0, // dummy flag for "bad" C implementations
+    SELFTEST_CPU_FLAG_A      = 1 << 1, // dummy flag for testing flag masking
+    SELFTEST_CPU_FLAG_B      = 1 << 2,
+    SELFTEST_CPU_FLAG_AB     = SELFTEST_CPU_FLAG_A | SELFTEST_CPU_FLAG_B,
 #if ARCH_X86
     SELFTEST_CPU_FLAG_X86    = 1 << 10,
     SELFTEST_CPU_FLAG_MMX    = 1 << 11,
