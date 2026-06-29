@@ -211,6 +211,21 @@ static void cpu_info_json(void *priv, const char *fmt, ...)
     checkasm_json_str(json, NULL, buf);
 }
 
+static void cpu_mask_json(CheckasmJson *json, const CheckasmConfig cfg,
+                          const CheckasmCpu cpu_mask)
+{
+    if (!cpu_mask)
+        return;
+
+    checkasm_json_push(json, "mask", '[');
+    for (const CheckasmCpuInfo *info = cfg.cpu_flags; info->flag; info++) {
+        if ((cpu_mask & info->flag) != info->flag)
+            continue;
+        checkasm_json_str(json, NULL, info->suffix);
+    }
+    checkasm_json_pop(json, ']');
+}
+
 struct IterState {
     const char  *test;
     const char  *report;
@@ -278,6 +293,7 @@ static void print_bench_header(struct IterState *const iter)
             checkasm_json_push(json, info->suffix, '{');
             checkasm_json_str(json, "name", info->name);
             checkasm_json(json, "available", available ? "true" : "false");
+            cpu_mask_json(json, cfg, info->mask);
             checkasm_json_pop(json, '}');
         }
         checkasm_json_pop(json, '}'); /* close cpuFlags */
