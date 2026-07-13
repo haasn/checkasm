@@ -125,6 +125,10 @@ static inline int checkasm_fprintf(FILE *const f, int color, const char *fmt, ..
 #define LOG_COLOR(...) checkasm_fprintf(stderr, __VA_ARGS__)
 #define LOG(...)       LOG_COLOR(COLOR_DEFAULT, __VA_ARGS__)
 
+/* Update the statusline, reprinted automatically as needed. Pass NULL or an
+ * empty string ("") to clear it entirely. Maximum 256 characters */
+void checkasm_statusline(const char *status);
+
 /* Light-weight helper for printing nested JSON objects */
 typedef struct CheckasmJson {
     FILE *file;
