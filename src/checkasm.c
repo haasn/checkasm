@@ -108,6 +108,7 @@ static struct {
     /* Miscellaneous global state (cosmetic) */
     int max_function_name_length;
     int max_report_name_length;
+    unsigned test_iter;
 
     /* Timing code measurements (aggregated over multiple trials) */
     CheckasmMeasurement nop_cycles;
@@ -853,9 +854,9 @@ int checkasm_run(const CheckasmConfig *config)
 
     print_info();
 
-    for (unsigned i = 0; i < cfg.repeat; i++) {
-        if (i > 0) {
-            LOG_COLOR(COLOR_YELLOW, "\nTest #%d:\n", i + 1);
+    for (state.test_iter = 0; state.test_iter < cfg.repeat; state.test_iter++) {
+        if (state.test_iter > 0) {
+            LOG_COLOR(COLOR_YELLOW, "\nTest #%d:\n", state.test_iter + 1);
             LOG_COLOR(COLOR_DEFAULT, " - Random seed: %u\n", cfg.seed);
         }
 
