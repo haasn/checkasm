@@ -597,8 +597,7 @@ static void check_cpu_flag(const CheckasmCpuInfo *cpu)
 static void print_cpu_name(void)
 {
     if (!current.cpu_name_printed) {
-        checkasm_fprintf(stderr, COLOR_YELLOW, "%s:\n",
-                         current.cpu ? current.cpu->name : "C");
+        LOG_COLOR(COLOR_YELLOW, "%s:\n", current.cpu ? current.cpu->name : "C");
         current.cpu_name_printed = 1;
     }
 }
@@ -657,15 +656,15 @@ static int set_cpu_affinity(const unsigned affinity)
 #else
     (void) affinity;
     (void) affinity_err;
-    fprintf(stderr, "checkasm: --affinity is not supported on your system\n");
+    LOG("checkasm: --affinity is not supported on your system\n");
     return 1;
 #endif
 
     if (affinity_err) {
-        fprintf(stderr, "checkasm: invalid cpu affinity (%u)\n", affinity);
+        LOG("checkasm: invalid cpu affinity (%u)\n", affinity);
         return 1;
     } else {
-        fprintf(stderr, "checkasm: running on cpu %u\n", affinity);
+        LOG("checkasm: running on cpu %u\n", affinity);
         return 0;
     }
 }
@@ -746,30 +745,28 @@ static void cpu_fprintf(void *priv, const char *fmt, ...)
 
 static COLD void print_info(void)
 {
-    checkasm_fprintf(stderr, COLOR_YELLOW, "checkasm:\n");
+    LOG_COLOR(COLOR_YELLOW, "checkasm:\n");
     checkasm_cpu_info(cpu_fprintf, stderr, &cfg);
 
     if (cfg.bench) {
-        fprintf(stderr, " - Timing source: %s\n", checkasm_perf.name);
+        LOG(" - Timing source: %s\n", checkasm_perf.name);
         if (cfg.verbose) {
             const CheckasmVar perf_scale = checkasm_measurement_result(state.perf_scale);
             const CheckasmVar nop_cycles = checkasm_measurement_result(state.nop_cycles);
             const CheckasmVar mhz = checkasm_var_div(checkasm_var_const(1e3), perf_scale);
-            fprintf(stderr,
-                    " - Timing resolution: %.4f +/- %.3f ns/%s (%.0f +/- %.1f "
-                    "MHz) (provisional)\n",
-                    checkasm_mode(perf_scale), checkasm_stddev(perf_scale),
-                    checkasm_perf.unit, checkasm_mode(mhz), checkasm_stddev(mhz));
+            LOG(" - Timing resolution: %.4f +/- %.3f ns/%s (%.0f +/- %.1f "
+                "MHz) (provisional)\n",
+                checkasm_mode(perf_scale), checkasm_stddev(perf_scale),
+                checkasm_perf.unit, checkasm_mode(mhz), checkasm_stddev(mhz));
 
-            fprintf(stderr,
-                    " - No-op overhead: %.2f +/- %.3f %ss per call (provisional)\n",
-                    checkasm_mode(nop_cycles), checkasm_stddev(nop_cycles),
-                    checkasm_perf.unit);
+            LOG(" - No-op overhead: %.2f +/- %.3f %ss per call (provisional)\n",
+                checkasm_mode(nop_cycles), checkasm_stddev(nop_cycles),
+                checkasm_perf.unit);
         }
-        fprintf(stderr, " - Bench duration: %d µs per function (%" PRIu64 " %ss)\n",
-                cfg.bench_usec, state.target_cycles, checkasm_perf.unit);
+        LOG(" - Bench duration: %d µs per function (%" PRIu64 " %ss)\n", cfg.bench_usec,
+            state.target_cycles, checkasm_perf.unit);
     }
-    fprintf(stderr, " - Random seed: %u\n", cfg.seed);
+    LOG(" - Random seed: %u\n", cfg.seed);
 }
 
 static int print_summary(void)
@@ -777,12 +774,11 @@ static int print_summary(void)
     /* Exclude C/ref versions from count reported to user */
     const int num_checked_asm = current.num_checked - current.num_funcs;
     if (current.num_failed) {
-        fprintf(stderr, "checkasm: %d of %d tests failed\n", current.num_failed,
-                num_checked_asm);
+        LOG("checkasm: %d of %d tests failed\n", current.num_failed, num_checked_asm);
     } else if (num_checked_asm) {
-        fprintf(stderr, "checkasm: all %d tests passed\n", num_checked_asm);
+        LOG("checkasm: all %d tests passed\n", num_checked_asm);
     } else {
-        fprintf(stderr, "checkasm: no tests to perform\n");
+        LOG("checkasm: no tests to perform\n");
     }
 
     if (current.num_benched && !current.num_failed)
@@ -794,7 +790,7 @@ static int print_summary(void)
 static void handle_interrupt(void)
 {
     if (checkasm_interrupted) {
-        fprintf(stderr, "checkasm: interrupted\n");
+        LOG("checkasm: interrupted\n");
         print_summary();
         exit(128 + checkasm_interrupted);
     }
@@ -804,7 +800,7 @@ int checkasm_run(const CheckasmConfig *config)
 {
 #if !HAVE_HTML_DATA
     if (cfg.format == CHECKASM_FORMAT_HTML) {
-        fprintf(stderr, "checkasm: built without HTML support\n");
+        LOG("checkasm: built without HTML support\n");
         return 1;
     }
 #endif
@@ -859,8 +855,8 @@ int checkasm_run(const CheckasmConfig *config)
 
     for (unsigned i = 0; i < cfg.repeat; i++) {
         if (i > 0) {
-            checkasm_fprintf(stderr, COLOR_YELLOW, "\nTest #%d:\n", i + 1);
-            fprintf(stderr, " - Random seed: %u\n", cfg.seed);
+            LOG_COLOR(COLOR_YELLOW, "\nTest #%d:\n", i + 1);
+            LOG_COLOR(COLOR_DEFAULT, " - Random seed: %u\n", cfg.seed);
         }
 
         run_all_tests();
@@ -1000,8 +996,8 @@ static int fail_internal(const char *const msg, va_list arg)
     if (v && v->state == CHECKASM_FUNC_OK) {
         if (!current.should_fail) {
             print_cpu_name();
-            checkasm_fprintf(stderr, COLOR_RED, "FAILURE:");
-            fprintf(stderr, " %s_%s (", current.func->name, ver_suffix(v));
+            LOG_COLOR(COLOR_RED, "FAILURE:");
+            LOG(" %s_%s (", current.func->name, ver_suffix(v));
             vfprintf(stderr, msg, arg);
             fputs(")\n", stderr);
         }
@@ -1080,20 +1076,19 @@ void checkasm_report(const char *const name, ...)
         if (want_print) {
             print_cpu_name();
             if (name) {
-                pad_length -= fprintf(stderr, " - %s.%s", current.test_name, report_name);
+                pad_length -= LOG(" - %s.%s", current.test_name, report_name);
             } else {
-                pad_length -= fprintf(stderr, " - %s", current.test_name);
+                pad_length -= LOG(" - %s", current.test_name);
             }
-            fprintf(stderr, "%*c", imax(pad_length, 0) + 2, '[');
+            LOG("%*c", imax(pad_length, 0) + 2, '[');
 
-            if (current.num_failed == current.prev_failed) {
-                checkasm_fprintf(stderr, COLOR_GREEN,
-                                 current.should_fail ? "EXPECTED" : "OK");
-            } else if (!current.should_fail)
-                checkasm_fprintf(stderr, COLOR_RED, "FAILED");
+            if (current.num_failed == current.prev_failed)
+                LOG_COLOR(COLOR_GREEN, current.should_fail ? "EXPECTED" : "OK");
+            else if (!current.should_fail)
+                LOG_COLOR(COLOR_RED, "FAILED");
             else
-                checkasm_fprintf(stderr, COLOR_RED, "%d/%d EXPECTED", fails, new_checked);
-            fprintf(stderr, "]\n");
+                LOG_COLOR(COLOR_RED, "%d/%d EXPECTED", fails, new_checked);
+            LOG("]\n");
         }
 
         current.prev_checked = current.num_checked;
@@ -1188,13 +1183,13 @@ int checkasm_main(CheckasmConfig *config, int argc, const char *argv[])
 #if HAVE_HTML_DATA
             config->format = CHECKASM_FORMAT_HTML;
 #else
-            fprintf(stderr, "checkasm: built without HTML support\n");
+            LOG("checkasm: built without HTML support\n");
             return 1;
 #endif
         } else if (!strncmp(argv[1], "--duration=", 11)) {
             const char *const s = argv[1] + 11;
             if (!parseu(&config->bench_usec, s, 10)) {
-                fprintf(stderr, "checkasm: invalid duration (%s)\n", s);
+                LOG("checkasm: invalid duration (%s)\n", s);
                 print_usage(argv[0]);
                 return 1;
             }
@@ -1216,14 +1211,14 @@ int checkasm_main(CheckasmConfig *config, int argc, const char *argv[])
             const char *const s      = argv[1] + 11;
             config->cpu_affinity_set = 1;
             if (!parseu(&config->cpu_affinity, s, 16)) {
-                fprintf(stderr, "checkasm: invalid cpu affinity (%s)\n", s);
+                LOG("checkasm: invalid cpu affinity (%s)\n", s);
                 print_usage(argv[0]);
                 return 1;
             }
         } else if (!strncmp(argv[1], "--repeat=", 9)) {
             const char *const s = argv[1] + 9;
             if (!parseu(&config->repeat, s, 10)) {
-                fprintf(stderr, "checkasm: invalid number of repetitions (%s)\n", s);
+                LOG("checkasm: invalid number of repetitions (%s)\n", s);
                 print_usage(argv[0]);
                 return 1;
             }
@@ -1232,7 +1227,7 @@ int checkasm_main(CheckasmConfig *config, int argc, const char *argv[])
         } else {
             config->seed_set = 1;
             if (!parseu(&config->seed, argv[1], 10)) {
-                fprintf(stderr, "checkasm: unknown option (%s)\n", argv[1]);
+                LOG("checkasm: unknown option (%s)\n", argv[1]);
                 print_usage(argv[0]);
                 return 1;
             }

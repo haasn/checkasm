@@ -122,6 +122,9 @@ static inline int checkasm_fprintf(FILE *const f, int color, const char *fmt, ..
     return ret;
 }
 
+#define LOG_COLOR(...) checkasm_fprintf(stderr, __VA_ARGS__)
+#define LOG(...)       LOG_COLOR(COLOR_DEFAULT, __VA_ARGS__)
+
 /* Light-weight helper for printing nested JSON objects */
 typedef struct CheckasmJson {
     FILE *file;
