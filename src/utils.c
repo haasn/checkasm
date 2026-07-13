@@ -363,20 +363,18 @@ DEF_CHECKASM_INIT_MASK(16, uint16_t)
 static int use_printf_color[2];
 
 /* Print colored text to stderr if the terminal supports it */
-void checkasm_fprintf(FILE *const f, const int color, const char *const fmt, ...)
+int checkasm_vfprintf(FILE *const f, const int color, const char *const fmt, va_list arg)
 {
-    va_list arg;
-    int     use_color = use_printf_color[f == stderr];
-
+    int use_color = use_printf_color[f == stderr];
     if (color >= 0 && use_color)
         fprintf(f, "\x1b[0;%dm", color);
 
-    va_start(arg, fmt);
-    vfprintf(f, fmt, arg);
-    va_end(arg);
+    int ret = vfprintf(f, fmt, arg);
 
     if (color >= 0 && use_color)
         fprintf(f, "\x1b[0m");
+
+    return ret;
 }
 
 static COLD int should_use_color(FILE *const f)
