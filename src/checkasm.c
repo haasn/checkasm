@@ -524,6 +524,7 @@ static int wildstrcmp(const char *str, const char *pattern)
 }
 
 static void handle_interrupt(void);
+static void update_statusline(void);
 
 static int test_enabled(const CheckasmTest *test)
 {
@@ -559,6 +560,7 @@ static void check_cpu_flag(const CheckasmCpuInfo *cpu)
         if (!test_enabled(test))
             continue;
         current.test_name = test->name;
+        update_statusline();
 
         if (checkasm_save_context(checkasm_context)) {
             const char *signal = checkasm_get_last_signal_desc();
@@ -770,8 +772,30 @@ static COLD void print_info(void)
     LOG(" - Random seed: %u\n", cfg.seed);
 }
 
+static void update_statusline(void)
+{
+    if (state.skip_tests)
+        return;
+
+    char status[256];
+    int len = 0;
+
+    len += snprintf(status, sizeof(status), "checkasm: iter=%d/%d cpu=%s test=%s",
+                    state.test_iter + 1, cfg.repeat, cpu_suffix(current.cpu),
+                    current.test_name);
+
+    if (current.func && current.func->report_name) {
+        snprintf(status + len, sizeof(status) - len, " func=%s",
+                 current.func->report_name);
+    }
+
+    checkasm_statusline(status);
+}
+
 static int print_summary(void)
 {
+    checkasm_statusline(NULL);
+
     /* Exclude C/ref versions from count reported to user */
     const int num_checked_asm = current.num_checked - current.num_funcs;
     if (current.num_failed) {
@@ -964,6 +988,7 @@ CheckasmKey checkasm_check_key(const CheckasmKey version, const char *const name
     current.func_ver = v;
     current.num_checked++;
     checkasm_srand(cfg.seed);
+    update_statusline();
 
     if (cfg.bench) {
 #if ARCH_X86
