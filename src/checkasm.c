@@ -524,6 +524,11 @@ static int wildstrcmp(const char *str, const char *pattern)
 
 static void handle_interrupt(void);
 
+static int test_enabled(const CheckasmTest *test)
+{
+    return !cfg.test_pattern || !wildstrcmp(test->name, cfg.test_pattern);
+}
+
 /* Perform tests and benchmarks for the specified
  * cpu flag if supported by the host */
 static void check_cpu_flag(const CheckasmCpuInfo *cpu)
@@ -550,7 +555,7 @@ static void check_cpu_flag(const CheckasmCpuInfo *cpu)
         cfg.set_cpu_flags(current.cpu_flags);
 
     for (const CheckasmTest *test = cfg.tests; test->func; test++) {
-        if (cfg.test_pattern && wildstrcmp(test->name, cfg.test_pattern))
+        if (!test_enabled(test))
             continue;
         current.test_name = test->name;
 
@@ -697,6 +702,23 @@ static void print_functions(const CheckasmFunc *const f)
     }
 }
 
+static void run_all_tests(void)
+{
+    for (const CheckasmTest *test = cfg.tests; test->func; test++) {
+        if (test_enabled(test) && test->init)
+            test->init();
+    }
+
+    check_cpu_flag(NULL);
+    for (const CheckasmCpuInfo *info = cfg.cpu_flags; info->flag; info++)
+        check_cpu_flag(info);
+
+    for (const CheckasmTest *test = cfg.tests; test->func; test++) {
+        if (test_enabled(test) && test->uninit)
+            test->uninit();
+    }
+}
+
 void checkasm_list_functions(const CheckasmConfig *config)
 {
     memset(&state, 0, sizeof(state));
@@ -704,9 +726,7 @@ void checkasm_list_functions(const CheckasmConfig *config)
     state.skip_tests = 1;
     cfg              = *config;
 
-    check_cpu_flag(NULL);
-    for (const CheckasmCpuInfo *info = cfg.cpu_flags; info->flag; info++)
-        check_cpu_flag(info);
+    run_all_tests();
 
     print_functions(current.tree.root);
     checkasm_func_tree_uninit(&current.tree);
@@ -843,9 +863,7 @@ int checkasm_run(const CheckasmConfig *config)
             fprintf(stderr, " - Random seed: %u\n", cfg.seed);
         }
 
-        check_cpu_flag(NULL);
-        for (const CheckasmCpuInfo *info = cfg.cpu_flags; info->flag; info++)
-            check_cpu_flag(info);
+        run_all_tests();
 
         int res = print_summary();
         checkasm_func_tree_uninit(&current.tree);

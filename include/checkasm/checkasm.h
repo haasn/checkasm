@@ -117,6 +117,20 @@ typedef struct CheckasmCpuInfo {
 typedef struct CheckasmTest {
     const char *name;   /**< Name of the test (used for filtering and reporting) */
     void (*func)(void); /**< Test function to invoke */
+
+    /**
+     * @brief Optional initialization function
+     *
+     * These functions, if set, are invoked before testing any CPU flags
+     * and after testing all CPU flags, respectively.
+     *
+     * @note If CheckasmConfig.repeat > 1, they will be called for every
+     * iteration.
+     *
+     * @warning These are called even when running checkasm_list_functions().
+     */
+    void (*init)(void);
+    void (*uninit)(void);
 } CheckasmTest;
 
 /**
@@ -362,7 +376,9 @@ CHECKASM_API void checkasm_list_tests(const CheckasmConfig *config);
  * @note This requires executing all tests to gather information about the
  *       available functions. During this process, checkasm_check_func() always
  *       returns 0 to skip the actual testing. However, any side effects from
- *       test functions will still occur, unless properly guarded.
+ *       test functions will still occur, unless properly guarded. In
+ *       particular, CheckasmTest.init() and CheckasmTest.uninit() will still
+ *       be executed.
  */
 CHECKASM_API void checkasm_list_functions(const CheckasmConfig *config);
 
