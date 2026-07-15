@@ -792,18 +792,28 @@ static void update_statusline(void)
     checkasm_statusline(status);
 }
 
-static int print_summary(void)
+static int print_summary(int interrupted)
 {
     checkasm_statusline(NULL);
+
+    LOG("checkasm: ");
+    if (interrupted)
+        LOG_COLOR(COLOR_BLUE, "(interrupted) ");
 
     /* Exclude C/ref versions from count reported to user */
     const int num_checked_asm = current.num_checked - current.num_funcs;
     if (current.num_failed) {
-        LOG("checkasm: %d of %d tests failed", current.num_failed, num_checked_asm);
+        LOG_COLOR(COLOR_RED, "%d ", current.num_failed);
+        LOG("of %d tests failed", num_checked_asm);
     } else if (num_checked_asm) {
-        LOG("checkasm: all %d tests passed", num_checked_asm);
+        if (!interrupted)
+            LOG("all ");
+        LOG("%d tests passed", num_checked_asm);
+    } else if (interrupted) {
+        LOG("no tests performed");
     } else {
-        LOG("checkasm: no tests to perform");
+        /* User did not define any tests */
+        LOG_COLOR(COLOR_YELLOW, "no tests to perform");
     }
 
     if (cfg.repeat > 1)
@@ -820,8 +830,7 @@ static int print_summary(void)
 static void handle_interrupt(void)
 {
     if (checkasm_interrupted) {
-        LOG("checkasm: interrupted\n");
-        print_summary();
+        print_summary(1);
         exit(128 + checkasm_interrupted);
     }
 }
@@ -886,7 +895,7 @@ int checkasm_run(const CheckasmConfig *config)
     for (state.test_iter = 0; state.test_iter < cfg.repeat; state.test_iter++) {
         run_all_tests();
 
-        int res = print_summary();
+        int res = print_summary(0);
         checkasm_func_tree_uninit(&current.tree);
         if (res)
             return res;
