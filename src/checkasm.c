@@ -799,12 +799,17 @@ static int print_summary(void)
     /* Exclude C/ref versions from count reported to user */
     const int num_checked_asm = current.num_checked - current.num_funcs;
     if (current.num_failed) {
-        LOG("checkasm: %d of %d tests failed\n", current.num_failed, num_checked_asm);
+        LOG("checkasm: %d of %d tests failed", current.num_failed, num_checked_asm);
     } else if (num_checked_asm) {
-        LOG("checkasm: all %d tests passed\n", num_checked_asm);
+        LOG("checkasm: all %d tests passed", num_checked_asm);
     } else {
-        LOG("checkasm: no tests to perform\n");
+        LOG("checkasm: no tests to perform");
     }
+
+    if (cfg.repeat > 1)
+        LOG(", iteration %d of %d, seed %u\n", state.test_iter + 1, cfg.repeat, cfg.seed);
+    else
+        LOG("\n");
 
     if (current.num_benched && !current.num_failed)
         print_benchmarks();
@@ -879,11 +884,6 @@ int checkasm_run(const CheckasmConfig *config)
     print_info();
 
     for (state.test_iter = 0; state.test_iter < cfg.repeat; state.test_iter++) {
-        if (state.test_iter > 0) {
-            LOG_COLOR(COLOR_YELLOW, "\nTest #%d:\n", state.test_iter + 1);
-            LOG_COLOR(COLOR_DEFAULT, " - Random seed: %u\n", cfg.seed);
-        }
-
         run_all_tests();
 
         int res = print_summary();
@@ -1094,10 +1094,10 @@ void checkasm_report(const char *const name, ...)
         if (current.should_fail)
             current.num_failed = current.prev_failed + (new_checked - fails);
 
-        /* Omit "OK" for non-verbose non-benchmark C function successes */
-        const int want_print = current.num_failed != current.prev_failed
-                            || current.should_fail || cfg.verbose || cfg.bench
-                            || current.cpu;
+        /* Omit 'OK' after the first run, unless failed or verbose */
+        int want_print = current.num_failed != current.prev_failed || cfg.verbose;
+        if (state.test_iter == 0)
+            want_print |= current.should_fail || current.cpu;
 
         if (want_print) {
             print_cpu_name();
