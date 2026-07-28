@@ -51,6 +51,12 @@
  *
  * These functions use the seed specified in CheckasmConfig (or a time-based
  * seed if not specified) to generate deterministic, reproducible random values.
+ *
+ * @note The PRNG state is automatically re-seeded at the start of each test
+ * case (i.e. before each call to CheckasmTest.func), so that different CPU
+ * flags see the same sequence of random numbers, at least until control flow
+ * inside the test function diverges.
+ *
  * @{
  */
 
