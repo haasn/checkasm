@@ -707,7 +707,7 @@ static void print_functions(const CheckasmFunc *const f)
 static void run_all_tests(void)
 {
     for (const CheckasmTest *test = cfg.tests; test->func; test++) {
-        if (test_enabled(test) && test->init) {
+        if (test->init && test_enabled(test)) {
             checkasm_srand(cfg.seed);
             test->init();
         }
@@ -718,7 +718,7 @@ static void run_all_tests(void)
         check_cpu_flag(info);
 
     for (const CheckasmTest *test = cfg.tests; test->func; test++) {
-        if (test_enabled(test) && test->uninit)
+        if (test->uninit && test_enabled(test))
             test->uninit();
     }
 }
