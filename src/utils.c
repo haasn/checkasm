@@ -119,30 +119,47 @@ unsigned checkasm_seed(void)
     return (unsigned) gettime_nsec(1);
 }
 
-// xor128 from Marsaglia, George (July 2003). "Xorshift RNGs".
-//             Journal of Statistical Software. 8 (14).
-//             doi:10.18637/jss.v008.i14.
+// xoroshiro128** from https://prng.di.unimi.it/
 static uint32_t xs_state[4];
+
+static inline uint64_t splitmix64(uint64_t *state)
+{
+    uint64_t z = (*state += 0x9e3779b97f4a7c15);
+
+    z = (z ^ (z >> 30)) * 0xbf58476d1ce4e5b9;
+    z = (z ^ (z >> 27)) * 0x94d049bb133111eb;
+    return z ^ (z >> 31);
+}
+
+static inline uint32_t rotl(const uint32_t x, int k)
+{
+    return (x << k) | (x >> (32 - k));
+}
 
 void checkasm_srand(unsigned seed)
 {
-    xs_state[0] = seed;
-    xs_state[1] = (seed & 0xffff0000) | (~seed & 0x0000ffff);
-    xs_state[2] = (~seed & 0xffff0000) | (seed & 0x0000ffff);
-    xs_state[3] = ~seed;
+    /* Seed using splitmix64() as recommended by xoroshiro128 authors */
+    uint64_t       s = seed;
+    const uint64_t a = splitmix64(&s);
+    const uint64_t b = splitmix64(&s);
+
+    xs_state[0] = (uint32_t) a;
+    xs_state[1] = (uint32_t) b;
+    xs_state[2] = a >> 32;
+    xs_state[3] = b >> 32;
 }
 
 uint32_t checkasm_rand_uint32(void)
 {
-    const uint32_t x = xs_state[0];
-    const uint32_t t = x ^ (x << 11);
-
-    xs_state[0] = xs_state[1];
-    xs_state[1] = xs_state[2];
-    xs_state[2] = xs_state[3];
-    uint32_t w  = xs_state[3];
-
-    return xs_state[3] = (w ^ (w >> 19)) ^ (t ^ (t >> 8));
+    const uint32_t result = rotl(xs_state[1] * 5, 7) * 9;
+    const uint32_t t      = xs_state[1] << 9;
+    xs_state[2] ^= xs_state[0];
+    xs_state[3] ^= xs_state[1];
+    xs_state[1] ^= xs_state[2];
+    xs_state[0] ^= xs_state[3];
+    xs_state[2] ^= t;
+    xs_state[3] = rotl(xs_state[3], 11);
+    return result;
 }
 
 int32_t checkasm_rand_int32(void)
