@@ -109,6 +109,7 @@ void selftest_test_float(float_func *func, const char *name, float input);
 
 /* Platform-specific tests */
 void selftest_check_generic(void);
+void selftest_check_utils(void);
 void selftest_check_x86(void);
 void selftest_check_riscv(void);
 void selftest_check_aarch64(void);

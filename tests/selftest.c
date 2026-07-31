@@ -47,6 +47,7 @@ static void selftest_check_flags(void)
 static const CheckasmTest tests[] = {
     { "flags",      selftest_check_flags   },
     { "generic",    selftest_check_generic },
+    { "utils",      selftest_check_utils },
 #if ARCH_X86
     { "x86",        selftest_check_x86     },
 #elif ARCH_RISCV
