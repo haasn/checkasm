@@ -273,23 +273,23 @@ double checkasm_rand_dist(CheckasmDist dist)
     return dist.mean + dist.stddev * checkasm_rand_norm();
 }
 
-void checkasm_randomize(void *bufp, size_t bytes)
+void checkasm_randomize(void *buf, size_t bytes)
 {
-    uint8_t *buf = bufp;
-    while (bytes--)
-        *buf++ = checkasm_rand_uint32() & 0xFF;
+    prng(&checkasm_prng, buf, bytes);
 }
 
 void checkasm_randomize_mask8(uint8_t *buf, int width, uint8_t mask)
 {
-    while (width--)
-        *buf++ = checkasm_rand_uint32() & mask;
+    prng(&checkasm_prng, (uint8_t *) buf, width * sizeof(*buf));
+    for (int i = 0; i < width; i++)
+        buf[i] &= mask;
 }
 
 void checkasm_randomize_mask16(uint16_t *buf, int width, uint16_t mask)
 {
-    while (width--)
-        *buf++ = checkasm_rand_uint32() & mask;
+    prng(&checkasm_prng, (uint8_t *) buf, width * sizeof(*buf));
+    for (int i = 0; i < width; i++)
+        buf[i] &= mask;
 }
 
 void checkasm_randomize_range(double *buf, int width, double range)
