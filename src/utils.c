@@ -427,21 +427,21 @@ void checkasm_init(void *buf, size_t bytes)
         for (int i = 0; i < width; i++, step--) {                                        \
             if (!step) {                                                                 \
                 step = imax(shift_rand(width), 1);                                       \
-                mode = checkasm_rand() & 7;                                              \
+                mode = checkasm_rand_uint8() & 7;                                        \
                 mask = shift_rand(mask_pixel);                                           \
             }                                                                            \
                                                                                          \
-            const PIXEL low  = checkasm_rand_uint32() & mask;                            \
+            const PIXEL low  = checkasm_rand_uint##BITS() & mask;                        \
             const PIXEL high = mask_pixel - low;                                         \
             switch (mode) {                                                              \
             case PAT_ZERO:  buf[i] = 0; break;                                           \
             case PAT_ONE:   buf[i] = mask_pixel; break;                                  \
-            case PAT_RAND:  buf[i] = checkasm_rand_uint32() & mask_pixel; break;         \
+            case PAT_RAND:  buf[i] = checkasm_rand_uint##BITS() & mask_pixel; break;     \
             case PAT_LOW:   buf[i] = low; break;                                         \
             case PAT_HIGH:  buf[i] = high; break;                                        \
             case PAT_ALTLO: buf[i] = (i & 1) ? high : low; break;                        \
             case PAT_ALTHI: buf[i] = (i & 1) ? low : high; break;                        \
-            case PAT_MIX:   buf[i] = (checkasm_rand() & 1) ? low : high; break;            \
+            case PAT_MIX:   buf[i] = (checkasm_rand_uint8() & 1) ? low : high; break;    \
             }                                                                            \
         }                                                                                \
     }
