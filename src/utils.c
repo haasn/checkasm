@@ -119,8 +119,79 @@ unsigned checkasm_seed(void)
     return (unsigned) gettime_nsec(1);
 }
 
-// xoroshiro128** from https://prng.di.unimi.it/
-static uint32_t xs_state[4];
+// (parallel) xoshiro128++ from https://prng.di.unimi.it/
+typedef struct CheckasmRand {
+#define CHECKASM_PRNG_NUM 4
+    uint32_t s0[CHECKASM_PRNG_NUM];
+    uint32_t s1[CHECKASM_PRNG_NUM];
+    uint32_t s2[CHECKASM_PRNG_NUM];
+    uint32_t s3[CHECKASM_PRNG_NUM];
+} CheckasmRand;
+
+static CheckasmRand checkasm_prng;
+
+static ALWAYS_INLINE uint32_t rotl(const uint32_t x, int k)
+{
+    return (x << k) | (x >> (32 - k));
+}
+
+/* Single round of a parallel xoshiro128++, generates a full block */
+static ALWAYS_INLINE void xoshiro128pp(CheckasmRand *restrict xs, uint32_t *restrict buf)
+{
+    for (int i = 0; i < CHECKASM_PRNG_NUM; i++) {
+        buf[i] = rotl(xs->s0[i] + xs->s3[i], 7) + xs->s0[i];
+
+        const uint32_t t = xs->s1[i] << 9;
+        xs->s2[i] ^= xs->s0[i];
+        xs->s3[i] ^= xs->s1[i];
+        xs->s1[i] ^= xs->s2[i];
+        xs->s0[i] ^= xs->s3[i];
+        xs->s2[i] ^= t;
+        xs->s3[i] = rotl(xs->s3[i], 11);
+    }
+}
+
+static void prng(CheckasmRand *restrict xs, uint8_t *restrict buf, size_t size)
+{
+    uint32_t     tmp[CHECKASM_PRNG_NUM];
+    const size_t block_size = sizeof(tmp);
+    CheckasmRand xs_copy    = *xs;
+
+    while (size >= block_size) {
+        xoshiro128pp(&xs_copy, tmp);
+        memcpy(buf, tmp, block_size);
+        buf += block_size;
+        size -= block_size;
+    }
+
+    if (size) {
+        xoshiro128pp(&xs_copy, tmp);
+        memcpy(buf, tmp, size);
+    }
+
+    *xs = xs_copy;
+}
+
+/* Efficient wrapper for generating individual random integers, by caching
+ * the result of a single call to the underlying generator() */
+static struct {
+    #define PRNG_CACHE_SIZE 64
+    uint32_t buf32[PRNG_CACHE_SIZE >> 2];
+    int num32;
+} prng_cache;
+
+static_assert(PRNG_CACHE_SIZE % sizeof(uint32_t[CHECKASM_PRNG_NUM]) == 0,
+              "PRNG_CACHE_SIZE should be a multiple of uint32_t[CHECKASM_PRNG_NUM]");
+
+uint32_t checkasm_rand_uint32(void)
+{
+    if (!prng_cache.num32) {
+        prng(&checkasm_prng, (uint8_t *) prng_cache.buf32, sizeof(prng_cache.buf32));
+        prng_cache.num32 = ARRAY_SIZE(prng_cache.buf32);
+    }
+
+    return prng_cache.buf32[--prng_cache.num32];
+}
 
 static inline uint64_t splitmix64(uint64_t *state)
 {
@@ -131,35 +202,22 @@ static inline uint64_t splitmix64(uint64_t *state)
     return z ^ (z >> 31);
 }
 
-static inline uint32_t rotl(const uint32_t x, int k)
-{
-    return (x << k) | (x >> (32 - k));
-}
-
 void checkasm_srand(unsigned seed)
 {
     /* Seed using splitmix64() as recommended by xoroshiro128 authors */
-    uint64_t       s = seed;
-    const uint64_t a = splitmix64(&s);
-    const uint64_t b = splitmix64(&s);
+    uint64_t s = seed;
 
-    xs_state[0] = (uint32_t) a;
-    xs_state[1] = (uint32_t) b;
-    xs_state[2] = a >> 32;
-    xs_state[3] = b >> 32;
-}
+    for (int i = 0; i < CHECKASM_PRNG_NUM; i++) {
+        const uint64_t a = splitmix64(&s);
+        const uint64_t b = splitmix64(&s);
 
-uint32_t checkasm_rand_uint32(void)
-{
-    const uint32_t result = rotl(xs_state[1] * 5, 7) * 9;
-    const uint32_t t      = xs_state[1] << 9;
-    xs_state[2] ^= xs_state[0];
-    xs_state[3] ^= xs_state[1];
-    xs_state[1] ^= xs_state[2];
-    xs_state[0] ^= xs_state[3];
-    xs_state[2] ^= t;
-    xs_state[3] = rotl(xs_state[3], 11);
-    return result;
+        checkasm_prng.s0[i] = (uint32_t) a;
+        checkasm_prng.s1[i] = (uint32_t) b;
+        checkasm_prng.s2[i] = a >> 32;
+        checkasm_prng.s3[i] = b >> 32;
+    }
+
+    prng_cache.num32 = 0; /* discard cached random bytes */
 }
 
 int32_t checkasm_rand_int32(void)
