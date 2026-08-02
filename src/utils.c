@@ -253,7 +253,7 @@ int checkasm_rand(void)
 
 double checkasm_randf(void)
 {
-    return checkasm_rand_uint32() / (double) UINT32_MAX;
+    return checkasm_rand_uint32() / (UINT32_MAX + 1.0);
 }
 
 /* Marsaglia polar method */
