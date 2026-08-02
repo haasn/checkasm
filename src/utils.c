@@ -308,14 +308,16 @@ void checkasm_randomize_mask16(uint16_t *buf, int width, uint16_t mask)
 
 void checkasm_randomize_range(double *buf, int width, double range)
 {
+    const double scale = range / (UINT32_MAX + 1.0);
     while (width--)
-        *buf++ = checkasm_randf() * range;
+        *buf++ = scale * checkasm_rand_uint32();
 }
 
 void checkasm_randomize_rangef(float *buf, int width, float range)
 {
+    const float scale = range / (UINT32_MAX + 1.0);
     while (width--)
-        *buf++ = (float) (checkasm_randf() * range);
+        *buf++ = scale * checkasm_rand_uint32();
 }
 
 #define RANDOMIZE_DIST(buf, ftype, width, mean, stddev)                                  \
