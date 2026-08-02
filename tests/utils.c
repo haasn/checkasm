@@ -105,6 +105,16 @@ static void selftest_test_randomize(void)
         checkasm_bench_new(buf.f32, ARRAY_SIZE(buf.f32), 100.0f);
     }
 
+    if (checkasm_check_func(checkasm_randomize_interval, "randomize_interval")) {
+        checkasm_declare(void, double *buf, int width, double low, double high);
+        checkasm_bench_new(buf.f64, ARRAY_SIZE(buf.f64), -100.0, 100.0);
+    }
+
+    if (checkasm_check_func(checkasm_randomize_intervalf, "randomize_intervalf")) {
+        checkasm_declare(void, float *buf, int width, float low, float high);
+        checkasm_bench_new(buf.f32, ARRAY_SIZE(buf.f32), -100.0f, 100.0f);
+    }
+
     if (checkasm_check_func(checkasm_randomize_dist, "randomize_dist")) {
         checkasm_declare(void, double *buf, int width, CheckasmDist dist);
         checkasm_bench_new(buf.f64, ARRAY_SIZE(buf.f64), checkasm_dist_standard);

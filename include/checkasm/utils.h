@@ -219,6 +219,26 @@ CHECKASM_API void checkasm_randomize_range(double *buf, int width, double range)
 CHECKASM_API void checkasm_randomize_rangef(float *buf, int width, float range);
 
 /**
+ * @brief Fill a double buffer with random values chosen uniformly from an interval
+ * @param[out] buf Buffer to fill
+ * @param[in] width Number of elements to randomize
+ * @param[in] low Inclusive lower bound on value
+ * @param[in] high Inclusive upper bound on value
+ */
+CHECKASM_API void checkasm_randomize_interval(double *buf, int width, double low,
+                                              double high);
+
+/**
+ * @brief Fill a float buffer with random values chosen uniformly from an interval
+ * @param[out] buf Buffer to fill
+ * @param[in] width Number of elements to randomize
+ * @param[in] low Inclusive lower bound on value
+ * @param[in] high Inclusive upper bound on value
+ */
+CHECKASM_API void checkasm_randomize_intervalf(float *buf, int width, float low,
+                                               float high);
+
+/**
  * @brief Fill a double buffer with normally distributed random values
  * @param[out] buf Buffer to fill
  * @param[in] width Number of elements to randomize

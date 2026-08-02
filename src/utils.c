@@ -320,6 +320,20 @@ void checkasm_randomize_rangef(float *buf, int width, float range)
         *buf++ = scale * checkasm_rand_uint32();
 }
 
+void checkasm_randomize_interval(double *buf, int width, double low, double high)
+{
+    const double scale = (high - low) / (double) UINT32_MAX;
+    while (width--)
+        *buf++ = scale * checkasm_rand_uint32() + low;
+}
+
+void checkasm_randomize_intervalf(float *buf, int width, float low, float high)
+{
+    const float scale = (high - low) / (float) UINT32_MAX;
+    while (width--)
+        *buf++ = scale * checkasm_rand_uint32() + low;
+}
+
 #define RANDOMIZE_DIST(buf, ftype, width, mean, stddev)                                  \
     do {                                                                                 \
         if ((width) & 1) {                                                               \
