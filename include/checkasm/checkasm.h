@@ -106,6 +106,16 @@ typedef struct CheckasmCpuInfo {
     const char *name;   /**< Human-readable name (e.g., "SSE2", "AVX2") */
     const char *suffix; /**< Short suffix for function names (e.g., "sse2", "avx2") */
     CheckasmCpu flag;   /**< Bitmask flag value for this CPU feature */
+
+    /** @brief Bitmask of prior CPU flags to disable again
+     *
+     * Any CPU flags in this mask will be removed from the active CPU flag set
+     * when testing this and any subsequent CPU configurations. This is
+     * effectively the opposite of `flag`.
+     *
+     * @since v1.3.0
+     */
+    CheckasmCpu mask;
 } CheckasmCpuInfo;
 
 /**

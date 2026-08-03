@@ -537,6 +537,7 @@ static void check_cpu_flag(const CheckasmCpuInfo *cpu)
 {
     const CheckasmCpu prev_cpu_flags = current.cpu_flags;
     if (cpu) {
+        current.cpu_flags &= ~cpu->mask;
         current.cpu_flags |= cpu->flag & cfg.cpu;
     } else {
         /* Also include any CPU flags not related to the CPU flags list */
