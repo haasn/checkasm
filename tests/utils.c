@@ -37,17 +37,43 @@ static CHECKASM_ALIGN(union {
 
 /* We need a wrapper function because checkasm_declare() can't handle void
  * parameter lists. This should inline into the benchmark loop. */
-static ALWAYS_INLINE int rand_wrapper(int unused)
-{
-    return checkasm_rand();
-}
+#define WRAP_VOID(RETVAL, FUNC)                                                          \
+    static ALWAYS_INLINE RETVAL wrap_##FUNC(int unused)                                  \
+    {                                                                                    \
+        return FUNC();                                                                   \
+    }
+
+WRAP_VOID(int,      checkasm_rand)
+WRAP_VOID(int8_t,   checkasm_rand_int8)
+WRAP_VOID(uint8_t,  checkasm_rand_uint8)
+WRAP_VOID(int16_t,  checkasm_rand_int16)
+WRAP_VOID(uint16_t, checkasm_rand_uint16)
+WRAP_VOID(int32_t,  checkasm_rand_int32)
+WRAP_VOID(uint32_t, checkasm_rand_uint32)
+WRAP_VOID(float,    checkasm_rand_float32)
+WRAP_VOID(int64_t,  checkasm_rand_int64)
+WRAP_VOID(uint64_t, checkasm_rand_uint64)
+WRAP_VOID(double,   checkasm_rand_float64)
 
 static void selftest_test_prng(void)
 {
-    if (checkasm_check_func(rand_wrapper, "rand")) {
-        checkasm_declare(int, int);
-        checkasm_bench(rand_wrapper, 0);
+#define CHECK_RAND(RETVAL, FUNC)                                                         \
+    if (checkasm_check_func(checkasm_##FUNC, #FUNC)) {                                   \
+        checkasm_declare(RETVAL, int);                                                   \
+        checkasm_bench(wrap_checkasm_##FUNC, 0);                                         \
     }
+
+    CHECK_RAND(int,      rand)
+    CHECK_RAND(int8_t,   rand_int8)
+    CHECK_RAND(uint8_t,  rand_uint8)
+    CHECK_RAND(int16_t,  rand_int16)
+    CHECK_RAND(uint16_t, rand_uint16)
+    CHECK_RAND(int32_t,  rand_int32)
+    CHECK_RAND(uint32_t, rand_uint32)
+    CHECK_RAND(float,    rand_float32)
+    CHECK_RAND(int64_t,  rand_int64)
+    CHECK_RAND(uint64_t, rand_uint64)
+    CHECK_RAND(double,   rand_float64)
 
     checkasm_report("prng");
 }

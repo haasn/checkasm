@@ -176,22 +176,46 @@ static void prng(CheckasmRand *restrict xs, uint8_t *restrict buf, size_t size)
  * the result of a single call to the underlying generator() */
 static struct {
     #define PRNG_CACHE_SIZE 64
+    uint8_t  buf8 [PRNG_CACHE_SIZE];
+    uint16_t buf16[PRNG_CACHE_SIZE >> 1];
     uint32_t buf32[PRNG_CACHE_SIZE >> 2];
+    uint64_t buf64[PRNG_CACHE_SIZE >> 3];
+    int num8;
+    int num16;
     int num32;
+    int num64;
 } prng_cache;
 
 static_assert(PRNG_CACHE_SIZE % sizeof(uint32_t[CHECKASM_PRNG_NUM]) == 0,
               "PRNG_CACHE_SIZE should be a multiple of uint32_t[CHECKASM_PRNG_NUM]");
 
-uint32_t checkasm_rand_uint32(void)
-{
-    if (!prng_cache.num32) {
-        prng(&checkasm_prng, (uint8_t *) prng_cache.buf32, sizeof(prng_cache.buf32));
-        prng_cache.num32 = ARRAY_SIZE(prng_cache.buf32);
+#define DEF_CHECKASM_RAND(BITS, TYPE, NAME)                                              \
+    TYPE checkasm_rand_##NAME(void)                                                      \
+    {                                                                                    \
+        if (!prng_cache.num##BITS) {                                                     \
+            prng(&checkasm_prng, (uint8_t *) prng_cache.buf##BITS,                       \
+                 sizeof(prng_cache.buf##BITS));                                          \
+            prng_cache.num##BITS = ARRAY_SIZE(prng_cache.buf##BITS);                     \
+        }                                                                                \
+                                                                                         \
+        union {                                                                          \
+            TYPE           type;                                                         \
+            uint##BITS##_t raw;                                                          \
+        } val;                                                                           \
+        val.raw = prng_cache.buf##BITS[--prng_cache.num##BITS];                          \
+        return val.type;                                                                 \
     }
 
-    return prng_cache.buf32[--prng_cache.num32];
-}
+DEF_CHECKASM_RAND(8,  int8_t,   int8)
+DEF_CHECKASM_RAND(8,  uint8_t,  uint8)
+DEF_CHECKASM_RAND(16, int16_t,  int16)
+DEF_CHECKASM_RAND(16, uint16_t, uint16)
+DEF_CHECKASM_RAND(32, int32_t,  int32)
+DEF_CHECKASM_RAND(32, uint32_t, uint32)
+DEF_CHECKASM_RAND(32, float,    float32)
+DEF_CHECKASM_RAND(64, int64_t,  int64)
+DEF_CHECKASM_RAND(64, uint64_t, uint64)
+DEF_CHECKASM_RAND(64, double,   float64)
 
 static inline uint64_t splitmix64(uint64_t *state)
 {
@@ -217,18 +241,8 @@ void checkasm_srand(unsigned seed)
         checkasm_prng.s3[i] = b >> 32;
     }
 
-    prng_cache.num32 = 0; /* discard cached random bytes */
-}
-
-int32_t checkasm_rand_int32(void)
-{
-    union {
-        uint32_t u;
-        int32_t  i;
-    } res;
-
-    res.u = checkasm_rand_uint32();
-    return res.i;
+    /* discard cached random bytes */
+    prng_cache.num8 = prng_cache.num16 = prng_cache.num32 = prng_cache.num64 = 0;
 }
 
 int checkasm_rand(void)
