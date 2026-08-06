@@ -315,7 +315,7 @@ void checkasm_randomize_range(double *buf, int width, double range)
 
 void checkasm_randomize_rangef(float *buf, int width, float range)
 {
-    const float scale = range / (UINT32_MAX + 1.0);
+    const float scale = (float) (range / (UINT32_MAX + 1.0));
     while (width--)
         *buf++ = scale * checkasm_rand_uint32();
 }
