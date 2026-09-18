@@ -469,6 +469,22 @@ static int use_printf_color[2];
 static char statusline[256];
 static int statusline_visible;
 
+static void statusline_clear(void)
+{
+    if (!statusline_visible)
+        return;
+    fprintf(stderr, "\r\033[K"); /* clear line */
+    statusline_visible = 0;
+}
+
+static void statusline_show(void)
+{
+    if (!statusline[0])
+        return;
+    fprintf(stderr, "%s", statusline);
+    statusline_visible = 1;
+}
+
 /* Print colored text to stderr if the terminal supports it */
 int checkasm_vfprintf(FILE *const f, const int color, const char *const fmt, va_list arg)
 {
@@ -477,10 +493,8 @@ int checkasm_vfprintf(FILE *const f, const int color, const char *const fmt, va_
     if (!use_color || !fmt_len)
         return vfprintf(f, fmt, arg);
 
-    if (f == stderr && statusline_visible) {
-        fprintf(f, "\r\033[K"); /* clear line */
-        statusline_visible = 0;
-    }
+    if (f == stderr)
+        statusline_clear();
 
     if (color >= 0)
         fprintf(f, "\x1b[0;%dm", color);
@@ -490,10 +504,8 @@ int checkasm_vfprintf(FILE *const f, const int color, const char *const fmt, va_
     if (color >= 0)
         fprintf(f, "\x1b[0m");
 
-    if (f == stderr && statusline[0] && fmt[fmt_len - 1] == '\n') {
-        fprintf(f, "%s", statusline);
-        statusline_visible = 1;
-    }
+    if (f == stderr && fmt[fmt_len - 1] == '\n')
+        statusline_show();
 
     return ret;
 }
@@ -508,15 +520,9 @@ void checkasm_statusline(const char *status)
 
     snprintf(statusline, sizeof(statusline), "%s", status);
 
-    if (statusline_visible) {
-        fprintf(stderr, "\r\033[K");
-        statusline_visible = 0;
-    }
-
-    if (statusline[0]) {
-        fprintf(stderr, "%s", statusline);
-        statusline_visible = 1;
-    }
+    /* refresh statusline */
+    statusline_clear();
+    statusline_show();
 }
 
 static COLD int should_use_color(FILE *const f)
