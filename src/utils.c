@@ -570,7 +570,7 @@ static int get_terminal_width(void)
     if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) != -1)
         return w.ws_col;
 #endif
-    return 80;
+    return 0;
 }
 
 void checkasm_json(CheckasmJson *json, const char *key, const char *const fmt, ...)
@@ -805,7 +805,8 @@ static int check_err(const char *const file, const int line, const char *const n
 #define DEF_CHECKASM_CHECK_BODY(compare, type, fmt, fmtw)                                \
     do {                                                                                 \
         const int overhead   = 5 + 3 + 3;                                                \
-        const int term_width = get_terminal_width() - overhead;                          \
+        const int term_w_raw = get_terminal_width();                                     \
+        const int term_width = (term_w_raw ? term_w_raw : 80) - overhead;                \
         const int aligned_w  = (w + align_w - 1) & ~(align_w - 1);                       \
         stride1 /= sizeof(type);                                                         \
         stride2 /= sizeof(type);                                                         \
