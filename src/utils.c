@@ -468,6 +468,7 @@ DEF_CHECKASM_INIT_MASK(16, uint16_t)
 static int use_printf_color[2];
 static char statusline[256];
 static int statusline_visible;
+static int get_terminal_width(void);
 
 static void statusline_clear(void)
 {
@@ -481,7 +482,11 @@ static void statusline_show(void)
 {
     if (!statusline[0])
         return;
-    fprintf(stderr, "%s", statusline);
+    const int term_w = get_terminal_width();
+    int len = (int) strlen(statusline);
+    if (term_w && len > term_w)
+        len = term_w;
+    fprintf(stderr, "%.*s", len, statusline);
     statusline_visible = 1;
 }
 
