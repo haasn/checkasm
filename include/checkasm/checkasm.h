@@ -354,6 +354,20 @@ static inline const char *checkasm_get_cpu_suffix(void)
 }
 
 /**
+ * @brief Get the test currently being executed
+ *
+ * Returns the currently active CheckasmTest, or NULL if called outside
+ * of a CheckasmTest. May be used by e.g. init()/test() to determine which
+ * test case is currently running, to e.g. share an implementation between
+ * multiple tests whose internals are distinguished by name.
+ *
+ * @return Currently active test
+ *
+ * @since v1.3.0
+ */
+CHECKASM_API const CheckasmTest *checkasm_get_test(void);
+
+/**
  * @brief Print available CPU flags to stdout.
  *
  * Prints a list of all CPU flags/features that are available for testing

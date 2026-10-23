@@ -129,6 +129,11 @@ const CheckasmCpuInfo *checkasm_get_cpu_info(void)
     return current.cpu;
 }
 
+const CheckasmTest *checkasm_get_test(void)
+{
+    return current.test;
+}
+
 /* Get the suffix of the specified cpu flag */
 static const char *cpu_suffix(const CheckasmCpuInfo *cpu)
 {
@@ -827,6 +832,7 @@ static void run_all_tests(void)
     for (const CheckasmTest *test = cfg.tests; test->func; test++) {
         if (test->init && test_enabled(test)) {
             checkasm_srand(cfg.seed);
+            current.test = test;
             test->init();
         }
     }
@@ -836,8 +842,10 @@ static void run_all_tests(void)
         check_cpu_flag(info);
 
     for (const CheckasmTest *test = cfg.tests; test->func; test++) {
-        if (test->uninit && test_enabled(test))
+        if (test->uninit && test_enabled(test)) {
+            current.test = test;
             test->uninit();
+        }
     }
 }
 
