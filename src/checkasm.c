@@ -146,6 +146,17 @@ static double relative_error(double lvar)
     return sqrt(exp(lvar) - 1.0);
 }
 
+static void print_ratio(const CheckasmVar ratio)
+{
+    const double ratio_lo = checkasm_sample(ratio, -1.0);
+    const double ratio_hi = checkasm_sample(ratio, 1.0);
+    const int    color    = ratio_lo >= 10.0                   ? COLOR_GREEN
+                          : ratio_hi >= 1.1 && ratio_lo >= 1.0 ? COLOR_DEFAULT
+                          : ratio_hi >= 1.0                    ? COLOR_YELLOW
+                                                               : COLOR_RED;
+    checkasm_fprintf(stdout, color, "%5.2fx", checkasm_mode(ratio));
+}
+
 static inline char separator(CheckasmFormat format)
 {
     switch (format) {
@@ -429,14 +440,8 @@ static void print_bench_iter(const CheckasmFunc *const f, struct IterState *cons
                            checkasm_mode(time), checkasm_stddev(time));
                 }
                 if (v != ref && ref->cycles.nb_measurements) {
-                    const double ratio_lo = checkasm_sample(ratio, -1.0);
-                    const double ratio_hi = checkasm_sample(ratio, 1.0);
-                    const int    color    = ratio_lo >= 10.0 ? COLOR_GREEN
-                                          : ratio_hi >= 1.1 && ratio_lo >= 1.0 ? COLOR_DEFAULT
-                                          : ratio_hi >= 1.0 ? COLOR_YELLOW
-                                                            : COLOR_RED;
                     printf(" (");
-                    checkasm_fprintf(stdout, color, "%5.2fx", checkasm_mode(ratio));
+                    print_ratio(ratio);
                     printf(")");
                 }
                 printf("\n");
