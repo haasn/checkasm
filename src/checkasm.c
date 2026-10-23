@@ -83,7 +83,7 @@ static struct {
     int                    cpu_name_printed;
     CheckasmCpu            cpu_flags;
     int                    cpu_suffix_length;
-    const char            *test_name;
+    const CheckasmTest    *test;
     int                    should_fail;
     int                    report_idx;
 
@@ -677,7 +677,7 @@ static void check_cpu_flag(const CheckasmCpuInfo *cpu)
     for (const CheckasmTest *test = cfg.tests; test->func; test++) {
         if (!test_enabled(test))
             continue;
-        current.test_name = test->name;
+        current.test = test;
         update_statusline();
 
         if (checkasm_save_context(checkasm_context)) {
@@ -902,7 +902,7 @@ static void update_statusline(void)
 
     len += snprintf(status, sizeof(status), "checkasm: iter=%d/%d cpu=%s test=%s",
                     state.test_iter + 1, cfg.repeat, cpu_suffix(current.cpu),
-                    current.test_name);
+                    current.test->name);
 
     if (current.func && current.func->report_name) {
         snprintf(status + len, sizeof(status) - len, " func=%s",
@@ -1112,7 +1112,7 @@ CheckasmKey checkasm_check_key(const CheckasmKey version, const char *const name
     if (f->report_idx < current.report_idx) {
         f->report_idx = current.report_idx;
         f->prev       = current.func;
-        f->test_name  = current.test_name;
+        f->test_name  = current.test->name;
     }
 
     current.func     = f;
@@ -1205,7 +1205,7 @@ void checkasm_report(const char *const name, ...)
     char report_name[256];
 
     /* Calculate the amount of padding required to make the output vertically aligned */
-    int length = (int) strlen(current.test_name);
+    int length = (int) strlen(current.test->name);
     if (name) {
         va_list arg;
         va_start(arg, name);
@@ -1233,9 +1233,9 @@ void checkasm_report(const char *const name, ...)
         if (want_print) {
             print_cpu_name();
             if (name) {
-                pad_length -= LOG(" - %s.%s", current.test_name, report_name);
+                pad_length -= LOG(" - %s.%s", current.test->name, report_name);
             } else {
-                pad_length -= LOG(" - %s", current.test_name);
+                pad_length -= LOG(" - %s", current.test->name);
             }
             LOG("%*c", imax(pad_length, 0) + 2, '[');
 
