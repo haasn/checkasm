@@ -108,13 +108,28 @@ static inline void checkasm_stats_add(CheckasmStats *const stats, const Checkasm
 static inline void checkasm_stats_count_grow(CheckasmStats *const stats, uint64_t cycles,
                                              uint64_t target_cycles)
 {
-    if (cycles < target_cycles >> 10) { /* sum[(1+1/64)^n | n < 200] */
+    if (cycles <= target_cycles >> 10) { /* sum[(1+1/64)^n | n < 200] */
         /* Function is very fast, increase iteration count dramatically */
         stats->next_count <<= 1;
-    } else if (stats->next_count < 1 << 25) {
-        /* Grow more slowly at 1/64 = ~1.5% growth */
-        stats->next_count = ((stats->next_count << 6) + stats->next_count + 63) >> 6;
+        return;
     }
+
+    const int count = stats->next_count;
+    if (count >= 1 << 25)
+        return;
+
+    /* Grow more slowly at 1/64 = ~1.5% growth */
+    stats->next_count = ((count << 6) + count + 63) >> 6;
+
+    /* Limit the iteration count for slow functions, to try and fit at
+     * least 32 samples into the time budget (if possible) */
+    uint64_t max_cycles = target_cycles >> 5;
+    if (max_cycles > UINT32_MAX) /* prevent overflow */
+        max_cycles = UINT32_MAX;
+
+    const uint64_t max_count = max_cycles * count / cycles;
+    if ((uint64_t) stats->next_count > max_count)
+        stats->next_count = max_count ? (int) max_count : 1;
 }
 
 CheckasmVar checkasm_stats_estimate(const CheckasmStats *stats);
