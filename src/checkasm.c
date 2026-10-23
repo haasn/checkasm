@@ -477,9 +477,9 @@ int checkasm_bench_runs(void)
     if (stats.nb_samples == CHECKASM_STATS_SAMPLES)
         return 0;
 
-    /* Try and gather at least 30 samples for statistical validity, even if
+    /* Try and gather at least 10 samples for statistical validity, even if
      * it means exceeding the time budget */
-    if (current.cycles < state.target_cycles || stats.nb_samples < 30)
+    if (current.cycles < state.target_cycles || stats.nb_samples < 10)
         return stats.next_count;
     else
         return 0;
