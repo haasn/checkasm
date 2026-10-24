@@ -82,6 +82,25 @@ The JSON output format includes all measurement data and detailed statistical
 parameters, including kernel density estimates, regression parameters, and confidence
 intervals. The HTML output displays this same data in the form of interactive charts.
 
+@subsection bench_results Querying Results
+
+The results for the function currently being tested can be retrieved with
+checkasm_bench_result(), and cleared with checkasm_bench_reset(). This also
+works outside of a checkasm_check_func() block, in which case checkasm_bench()
+measures arbitrary code into a pseudo-function that is not part of the final
+report. Results are only available when benchmarking is enabled (`--bench`).
+
+@code{.c}
+checkasm_declare(void, uint8_t *dst, const uint8_t *src, int len);
+
+checkasm_bench_reset();
+checkasm_bench(my_filter, dst, src, len);
+
+CheckasmBenchResult res;
+if (checkasm_bench_result(&res))
+    printf("my_filter: %.1f %ss (%.1f ns)\n", res.cycles, res.unit, res.nsec);
+@endcode
+
 @section bench_methodology Statistical Methodology
 
 @subsection bench_lognormal Log-Normal Distribution Modeling
