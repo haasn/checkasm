@@ -405,6 +405,13 @@ static CheckasmKey checkasm_key_new;
         if (checkasm_bench_func()) {                                                     \
             func_type *const bench_func = (func);                                        \
             checkasm_set_signal_handler_state(1);                                        \
+            {                                                                            \
+                /* Warm up the function before the first timed sample */                 \
+                const int tidx = 0;                                                      \
+                (void) tidx;                                                             \
+                bench_func(__VA_ARGS__);                                                 \
+                checkasm_clear_cpu_state();                                              \
+            }                                                                            \
             for (int truns; (truns = checkasm_bench_runs());) {                          \
                 uint64_t time;                                                           \
                 CHECKASM_PERF_BENCH(truns, time, __VA_ARGS__);                           \
