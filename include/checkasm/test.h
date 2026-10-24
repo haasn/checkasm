@@ -476,6 +476,50 @@ static CheckasmKey checkasm_key_new;
 #define checkasm_alternate(a, b) ((tidx & 1) ? (b) : (a))
 
 /**
+ * @brief Benchmark result, as returned by checkasm_bench_result()
+ *
+ * All values are per function call, with the overhead of the benchmarking
+ * loop already subtracted.
+ *
+ * @since v1.3.0
+ */
+typedef struct CheckasmBenchResult {
+    double      cycles;        /**< Most likely duration, in timer units */
+    double      cycles_stddev; /**< Standard deviation of cycles */
+    double      nsec;          /**< Most likely duration, in nanoseconds */
+    double      nsec_stddev;   /**< Standard deviation of nsec */
+    const char *unit;          /**< Timer unit of cycles (e.g. "cycles", "nsec") */
+} CheckasmBenchResult;
+
+/**
+ * @brief Get the benchmark result of the function currently being tested
+ *
+ * Returns the result accumulated over all checkasm_bench() calls made for
+ * the current function since its checkasm_check_func() call (or since the
+ * last checkasm_bench_reset()).
+ *
+ * @param[out] result Benchmark result
+ * @return Number of measurements (checkasm_bench() calls) the result is
+ *         based on, or 0 if there are none (e.g. because benchmarking is
+ *         disabled)
+ *
+ * @see checkasm_bench(), checkasm_bench_reset()
+ * @since v1.3.0
+ */
+CHECKASM_API int checkasm_bench_result(CheckasmBenchResult *result);
+
+/**
+ * @brief Clear the benchmark results of the function currently being tested
+ *
+ * Discards all results accumulated by previous checkasm_bench() calls for the
+ * current function, including from the final benchmark report.
+ *
+ * @see checkasm_bench(), checkasm_bench_result()
+ * @since v1.3.0
+ */
+CHECKASM_API void checkasm_bench_reset(void);
+
+/**
  * @addtogroup aliases Short-hand Aliases
  * @brief Convenience aliases for common checkasm functions and macros
  *

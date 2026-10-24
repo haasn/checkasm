@@ -631,6 +631,33 @@ void checkasm_bench_finish(void)
     current.cycles = 0;
 }
 
+int checkasm_bench_result(CheckasmBenchResult *const result)
+{
+    const CheckasmFuncVersion *const v = current.func_ver;
+    if (!v->cycles.nb_measurements)
+        return 0;
+
+    const CheckasmVar nop_cycles = checkasm_measurement_result(bench.nop_cycles);
+    const CheckasmVar perf_scale = checkasm_measurement_result(bench.perf_scale);
+    const CheckasmVar raw        = checkasm_measurement_result(v->cycles);
+    const CheckasmVar cycles     = checkasm_var_sub(raw, nop_cycles);
+    const CheckasmVar time       = checkasm_var_mul(cycles, perf_scale);
+
+    *result = (CheckasmBenchResult) {
+        .cycles        = checkasm_mode(cycles),
+        .cycles_stddev = checkasm_stddev(cycles),
+        .nsec          = checkasm_mode(time),
+        .nsec_stddev   = checkasm_stddev(time),
+        .unit          = checkasm_perf.unit,
+    };
+    return v->cycles.nb_measurements;
+}
+
+void checkasm_bench_reset(void)
+{
+    checkasm_measurement_init(&current.func_ver->cycles);
+}
+
 /* Compares a string with a wildcard pattern. */
 static int wildstrcmp(const char *str, const char *pattern)
 {
