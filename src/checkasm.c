@@ -393,7 +393,19 @@ static void print_bench_footer(struct IterState *const iter)
 
     switch (cfg.format) {
     case CHECKASM_FORMAT_TSV:
-    case CHECKASM_FORMAT_CSV: break;
+    case CHECKASM_FORMAT_CSV:
+        if (cfg.verbose) {
+            const char sep = separator(cfg.format);
+            for (int i = 0; i < iter->nb_cpus; i++) {
+                const CpuState *const cpu = &iter->cpus[i];
+                if (!cpu->nb_speedup)
+                    continue;
+                const CheckasmVar speedup = cpu_speedup(cpu);
+                printf("overall_%s%c%c%.4f%c%.5f%c\n", cpu_suffix(cpu->info), sep, sep,
+                       checkasm_mode(speedup), sep, checkasm_stddev(speedup), sep);
+            }
+        }
+        break;
     case CHECKASM_FORMAT_PRETTY:
         if (cfg.verbose) {
             printf(" - average timing error: %.3f%% across %d benchmarks "
