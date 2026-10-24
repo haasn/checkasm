@@ -238,7 +238,9 @@ static void cpu_mask_json(CheckasmJson *json, const CheckasmConfig cfg,
 }
 
 typedef struct CpuState {
-    const CheckasmCpuInfo *info; /* NULL for C */
+    const CheckasmCpuInfo *info;    /* NULL for C */
+    CheckasmVar            speedup; /* product of speedups (vs ref) */
+    int                    nb_speedup;
 } CpuState;
 
 struct IterState {
@@ -250,6 +252,42 @@ struct IterState {
     CpuState *cpus;
     int       nb_cpus;
 };
+
+static CpuState *cpu_state(struct IterState *const iter, const CheckasmCpuInfo *cpu)
+{
+    const int idx = cpu ? (int) (cpu - cfg.cpu_flags) + 1 : 0;
+    return &iter->cpus[idx];
+}
+
+/* Geometric mean of all speedups */
+static CheckasmVar cpu_speedup(const CpuState *cpu)
+{
+    return checkasm_var_pow(cpu->speedup, 1.0 / cpu->nb_speedup);
+}
+
+static void print_speedup(const struct IterState *const iter)
+{
+    int max_len = 0;
+    for (int i = 0; i < iter->nb_cpus; i++) {
+        if (iter->cpus[i].nb_speedup)
+            max_len = imax(max_len, (int) strlen(cpu_suffix(iter->cpus[i].info)));
+    }
+
+    if (!max_len)
+        return;
+
+    checkasm_fprintf(stdout, COLOR_YELLOW, "Overall speedup (geometric mean):\n");
+    for (int i = 0; i < iter->nb_cpus; i++) {
+        const CpuState *const cpu = &iter->cpus[i];
+        if (!cpu->nb_speedup)
+            continue;
+        const char *suffix = cpu_suffix(cpu->info);
+        printf("  %s:%*s", suffix, max_len - (int) strlen(suffix) + 1, "");
+        print_ratio(cpu_speedup(cpu));
+        printf(" across %d function%s\n", cpu->nb_speedup,
+               cpu->nb_speedup == 1 ? "" : "s");
+    }
+}
 
 static void print_bench_header(struct IterState *const iter)
 {
@@ -362,6 +400,7 @@ static void print_bench_footer(struct IterState *const iter)
                    "(maximum %.3f%%)\n",
                    100.0 * err_rel, current.num_benched, 100.0 * err_max);
         }
+        print_speedup(iter);
         break;
     case CHECKASM_FORMAT_HTML:
     case CHECKASM_FORMAT_JSON:
@@ -412,6 +451,12 @@ static void print_bench_iter(const CheckasmFunc *const f, struct IterState *cons
             const CheckasmVar raw_time   = checkasm_var_mul(raw, perf_scale);
             const CheckasmVar time       = checkasm_var_mul(cycles, perf_scale);
             const int         has_ratio  = v != ref && ref->cycles.nb_measurements;
+
+            if (has_ratio) {
+                CpuState *const cpu = cpu_state(iter, v->cpu);
+                cpu->speedup        = checkasm_var_mul(cpu->speedup, ratio);
+                cpu->nb_speedup++;
+            }
 
             switch (cfg.format) {
             case CHECKASM_FORMAT_HTML:
@@ -479,8 +524,10 @@ static void print_benchmarks(void)
         .nb_cpus   = nb_cpus,
     };
 
-    for (int i = 0; i < nb_cpus; i++)
-        iter.cpus[i].info = i ? &cfg.cpu_flags[i - 1] : NULL;
+    for (int i = 0; i < nb_cpus; i++) {
+        iter.cpus[i].info    = i ? &cfg.cpu_flags[i - 1] : NULL;
+        iter.cpus[i].speedup = checkasm_var_const(1.0);
+    }
 
     print_bench_header(&iter);
     print_bench_iter(current.tree.root, &iter);
