@@ -419,6 +419,17 @@ static void print_bench_footer(struct IterState *const iter)
         checkasm_json_pop(json, '}'); /* close functions */
         checkasm_json(json, "averageError", "%g", err_rel);
         checkasm_json(json, "maximumError", "%g", err_max);
+        checkasm_json_push(json, "overallSpeedup", '{');
+        for (int i = 0; i < iter->nb_cpus; i++) {
+            const CpuState *const cpu = &iter->cpus[i];
+            if (!cpu->nb_speedup)
+                continue;
+            checkasm_json_push(json, cpu_suffix(cpu->info), '{');
+            checkasm_json(json, "numFunctions", "%d", cpu->nb_speedup);
+            json_var(json, NULL, NULL, cpu_speedup(cpu));
+            checkasm_json_pop(json, '}');
+        }
+        checkasm_json_pop(json, '}'); /* close overallSpeedup */
         checkasm_json_pop(json, '}'); /* close root */
 
         if (cfg.format == CHECKASM_FORMAT_HTML) {
