@@ -114,8 +114,10 @@ static struct {
     int skip_tests;
 } state;
 
-/* Benchmarking state */
+/* Benchmarking state, persists across checkasm_run() calls */
 static struct {
+    int initialized;
+
     /* Timing code measurements (aggregated over multiple trials) */
     CheckasmMeasurement nop_cycles;
     CheckasmMeasurement perf_scale;
@@ -969,15 +971,18 @@ static void handle_interrupt(void)
 
 static int bench_setup(void)
 {
-    if (checkasm_perf_init())
-        return 1;
+    if (!bench.initialized) {
+        if (checkasm_perf_init())
+            return 1;
 
-    checkasm_perf_warmup();
+        checkasm_perf_warmup();
+
+        checkasm_measurement_init(&bench.nop_cycles);
+        checkasm_measurement_init(&bench.perf_scale);
+        checkasm_measure_perf_scale(&bench.perf_scale);
+    }
 
     checkasm_stats_reset(&stats);
-    checkasm_measurement_init(&bench.nop_cycles);
-    checkasm_measurement_init(&bench.perf_scale);
-    checkasm_measure_perf_scale(&bench.perf_scale);
 
     /* Use the low estimate to compute the number of target cycles, to
      * ensure we reach the required number of cycles with confidence */
@@ -993,6 +998,7 @@ static int bench_setup(void)
 
     bench.target_cycles = (uint64_t) (1e3 * cfg.bench_usec / low_estimate);
     checkasm_measure_nop_cycles(&bench.nop_cycles, bench.target_cycles);
+    bench.initialized = 1;
     return 0;
 }
 
