@@ -237,10 +237,18 @@ static void cpu_mask_json(CheckasmJson *json, const CheckasmConfig cfg,
     checkasm_json_pop(json, ']');
 }
 
+typedef struct CpuState {
+    const CheckasmCpuInfo *info; /* NULL for C */
+} CpuState;
+
 struct IterState {
     const char  *test;
     const char  *report;
     CheckasmJson json;
+
+    /* One entry per CPU flag, plus one for C at index 0 */
+    CpuState *cpus;
+    int       nb_cpus;
 };
 
 static void print_bench_header(struct IterState *const iter)
@@ -461,11 +469,24 @@ static void print_bench_iter(const CheckasmFunc *const f, struct IterState *cons
 
 static void print_benchmarks(void)
 {
-    struct IterState iter = { .json.file = stdout };
+    int nb_cpus = 1;
+    for (const CheckasmCpuInfo *info = cfg.cpu_flags; info->flag; info++)
+        nb_cpus++;
+
+    struct IterState iter = {
+        .json.file = stdout,
+        .cpus      = checkasm_mallocz(nb_cpus * sizeof(CpuState)),
+        .nb_cpus   = nb_cpus,
+    };
+
+    for (int i = 0; i < nb_cpus; i++)
+        iter.cpus[i].info = i ? &cfg.cpu_flags[i - 1] : NULL;
+
     print_bench_header(&iter);
     print_bench_iter(current.tree.root, &iter);
     print_bench_footer(&iter);
     assert(iter.json.level == 0);
+    free(iter.cpus);
 }
 
 /* Decide whether or not the current function needs to be benchmarked */
