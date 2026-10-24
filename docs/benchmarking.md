@@ -371,6 +371,16 @@ filter_avx2: 20.6 cycles    ( 3.15x)
 @endcode
 AVX2 is 46.9 / 20.6 = 2.28× faster than SSE2.
 
+**Overall speedup:**
+@code{.plaintext}
+Overall speedup (geometric mean):
+  sse2: 1.22x across 1 function
+  avx2: 3.15x across 1 function
+@endcode
+The geometric mean of the speedup of all benchmarked functions, per CPU flag.
+This summary is also included in the JSON and HTML reports, and in the CSV
+output with `--verbose` (as `overall_<cpu>` rows).
+
 @subsection interp_regression Regression Detection
 
 Use benchmark results to detect performance regressions:
