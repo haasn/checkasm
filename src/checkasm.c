@@ -477,6 +477,10 @@ int checkasm_bench_runs(void)
     if (stats.nb_samples == CHECKASM_STATS_SAMPLES)
         return 0;
 
+    /* Hard limit on the total runtime, for extremely slow functions */
+    if (stats.nb_samples > 1 && current.cycles / 64 > state.target_cycles)
+        return 0;
+
     /* Try and gather at least 10 samples for statistical validity, even if
      * it means exceeding the time budget */
     if (current.cycles < state.target_cycles || stats.nb_samples < 10)
