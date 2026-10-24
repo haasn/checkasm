@@ -403,6 +403,7 @@ static void print_bench_iter(const CheckasmFunc *const f, struct IterState *cons
             const CheckasmVar ratio      = checkasm_var_div(cycles_ref, cycles);
             const CheckasmVar raw_time   = checkasm_var_mul(raw, perf_scale);
             const CheckasmVar time       = checkasm_var_mul(cycles, perf_scale);
+            const int         has_ratio  = v != ref && ref->cycles.nb_measurements;
 
             switch (cfg.format) {
             case CHECKASM_FORMAT_HTML:
@@ -421,8 +422,8 @@ static void print_bench_iter(const CheckasmFunc *const f, struct IterState *cons
                 json_var(json, "rawTime", "nsec", raw_time);
                 json_var(json, "adjustedCycles", checkasm_perf.unit, cycles);
                 json_var(json, "adjustedTime", "nsec", time);
-                if (v != ref && ref->cycles.nb_measurements)
-                    json_var(json, "ratio", NULL, checkasm_var_div(cycles_ref, cycles));
+                if (has_ratio)
+                    json_var(json, "ratio", NULL, ratio);
                 checkasm_json_pop(json, '}'); /* close version */
                 break;
             case CHECKASM_FORMAT_TSV:
@@ -439,7 +440,7 @@ static void print_bench_iter(const CheckasmFunc *const f, struct IterState *cons
                     printf(" +/- %-7.1f %11.1f ns +/- %-6.1f", checkasm_stddev(cycles),
                            checkasm_mode(time), checkasm_stddev(time));
                 }
-                if (v != ref && ref->cycles.nb_measurements) {
+                if (has_ratio) {
                     printf(" (");
                     print_ratio(ratio);
                     printf(")");
