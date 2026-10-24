@@ -963,6 +963,35 @@ static void handle_interrupt(void)
     }
 }
 
+static int bench_setup(void)
+{
+    if (checkasm_perf_init())
+        return 1;
+
+    checkasm_perf_warmup();
+
+    checkasm_stats_reset(&stats);
+    checkasm_measurement_init(&state.nop_cycles);
+    checkasm_measurement_init(&state.perf_scale);
+    checkasm_measure_perf_scale(&state.perf_scale);
+
+    /* Use the low estimate to compute the number of target cycles, to
+     * ensure we reach the required number of cycles with confidence */
+    const CheckasmVar perf_scale   = checkasm_measurement_result(state.perf_scale);
+    const double      low_estimate = checkasm_sample(perf_scale, -1.0);
+    if (low_estimate <= 0.0) {
+        fprintf(stderr,
+                "checkasm: cycle counter seems to be non-functional "
+                "(invalid timer scale: %.4f %ss/nsec)\n",
+                checkasm_mode(perf_scale), checkasm_perf.unit);
+        return 1;
+    }
+
+    state.target_cycles = (uint64_t) (1e3 * cfg.bench_usec / low_estimate);
+    checkasm_measure_nop_cycles(&state.nop_cycles, state.target_cycles);
+    return 0;
+}
+
 int checkasm_run(const CheckasmConfig *config)
 {
 #if !HAVE_HTML_DATA
@@ -991,32 +1020,8 @@ int checkasm_run(const CheckasmConfig *config)
     if (!cfg.bench_usec)
         cfg.bench_usec = 1000;
 
-    if (cfg.bench) {
-        if (checkasm_perf_init())
-            return 1;
-
-        checkasm_perf_warmup();
-
-        checkasm_stats_reset(&stats);
-        checkasm_measurement_init(&state.nop_cycles);
-        checkasm_measurement_init(&state.perf_scale);
-        checkasm_measure_perf_scale(&state.perf_scale);
-
-        /* Use the low estimate to compute the number of target cycles, to
-         * ensure we reach the required number of cycles with confidence */
-        const CheckasmVar perf_scale   = checkasm_measurement_result(state.perf_scale);
-        const double      low_estimate = checkasm_sample(perf_scale, -1.0);
-        if (low_estimate <= 0.0) {
-            fprintf(stderr,
-                    "checkasm: cycle counter seems to be non-functional "
-                    "(invalid timer scale: %.4f %ss/nsec)\n",
-                    checkasm_mode(perf_scale), checkasm_perf.unit);
-            return 1;
-        }
-
-        state.target_cycles = (uint64_t) (1e3 * cfg.bench_usec / low_estimate);
-        checkasm_measure_nop_cycles(&state.nop_cycles, state.target_cycles);
-    }
+    if (cfg.bench && bench_setup())
+        return 1;
 
     checkasm_init_cpu();
 
