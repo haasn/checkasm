@@ -653,6 +653,7 @@ static int wildstrcmp(const char *str, const char *pattern)
 
 static void handle_interrupt(void);
 static void update_statusline(void);
+static void print_cpu_name(void);
 
 static int test_enabled(const CheckasmTest *test)
 {
@@ -694,6 +695,20 @@ static void check_cpu_flag(const CheckasmCpuInfo *cpu)
         if (checkasm_save_context(checkasm_context)) {
             const char *signal = checkasm_get_last_signal_desc();
             handle_interrupt();
+
+            if (!current.func) {
+                /* Crashed outside of any function being tested, so there is
+                 * nothing to skip when re-running the test; fail it as a whole */
+                if (!current.should_fail) {
+                    print_cpu_name();
+                    LOG_COLOR(COLOR_RED, "FAILURE:");
+                    LOG(" %s (%s)\n", current.test->name, signal);
+                }
+                current.num_checked++;
+                current.num_failed++;
+                goto skip_test;
+            }
+
             checkasm_fail_func("%s", signal);
 
             /* We want to associate this (and any prior) failures with the
@@ -710,6 +725,7 @@ static void check_cpu_flag(const CheckasmCpuInfo *cpu)
         checkasm_srand(cfg.seed);
         current.should_fail = 0; // reset between tests
         test->func();
+    skip_test:
         checkasm_report(NULL); // catch any un-reported functions
 
         if (cfg.bench && !state.skip_tests) {
