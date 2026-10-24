@@ -874,6 +874,21 @@
     ]);
   }
 
+  function mkSpeedupInfo(report) {
+    const rows = Object.entries(report.overallSpeedup).map(([suffix, speedup]) => {
+      const flag = report.cpuFlags[suffix];
+      const n = speedup.numFunctions;
+      const label = elem("span", { title: n + (n === 1 ? " function" : " functions") }, [
+        flag ? flag.name : suffix,
+      ]);
+      return tableEntry(label, fmtRatio, speedup);
+    });
+    return elem("div", { id: "overall-speedup" }, [
+      elem("h2", {}, [elem("a", { href: "#overall-speedup" }, ["overall speedup"])]),
+      mkTable(rows),
+    ]);
+  }
+
   function mkConfigInfo(config) {
     const prettyNames = {
       testPattern:     "Test pattern",
@@ -911,6 +926,8 @@
 
       if (reportJSON.cpuInfo)
         overview.appendChild(mkCpuInfo(reportJSON.cpuInfo));
+      if (reportJSON.overallSpeedup && Object.keys(reportJSON.overallSpeedup).length)
+        overview.appendChild(mkSpeedupInfo(reportJSON));
 
       Object.entries(reportData).forEach(([testName, testData], testNumber) => {
         const tid = slugify([testName]);

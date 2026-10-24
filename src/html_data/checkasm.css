@@ -53,7 +53,7 @@ div.scatter, div.kde {
   content:"\2039";
 }
 
-#cpu-info {
+#cpu-info, #overall-speedup {
   font-size: 90%;
 }
 
