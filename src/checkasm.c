@@ -570,6 +570,14 @@ static void print_benchmarks(void)
     free(iter.cpus);
 }
 
+/* Function version currently being tested, or a pseudo-function for
+ * benchmarks outside of any function being tested */
+static CheckasmFuncVersion *bench_version(void)
+{
+    static CheckasmFuncVersion pseudo;
+    return current.func ? current.func_ver : &pseudo;
+}
+
 /* Decide whether or not the current function needs to be benchmarked */
 int checkasm_bench_func(void)
 {
@@ -614,17 +622,19 @@ void checkasm_bench_update(const int iterations, const uint64_t cycles)
 
 void checkasm_bench_finish(void)
 {
-    CheckasmFuncVersion *const v = current.func_ver;
-    if (v && current.cycles) {
+    CheckasmFuncVersion *const v = bench_version();
+    if (current.cycles) {
         const CheckasmVar cycles = checkasm_stats_estimate(&stats);
 
         /* Accumulate multiple bench_new() calls */
         checkasm_measurement_update(&v->cycles, stats);
 
-        /* Keep track of min/max/avg (log) variance */
-        current.var_sum += cycles.lvar;
-        current.var_max = fmax(current.var_max, cycles.lvar);
-        current.num_benched++;
+        /* Keep track of min/max/avg (log) variance of reported functions */
+        if (current.func) {
+            current.var_sum += cycles.lvar;
+            current.var_max = fmax(current.var_max, cycles.lvar);
+            current.num_benched++;
+        }
     }
 
     checkasm_stats_reset(&stats);
@@ -633,7 +643,7 @@ void checkasm_bench_finish(void)
 
 int checkasm_bench_result(CheckasmBenchResult *const result)
 {
-    const CheckasmFuncVersion *const v = current.func_ver;
+    const CheckasmFuncVersion *const v = bench_version();
     if (!v->cycles.nb_measurements)
         return 0;
 
@@ -655,7 +665,8 @@ int checkasm_bench_result(CheckasmBenchResult *const result)
 
 void checkasm_bench_reset(void)
 {
-    checkasm_measurement_init(&current.func_ver->cycles);
+    CheckasmFuncVersion *const v = bench_version();
+    checkasm_measurement_init(&v->cycles);
 }
 
 /* Compares a string with a wildcard pattern. */

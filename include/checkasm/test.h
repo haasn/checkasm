@@ -398,6 +398,11 @@ static CheckasmKey checkasm_key_new;
  *       benchmarking multiple different input sizes or configurations that
  *       should be reported as a single average figure.
  *
+ * @note This may also be used outside of a checkasm_check_func() block, e.g.
+ *       to benchmark arbitrary code. Such results can be queried and cleared
+ *       with checkasm_bench_result() and checkasm_bench_reset(), but are not
+ *       part of the final benchmark report.
+ *
  * @see checkasm_bench_new(), checkasm_alternate()
  */
 #define checkasm_bench(func, ...)                                                        \
