@@ -110,14 +110,18 @@ static struct {
     int max_report_name_length;
     unsigned test_iter;
 
+    /* Runtime constants */
+    int skip_tests;
+} state;
+
+/* Benchmarking state */
+static struct {
     /* Timing code measurements (aggregated over multiple trials) */
     CheckasmMeasurement nop_cycles;
     CheckasmMeasurement perf_scale;
 
-    /* Runtime constants */
     uint64_t target_cycles;
-    int      skip_tests;
-} state;
+} bench;
 
 CheckasmCpu checkasm_get_cpu_flags(void)
 {
@@ -296,8 +300,8 @@ static void print_speedup(const struct IterState *const iter)
 
 static void print_bench_header(struct IterState *const iter)
 {
-    const CheckasmVar   nop_cycles = checkasm_measurement_result(state.nop_cycles);
-    const CheckasmVar   perf_scale = checkasm_measurement_result(state.perf_scale);
+    const CheckasmVar   nop_cycles = checkasm_measurement_result(bench.nop_cycles);
+    const CheckasmVar   perf_scale = checkasm_measurement_result(bench.perf_scale);
     const CheckasmVar   nop_time   = checkasm_var_mul(nop_cycles, perf_scale);
     CheckasmJson *const json       = &iter->json;
 
@@ -333,7 +337,7 @@ static void print_bench_header(struct IterState *const iter)
         checkasm_json_str(json, "checkasmVersion", CHECKASM_VERSION);
         checkasm_json(json, "numChecked", "%d", current.num_checked);
         checkasm_json(json, "numFailed", "%d", current.num_failed);
-        checkasm_json(json, "targetCycles", "%" PRIu64, state.target_cycles);
+        checkasm_json(json, "targetCycles", "%" PRIu64, bench.target_cycles);
         checkasm_json(json, "numBenchmarks", "%d", current.num_benched);
         checkasm_json_push(json, "config", '{');
         if (cfg.test_pattern)
@@ -365,8 +369,8 @@ static void print_bench_header(struct IterState *const iter)
         checkasm_json_pop(json, ']'); /* close tests */
         char perf_scale_unit[32];
         snprintf(perf_scale_unit, sizeof(perf_scale_unit), "nsec/%s", checkasm_perf.unit);
-        json_measurement(json, "nopCycles", checkasm_perf.unit, state.nop_cycles);
-        json_measurement(json, "timerScale", perf_scale_unit, state.perf_scale);
+        json_measurement(json, "nopCycles", checkasm_perf.unit, bench.nop_cycles);
+        json_measurement(json, "timerScale", perf_scale_unit, bench.perf_scale);
         json_var(json, "nopTime", checkasm_perf.unit, nop_time);
         checkasm_json(json, "numFunctions", "%d", current.num_funcs);
         checkasm_json_push(json, "functions", '{');
@@ -461,8 +465,8 @@ static void print_bench_iter(const CheckasmFunc *const f, struct IterState *cons
 
     const CheckasmFuncVersion *ref        = &f->versions;
     const CheckasmFuncVersion *v          = ref;
-    const CheckasmVar          nop_cycles = checkasm_measurement_result(state.nop_cycles);
-    const CheckasmVar          perf_scale = checkasm_measurement_result(state.perf_scale);
+    const CheckasmVar          nop_cycles = checkasm_measurement_result(bench.nop_cycles);
+    const CheckasmVar          perf_scale = checkasm_measurement_result(bench.perf_scale);
 
     /* Defer pushing the function header until we know that we have at least one
      * benchmark to report */
@@ -580,12 +584,12 @@ int checkasm_bench_runs(void)
         return 0;
 
     /* Hard limit on the total runtime, for extremely slow functions */
-    if (stats.nb_samples > 1 && current.cycles / 64 > state.target_cycles)
+    if (stats.nb_samples > 1 && current.cycles / 64 > bench.target_cycles)
         return 0;
 
     /* Try and gather at least 10 samples for statistical validity, even if
      * it means exceeding the time budget */
-    if (current.cycles < state.target_cycles || stats.nb_samples < 10)
+    if (current.cycles < bench.target_cycles || stats.nb_samples < 10)
         return stats.next_count;
     else
         return 0;
@@ -595,7 +599,7 @@ int checkasm_bench_runs(void)
 void checkasm_bench_update(const int iterations, const uint64_t cycles)
 {
     checkasm_stats_add(&stats, (CheckasmSample) { cycles, iterations });
-    checkasm_stats_count_grow(&stats, cycles, state.target_cycles);
+    checkasm_stats_count_grow(&stats, cycles, bench.target_cycles);
     current.cycles += cycles;
 
     /* Emit this periodically while benchmarking, to avoid the SIMD
@@ -709,9 +713,9 @@ static void check_cpu_flag(const CheckasmCpuInfo *cpu)
         if (cfg.bench && !state.skip_tests) {
             /* Measure NOP and perf scale after each test+CPU flag configuration */
             handle_interrupt();
-            checkasm_measure_nop_cycles(&state.nop_cycles, state.target_cycles);
+            checkasm_measure_nop_cycles(&bench.nop_cycles, bench.target_cycles);
             handle_interrupt();
-            checkasm_measure_perf_scale(&state.perf_scale);
+            checkasm_measure_perf_scale(&bench.perf_scale);
         }
 
         free(current.func_variant);
@@ -882,8 +886,8 @@ static COLD void print_info(void)
     if (cfg.bench) {
         LOG(" - Timing source: %s\n", checkasm_perf.name);
         if (cfg.verbose) {
-            const CheckasmVar perf_scale = checkasm_measurement_result(state.perf_scale);
-            const CheckasmVar nop_cycles = checkasm_measurement_result(state.nop_cycles);
+            const CheckasmVar perf_scale = checkasm_measurement_result(bench.perf_scale);
+            const CheckasmVar nop_cycles = checkasm_measurement_result(bench.nop_cycles);
             const CheckasmVar mhz = checkasm_var_div(checkasm_var_const(1e3), perf_scale);
             LOG(" - Timing resolution: %.4f +/- %.3f ns/%s (%.0f +/- %.1f "
                 "MHz) (provisional)\n",
@@ -895,7 +899,7 @@ static COLD void print_info(void)
                 checkasm_perf.unit);
         }
         LOG(" - Bench duration: %d µs per function (%" PRIu64 " %ss)\n", cfg.bench_usec,
-            state.target_cycles, checkasm_perf.unit);
+            bench.target_cycles, checkasm_perf.unit);
     }
     LOG(" - Random seed: %u\n", cfg.seed);
 }
@@ -971,13 +975,13 @@ static int bench_setup(void)
     checkasm_perf_warmup();
 
     checkasm_stats_reset(&stats);
-    checkasm_measurement_init(&state.nop_cycles);
-    checkasm_measurement_init(&state.perf_scale);
-    checkasm_measure_perf_scale(&state.perf_scale);
+    checkasm_measurement_init(&bench.nop_cycles);
+    checkasm_measurement_init(&bench.perf_scale);
+    checkasm_measure_perf_scale(&bench.perf_scale);
 
     /* Use the low estimate to compute the number of target cycles, to
      * ensure we reach the required number of cycles with confidence */
-    const CheckasmVar perf_scale   = checkasm_measurement_result(state.perf_scale);
+    const CheckasmVar perf_scale   = checkasm_measurement_result(bench.perf_scale);
     const double      low_estimate = checkasm_sample(perf_scale, -1.0);
     if (low_estimate <= 0.0) {
         fprintf(stderr,
@@ -987,8 +991,8 @@ static int bench_setup(void)
         return 1;
     }
 
-    state.target_cycles = (uint64_t) (1e3 * cfg.bench_usec / low_estimate);
-    checkasm_measure_nop_cycles(&state.nop_cycles, state.target_cycles);
+    bench.target_cycles = (uint64_t) (1e3 * cfg.bench_usec / low_estimate);
+    checkasm_measure_nop_cycles(&bench.nop_cycles, bench.target_cycles);
     return 0;
 }
 
